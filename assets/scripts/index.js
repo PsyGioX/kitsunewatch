@@ -74,7 +74,7 @@ class KitsuneWatchApp {
 
     async fetchApiConfig() {
         try {
-            const response = await fetch('/api/config', {
+            const response = await fetch('/api/config.js', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
             });
@@ -168,7 +168,7 @@ class KitsuneWatchApp {
         
         const paths = [
             '/imgs/logo.jpg',
-            '/images/logo.jpg',
+            '/imgs/logo.jpg',
             '/imgs/logo.jpg',
             '/imgs/logo.jpg',
             '/imgs/favicon-32x32.png'

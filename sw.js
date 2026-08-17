@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
     
     if (request.method !== 'GET') return;
     
-    if (url.pathname === '/api/config') {
+    if (url.pathname === '/api/config.js') {
         event.respondWith(fetch(request));
         return;
     }
