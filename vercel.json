@@ -6,7 +6,7 @@
             "use": "@vercel/node"
         },
         {
-            "src": "**/*.{html,css,js,json,png,ico,webmanifest}",
+            "src": "**/*.{html,css,js,json,png,ico,webmanifest,svg}",
             "use": "@vercel/static"
         }
     ],
@@ -14,6 +14,13 @@
         {
             "src": "/api/(.*)",
             "dest": "/api/$1"
+        },
+        {
+            "src": "/sw.js",
+            "headers": {
+                "Cache-Control": "no-cache"
+            },
+            "dest": "/sw.js"
         },
         {
             "src": "/(.*)",

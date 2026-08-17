@@ -1,8 +1,7 @@
-// main.js - Итоговая версия KitsuneWatch с поддержкой Vercel API
+// main.js - Итоговая версия KitsuneWatch
 
 class KitsuneWatchApp {
     constructor() {
-        // API Token будет загружен асинхронно из /api/config
         this.API_TOKEN = this.getApiToken();
         this.API_URL = this.getApiUrl();
         
@@ -15,15 +14,12 @@ class KitsuneWatchApp {
         this.aboutBlock = document.getElementById('aboutVideoBlock');
         this.shareLink = document.getElementById('LInkToVideoForShare');
         
-        // Скрываем плеер и блок результатов изначально
         this.resultsContainer.style.display = 'none';
         this.videoFrame.style.display = 'none';
         this.aboutBlock.style.display = 'none';
         
-        // Создаем placeholder для плеера
         this.createVideoPlaceholder();
         
-        // Новые элементы
         this.tabsContainer = null;
         this.videoListContainer = null;
         this.shareButton = null;
@@ -38,15 +34,12 @@ class KitsuneWatchApp {
         this.activeFilter = 'all';
         this.hasSearched = false;
         this.currentVideo = null;
-        this.searchTimeout = null;
         this.isSearching = false;
         this.isVideoLoading = false;
         
-        // История и избранное
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
         this.favorites = this.loadFromStorage('kitsunewatch_favorites', []);
         
-        // Состояние плеера
         this.playerState = {
             isPlaying: false,
             currentTime: 0,
@@ -63,16 +56,12 @@ class KitsuneWatchApp {
     }
 
     getApiToken() {
-        // Проверяем window (для локальной разработки)
         if (typeof window !== 'undefined' && window.KODIK_API_TOKEN) {
             return window.KODIK_API_TOKEN;
         }
-        
-        // Проверяем process.env (для Node.js)
         if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_TOKEN) {
             return process.env.KODIK_API_TOKEN;
         }
-        
         return null;
     }
 
@@ -80,11 +69,9 @@ class KitsuneWatchApp {
         if (typeof window !== 'undefined' && window.KODIK_API_URL) {
             return window.KODIK_API_URL;
         }
-        
         if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_URL) {
             return process.env.KODIK_API_URL;
         }
-        
         return 'https://kodik-api.com/search';
     }
 
@@ -93,27 +80,26 @@ class KitsuneWatchApp {
             const response = await fetch('/api/config', {
                 method: 'GET',
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
                 }
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
             
             if (data.token) {
                 this.API_TOKEN = data.token;
+                console.log('API токен получен с сервера');
             }
-            
             if (data.apiUrl) {
                 this.API_URL = data.apiUrl;
             }
             
             return data;
         } catch (error) {
-            console.error('Ошибка получения конфигурации API:', error);
+            console.error('Ошибка получения конфигурации:', error);
             return null;
         }
     }
@@ -188,16 +174,13 @@ class KitsuneWatchApp {
             const retryButton = document.getElementById('retryVideoButton');
             if (retryButton) {
                 retryButton.addEventListener('click', () => {
-                    if (this.currentVideo) {
-                        this.loadVideo(this.currentVideo);
-                    }
+                    if (this.currentVideo) this.loadVideo(this.currentVideo);
                 });
             }
         }
     }
 
     async init() {
-        // Получаем конфигурацию API с сервера
         if (!this.API_TOKEN) {
             await this.fetchApiConfig();
         }
@@ -222,30 +205,24 @@ class KitsuneWatchApp {
             this.deferredPrompt = e;
             this.showInstallButton();
         });
-
+        
         window.addEventListener('appinstalled', () => {
             this.hideInstallButton();
-            console.log('KitsuneWatch PWA установлено');
         });
-
-        window.addEventListener('online', () => {
-            this.showNetworkStatus(true);
-        });
-
-        window.addEventListener('offline', () => {
-            this.showNetworkStatus(false);
-        });
-
+        
+        window.addEventListener('online', () => this.showNetworkStatus(true));
+        window.addEventListener('offline', () => this.showNetworkStatus(false));
+        
         this.registerServiceWorker();
     }
 
     async registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             try {
-                const registration = await navigator.serviceWorker.register('/sw.js');
-                console.log('Service Worker зарегистрирован:', registration.scope);
+                await navigator.serviceWorker.register('/sw.js');
+                console.log('Service Worker зарегистрирован');
             } catch (error) {
-                console.error('Ошибка регистрации Service Worker:', error);
+                console.error('Ошибка Service Worker:', error);
             }
         }
     }
@@ -258,27 +235,20 @@ class KitsuneWatchApp {
             this.installButton.addEventListener('click', () => this.installApp());
             
             const header = document.querySelector('.header_menu');
-            if (header) {
-                header.appendChild(this.installButton);
-            }
+            if (header) header.appendChild(this.installButton);
         }
         this.installButton.style.display = 'inline-flex';
     }
 
     hideInstallButton() {
-        if (this.installButton) {
-            this.installButton.style.display = 'none';
-        }
+        if (this.installButton) this.installButton.style.display = 'none';
     }
 
     async installApp() {
         if (this.deferredPrompt) {
             this.deferredPrompt.prompt();
             const result = await this.deferredPrompt.userChoice;
-            if (result.outcome === 'accepted') {
-                console.log('Пользователь установил приложение');
-                this.hideInstallButton();
-            }
+            if (result.outcome === 'accepted') this.hideInstallButton();
             this.deferredPrompt = null;
         }
     }
@@ -294,48 +264,33 @@ class KitsuneWatchApp {
     }
 
     handleURLParams() {
-        const urlParams = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
         
-        if (urlParams.get('search') === 'true') {
-            this.searchInput.focus();
-        }
+        if (params.get('search') === 'true') this.searchInput.focus();
+        if (params.get('favorites') === 'true') this.displayFavorites();
+        if (params.get('history') === 'true') this.displayHistory();
         
-        if (urlParams.get('favorites') === 'true') {
-            this.displayFavorites();
-        }
-        
-        if (urlParams.get('history') === 'true') {
-            this.displayHistory();
-        }
-        
-        if (urlParams.get('share-target')) {
-            this.handleShareTarget();
-        }
-        
-        if (urlParams.get('protocol')) {
-            this.handleProtocolHandler();
-        }
+        if (params.get('share-target')) this.handleShareTarget();
+        if (params.get('protocol')) this.handleProtocolHandler();
     }
 
     handleShareTarget() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const sharedTitle = urlParams.get('title');
-        const sharedText = urlParams.get('text');
+        const params = new URLSearchParams(window.location.search);
+        const title = params.get('title');
+        const text = params.get('text');
         
-        if (sharedTitle || sharedText) {
-            const searchQuery = sharedTitle || sharedText;
-            this.searchInput.value = searchQuery;
+        if (title || text) {
+            this.searchInput.value = title || text;
             this.performSearch();
         }
     }
 
     handleProtocolHandler() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const protocolParam = urlParams.get('protocol');
+        const params = new URLSearchParams(window.location.search);
+        const protocol = params.get('protocol');
         
-        if (protocolParam) {
-            const searchQuery = protocolParam.replace('web+kitsunespace://', '');
-            this.searchInput.value = searchQuery;
+        if (protocol) {
+            this.searchInput.value = protocol.replace('web+kitsunespace://', '');
             this.performSearch();
         }
     }
@@ -407,32 +362,31 @@ class KitsuneWatchApp {
                 </div>
                 <p class="about-project-description">
                     Добро пожаловать на KitsuneWatch — ваш персональный портал в мир аниме!
-                    Кицунэ-хранительница поможет найти любимые тайтлы.
                 </p>
                 <div class="about-project-features">
                     <div class="feature-card">
                         <i class="bi bi-search"></i>
                         <h3>Умный поиск</h3>
-                        <p>Находите любимые аниме по названию, году или типу</p>
+                        <p>Находите любимые аниме по названию</p>
                     </div>
                     <div class="feature-card">
                         <i class="bi bi-collection-play"></i>
                         <h3>HD качество</h3>
-                        <p>Смотрите аниме в высоком качестве с разными озвучками</p>
+                        <p>Смотрите в высоком качестве</p>
                     </div>
                     <div class="feature-card">
                         <i class="bi bi-heart"></i>
                         <h3>Избранное</h3>
-                        <p>Сохраняйте любимые тайтлы и возвращайтесь к ним</p>
+                        <p>Сохраняйте любимые тайтлы</p>
                     </div>
                     <div class="feature-card">
                         <i class="bi bi-clock-history"></i>
                         <h3>История</h3>
-                        <p>Быстрый доступ к недавним поискам</p>
+                        <p>Быстрый доступ к поискам</p>
                     </div>
                 </div>
                 <div class="about-project-cta">
-                    <p>Начните с поиска аниме в поле выше</p>
+                    <p>Начните с поиска аниме</p>
                     <i class="bi bi-arrow-up"></i>
                 </div>
             </div>
@@ -484,11 +438,9 @@ class KitsuneWatchApp {
 
     sanitizeUrl(url) {
         if (!url) return '';
-        const dangerousSchemes = ['javascript:', 'data:', 'vbscript:', 'file:'];
-        const lowerUrl = url.toLowerCase();
-        if (dangerousSchemes.some(scheme => lowerUrl.startsWith(scheme))) {
-            return '';
-        }
+        const dangerous = ['javascript:', 'data:', 'vbscript:', 'file:'];
+        const lower = url.toLowerCase();
+        if (dangerous.some(s => lower.startsWith(s))) return '';
         return url;
     }
 
@@ -500,14 +452,10 @@ class KitsuneWatchApp {
             const response = await fetch(url, {
                 ...options,
                 signal: controller.signal,
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: { 'Accept': 'application/json' }
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             return await response.json();
         } finally {
@@ -530,9 +478,7 @@ class KitsuneWatchApp {
         this.videoListContainer.style.display = 'none';
         this.hideAboutProject();
         
-        if (this.videoContainer) {
-            this.videoContainer.style.display = 'none';
-        }
+        if (this.videoContainer) this.videoContainer.style.display = 'none';
     }
 
     hideLoading() {
@@ -550,10 +496,9 @@ class KitsuneWatchApp {
 
     saveToStorage(key, data) {
         try {
-            const serialized = JSON.stringify(data);
-            localStorage.setItem(key, serialized);
+            localStorage.setItem(key, JSON.stringify(data));
         } catch (e) {
-            console.error('Ошибка сохранения в localStorage:', e);
+            console.error('Ошибка сохранения:', e);
         }
     }
 
@@ -562,24 +507,19 @@ class KitsuneWatchApp {
             const data = localStorage.getItem(key);
             return data ? JSON.parse(data) : defaultValue;
         } catch (e) {
-            console.error('Ошибка загрузки из localStorage:', e);
             return defaultValue;
         }
     }
 
     addToHistory(query) {
-        const cleanQuery = query.trim();
-        if (!cleanQuery) return;
+        const clean = query.trim();
+        if (!clean) return;
         
         this.searchHistory = this.searchHistory.filter(item => 
-            item.query.toLowerCase() !== cleanQuery.toLowerCase()
+            item.query.toLowerCase() !== clean.toLowerCase()
         );
         
-        this.searchHistory.unshift({
-            query: cleanQuery,
-            timestamp: Date.now()
-        });
-        
+        this.searchHistory.unshift({ query: clean, timestamp: Date.now() });
         this.searchHistory = this.searchHistory.slice(0, 10);
         
         this.saveToStorage('kitsunewatch_history', this.searchHistory);
@@ -600,7 +540,6 @@ class KitsuneWatchApp {
 
     displayHistory() {
         if (!this.historyContainer) return;
-        
         this.historyContainer.innerHTML = '';
         
         if (this.searchHistory.length === 0) {
@@ -675,8 +614,6 @@ class KitsuneWatchApp {
                 year: this.currentVideo.year,
                 type: this.currentVideo.type,
                 link: this.currentVideo.link,
-                translation: this.currentVideo.translation,
-                quality: this.currentVideo.quality,
                 addedAt: Date.now()
             });
             this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
@@ -700,7 +637,6 @@ class KitsuneWatchApp {
 
     displayFavorites() {
         if (!this.favoritesContainer) return;
-        
         this.favoritesContainer.innerHTML = '';
         
         if (this.favorites.length === 0) {
@@ -714,42 +650,38 @@ class KitsuneWatchApp {
         const title = document.createElement('h3');
         title.className = 'favorites-title';
         title.innerHTML = '<i class="bi bi-heart-fill"></i> Избранное';
-        
         this.favoritesContainer.appendChild(title);
         
         const favoritesList = document.createElement('div');
         favoritesList.className = 'favorites-list';
         
         this.favorites.forEach(fav => {
-            const favoriteCard = document.createElement('div');
-            favoriteCard.className = 'favorite-card';
+            const card = document.createElement('div');
+            card.className = 'favorite-card';
             
-            const favTitle = document.createElement('span');
-            favTitle.className = 'favorite-card-title';
-            favTitle.textContent = `${fav.title} (${fav.year || 'Год неизвестен'})`;
+            const title = document.createElement('span');
+            title.className = 'favorite-card-title';
+            title.textContent = `${fav.title} (${fav.year || '?'})`;
             
-            const favInfo = document.createElement('span');
-            favInfo.className = 'favorite-card-info';
-            favInfo.textContent = this.getTypeName(fav.type);
+            const type = document.createElement('span');
+            type.className = 'favorite-card-info';
+            type.textContent = this.getTypeName(fav.type);
             
-            const playButton = document.createElement('button');
-            playButton.className = 'favorite-play-button';
-            playButton.innerHTML = '<i class="bi bi-play-fill"></i>';
-            playButton.addEventListener('click', () => {
-                this.playFavorite(fav);
-            });
+            const playBtn = document.createElement('button');
+            playBtn.className = 'favorite-play-button';
+            playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+            playBtn.addEventListener('click', () => this.playFavorite(fav));
             
-            const removeButton = document.createElement('button');
-            removeButton.className = 'favorite-remove-button';
-            removeButton.innerHTML = '<i class="bi bi-x"></i>';
-            removeButton.addEventListener('click', () => this.removeFromFavorites(fav.id));
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'favorite-remove-button';
+            removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+            removeBtn.addEventListener('click', () => this.removeFromFavorites(fav.id));
             
-            favoriteCard.appendChild(favTitle);
-            favoriteCard.appendChild(favInfo);
-            favoriteCard.appendChild(playButton);
-            favoriteCard.appendChild(removeButton);
-            
-            favoritesList.appendChild(favoriteCard);
+            card.appendChild(title);
+            card.appendChild(type);
+            card.appendChild(playBtn);
+            card.appendChild(removeBtn);
+            favoritesList.appendChild(card);
         });
         
         this.favoritesContainer.appendChild(favoritesList);
@@ -763,21 +695,17 @@ class KitsuneWatchApp {
     loadVideo(material) {
         this.currentVideo = material;
         this.isVideoLoading = true;
-        
         this.hideAboutProject();
         
-        this.videoName.textContent = `${material.title || 'Без названия'} (${material.year || 'Год неизвестен'})`;
+        this.videoName.textContent = `${material.title || 'Без названия'} (${material.year || '?'})`;
         this.videoName.style.display = 'block';
         
-        if (this.videoContainer) {
-            this.videoContainer.style.display = 'block';
-        }
-        
+        if (this.videoContainer) this.videoContainer.style.display = 'block';
         this.showVideoPlaceholder();
         
         if (material.link) {
-            const videoUrl = this.sanitizeUrl(material.link);
-            const fullUrl = videoUrl.startsWith('//') ? 'https:' + videoUrl : videoUrl;
+            const url = this.sanitizeUrl(material.link);
+            const fullUrl = url.startsWith('//') ? 'https:' + url : url;
             
             this.videoFrame.src = fullUrl;
             this.videoFrame.setAttribute('allow', 'autoplay *; fullscreen *; picture-in-picture *');
@@ -792,17 +720,15 @@ class KitsuneWatchApp {
         this.shareLink.href = fullShareUrl;
         this.shareLink.textContent = fullShareUrl;
         
-        if (this.shareButton) {
-            this.shareButton.style.display = 'inline-flex';
-        }
+        if (this.shareButton) this.shareButton.style.display = 'inline-flex';
         
         if (this.favoriteButton) {
             this.favoriteButton.style.display = 'inline-flex';
             
             const videoId = material.id || material.link;
-            const isFavorite = this.favorites.some(fav => fav.id === videoId);
+            const isFav = this.favorites.some(fav => fav.id === videoId);
             
-            if (isFavorite) {
+            if (isFav) {
                 this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
                 this.favoriteButton.classList.add('active');
             } else {
@@ -813,25 +739,13 @@ class KitsuneWatchApp {
         
         this.resultsContainer.style.display = 'block';
         this.resultsContainer.classList.add('fade-in');
-        
-        this.playerState = {
-            isPlaying: false,
-            currentTime: 0,
-            duration: 0,
-            volume: 1,
-            isMuted: false,
-            playbackSpeed: 1,
-            currentEpisode: null,
-            currentSeason: null,
-            translation: null
-        };
     }
 
     async performSearch() {
         const query = this.searchInput.value.trim();
         
         if (!query) {
-            this.showError('Введите название аниме или сериала');
+            this.showError('Введите название аниме');
             return;
         }
         
@@ -842,7 +756,7 @@ class KitsuneWatchApp {
         }
         
         if (!this.API_TOKEN) {
-            this.showError('API токен не настроен. Добавьте KODIK_API_TOKEN в Vercel.');
+            this.showError('API токен не настроен');
             return;
         }
         
@@ -851,35 +765,32 @@ class KitsuneWatchApp {
         
         try {
             const safeQuery = this.sanitizeInput(query);
-            const encodedQuery = encodeURIComponent(safeQuery);
-            const url = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodedQuery}&with_material_data=true`;
+            const encoded = encodeURIComponent(safeQuery);
+            const url = `${this.API_URL}?token=${this.API_TOKEN}&title=${encoded}&with_material_data=true`;
             
             const data = await this.fetchWithTimeout(url);
             
             if (data.results && data.results.length > 0) {
                 this.hasSearched = true;
-                const groupedResults = this.groupResultsByTitle(data.results);
-                this.currentResults = groupedResults;
+                const grouped = this.groupResultsByTitle(data.results);
+                this.currentResults = grouped;
                 this.clearErrorMessages();
-                this.displayAllResults(groupedResults);
+                this.displayAllResults(grouped);
                 
                 setTimeout(() => {
                     this.displayHistory();
                     this.displayFavorites();
                 }, 300);
             } else {
-                this.showError('Ничего не найдено по вашему запросу');
+                this.showError('Ничего не найдено');
             }
-            
         } catch (error) {
             console.error('Search error:', error);
             
             if (error.name === 'AbortError') {
-                this.showError('Превышено время ожидания. Попробуйте еще раз.');
-            } else if (error.message.includes('Failed to fetch')) {
-                this.showError('Ошибка подключения к серверу. Проверьте интернет-соединение.');
+                this.showError('Превышено время ожидания');
             } else {
-                this.showError('Произошла ошибка при поиске. Пожалуйста, попробуйте позже.');
+                this.showError('Ошибка при поиске');
             }
         } finally {
             this.hideLoading();
@@ -898,17 +809,14 @@ class KitsuneWatchApp {
                     translations: [{
                         id: result.translation?.id,
                         title: result.translation?.title,
-                        type: result.translation?.type,
                         link: result.link,
                         quality: result.quality
                     }]
                 });
             } else {
-                const existing = grouped.get(key);
-                existing.translations.push({
+                grouped.get(key).translations.push({
                     id: result.translation?.id,
                     title: result.translation?.title,
-                    type: result.translation?.type,
                     link: result.link,
                     quality: result.quality
                 });
@@ -927,15 +835,12 @@ class KitsuneWatchApp {
     createTabs(results) {
         this.tabsContainer.innerHTML = '';
         this.tabsContainer.style.display = 'flex';
-        this.tabsContainer.classList.add('fade-in');
         
         const types = new Map();
         types.set('all', 'Все');
         
-        results.forEach(result => {
-            if (!types.has(result.type)) {
-                types.set(result.type, this.getTypeName(result.type));
-            }
+        results.forEach(r => {
+            if (!types.has(r.type)) types.set(r.type, this.getTypeName(r.type));
         });
         
         types.forEach((name, type) => {
@@ -943,9 +848,7 @@ class KitsuneWatchApp {
             tab.className = 'tab-button';
             tab.dataset.type = type;
             tab.textContent = name;
-            
             if (type === 'all') tab.classList.add('active');
-            
             tab.addEventListener('click', () => this.filterResults(type));
             this.tabsContainer.appendChild(tab);
         });
@@ -954,12 +857,11 @@ class KitsuneWatchApp {
     createVideoList(results) {
         this.videoListContainer.innerHTML = '';
         this.videoListContainer.style.display = 'grid';
-        this.videoListContainer.classList.add('fade-in');
         
-        results.forEach((result) => {
-            const videoCard = document.createElement('div');
-            videoCard.className = 'video-card';
-            videoCard.dataset.type = result.type;
+        results.forEach(result => {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.dataset.type = result.type;
             
             const title = document.createElement('h3');
             title.className = 'video-card-title';
@@ -973,26 +875,25 @@ class KitsuneWatchApp {
             type.className = 'video-card-type';
             type.textContent = this.getTypeName(result.type);
             
-            const translationsCount = document.createElement('span');
-            translationsCount.className = 'video-card-translations-count';
-            translationsCount.innerHTML = `<i class="bi bi-mic"></i> Озвучек: ${result.translations.length}`;
+            const count = document.createElement('span');
+            count.className = 'video-card-translations-count';
+            count.innerHTML = `<i class="bi bi-mic"></i> Озвучек: ${result.translations.length}`;
             
-            const infoContainer = document.createElement('div');
-            infoContainer.className = 'video-card-info';
+            const info = document.createElement('div');
+            info.className = 'video-card-info';
+            info.appendChild(year);
+            info.appendChild(type);
+            info.appendChild(count);
             
-            infoContainer.appendChild(year);
-            infoContainer.appendChild(type);
-            infoContainer.appendChild(translationsCount);
+            card.appendChild(title);
+            card.appendChild(info);
             
-            videoCard.appendChild(title);
-            videoCard.appendChild(infoContainer);
-            
-            videoCard.addEventListener('click', () => {
+            card.addEventListener('click', () => {
                 this.loadVideo(result);
                 this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
             });
             
-            this.videoListContainer.appendChild(videoCard);
+            this.videoListContainer.appendChild(card);
         });
     }
 
@@ -1001,79 +902,39 @@ class KitsuneWatchApp {
         
         const tabs = this.tabsContainer.querySelectorAll('.tab-button');
         tabs.forEach(tab => {
-            if (tab.dataset.type === type) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
+            tab.classList.toggle('active', tab.dataset.type === type);
         });
         
         const cards = this.videoListContainer.querySelectorAll('.video-card');
         cards.forEach(card => {
-            if (type === 'all' || card.dataset.type === type) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
+            card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
         });
     }
 
     displayVideoInfo(material) {
         let info = [];
         
-        if (material.title_orig) {
-            info.push(`Оригинальное название: ${this.sanitizeInput(material.title_orig)}`);
-        }
-        
-        if (material.translation) {
-            info.push(`Озвучка: ${this.sanitizeInput(material.translation.title)}`);
-        }
+        if (material.title_orig) info.push(`Оригинальное название: ${this.sanitizeInput(material.title_orig)}`);
+        if (material.translation) info.push(`Озвучка: ${this.sanitizeInput(material.translation.title)}`);
         
         if (material.translations && material.translations.length > 1) {
             info.push(`\nДоступные озвучки (${material.translations.length}):`);
-            material.translations.forEach((trans, index) => {
-                info.push(`  ${index + 1}. ${this.sanitizeInput(trans.title)} (${this.sanitizeInput(trans.quality)})`);
+            material.translations.forEach((t, i) => {
+                info.push(`  ${i + 1}. ${this.sanitizeInput(t.title)} (${this.sanitizeInput(t.quality)})`);
             });
         }
         
-        if (material.quality) {
-            info.push(`Качество: ${this.sanitizeInput(material.quality)}`);
-        }
-        
-        if (material.type) {
-            info.push(`Тип: ${this.getTypeName(material.type)}`);
-        }
+        if (material.quality) info.push(`Качество: ${this.sanitizeInput(material.quality)}`);
+        if (material.type) info.push(`Тип: ${this.getTypeName(material.type)}`);
         
         if (material.material_data) {
-            const materialData = material.material_data;
-            
-            if (materialData.genres && materialData.genres.length > 0) {
-                info.push(`Жанры: ${materialData.genres.join(', ')}`);
-            }
-            
-            if (materialData.countries && materialData.countries.length > 0) {
-                info.push(`Страны: ${materialData.countries.join(', ')}`);
-            }
-            
-            if (materialData.kinopoisk_rating) {
-                info.push(`Рейтинг КиноПоиск: ${materialData.kinopoisk_rating}`);
-            }
-            
-            if (materialData.imdb_rating) {
-                info.push(`Рейтинг IMDb: ${materialData.imdb_rating}`);
-            }
-            
-            if (materialData.duration) {
-                info.push(`Продолжительность: ${materialData.duration} мин`);
-            }
-            
-            if (materialData.actors && materialData.actors.length > 0) {
-                info.push(`Актеры: ${materialData.actors.slice(0, 5).join(', ')}${materialData.actors.length > 5 ? ' и другие' : ''}`);
-            }
-            
-            if (materialData.description) {
-                info.push(`\nОписание: ${this.sanitizeInput(materialData.description)}`);
-            }
+            const md = material.material_data;
+            if (md.genres?.length) info.push(`Жанры: ${md.genres.join(', ')}`);
+            if (md.countries?.length) info.push(`Страны: ${md.countries.join(', ')}`);
+            if (md.kinopoisk_rating) info.push(`КиноПоиск: ${md.kinopoisk_rating}`);
+            if (md.imdb_rating) info.push(`IMDb: ${md.imdb_rating}`);
+            if (md.duration) info.push(`Длительность: ${md.duration} мин`);
+            if (md.description) info.push(`\nОписание: ${this.sanitizeInput(md.description)}`);
         }
         
         this.videoAbout.textContent = info.join('\n');
@@ -1083,48 +944,33 @@ class KitsuneWatchApp {
     showError(message) {
         this.clearAllResults();
         
-        const errorElement = document.createElement('div');
-        errorElement.className = 'error-message';
-        errorElement.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message}`;
+        const error = document.createElement('div');
+        error.className = 'error-message';
+        error.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message}`;
         
-        this.resultsContainer.appendChild(errorElement);
+        this.resultsContainer.appendChild(error);
         this.resultsContainer.style.display = 'block';
-        this.resultsContainer.classList.add('fade-in');
     }
 
     clearErrorMessages() {
-        const errorMessages = this.resultsContainer.querySelectorAll('.error-message');
-        errorMessages.forEach(el => el.remove());
+        this.resultsContainer.querySelectorAll('.error-message').forEach(el => el.remove());
     }
 
     clearAllResults() {
         this.videoName.textContent = '';
-        this.videoName.style.display = 'none';
-        
         this.videoFrame.src = '';
         this.videoFrame.style.display = 'none';
         
-        if (this.videoContainer) {
-            this.videoContainer.style.display = 'none';
-        }
-        
-        if (this.videoPlaceholder) {
-            this.videoPlaceholder.style.display = 'none';
-        }
+        if (this.videoContainer) this.videoContainer.style.display = 'none';
+        if (this.videoPlaceholder) this.videoPlaceholder.style.display = 'none';
         
         this.videoAbout.textContent = '';
         this.aboutBlock.style.display = 'none';
-        
         this.shareLink.href = '#';
         this.shareLink.textContent = '';
         
-        if (this.shareButton) {
-            this.shareButton.style.display = 'none';
-        }
-        
-        if (this.favoriteButton) {
-            this.favoriteButton.style.display = 'none';
-        }
+        if (this.shareButton) this.shareButton.style.display = 'none';
+        if (this.favoriteButton) this.favoriteButton.style.display = 'none';
         
         this.resultsContainer.style.display = 'none';
         
@@ -1138,109 +984,67 @@ class KitsuneWatchApp {
             this.videoListContainer.innerHTML = '';
         }
         
-        this.clearErrorMessages();
-        
         this.currentResults = [];
         this.hasSearched = false;
         this.currentVideo = null;
-        this.isVideoLoading = false;
     }
 
     getTypeName(type) {
-        const typeMap = {
-            'foreign-movie': 'Зарубежный фильм',
+        const map = {
+            'foreign-movie': 'Фильм',
             'anime': 'Аниме',
-            'russian-movie': 'Российский фильм',
+            'russian-movie': 'Русский фильм',
             'cartoon-serial': 'Мультсериал',
-            'foreign-serial': 'Зарубежный сериал',
+            'foreign-serial': 'Сериал',
             'anime-serial': 'Аниме сериал',
-            'russian-serial': 'Российский сериал',
-            'documentary-serial': 'Документальный сериал',
-            'multi-part-film': 'Многосерийный фильм',
-            'soviet-cartoon': 'Советский мультфильм',
-            'foreign-cartoon': 'Зарубежный мультфильм',
-            'russian-cartoon': 'Российский мультфильм'
+            'russian-serial': 'Русский сериал',
+            'documentary-serial': 'Документальный',
+            'multi-part-film': 'Многосерийный'
         };
-        return typeMap[type] || type;
+        return map[type] || type;
     }
 
     copyShareLink() {
         const link = this.shareLink.href;
+        if (!link || link === '#') return;
         
-        if (link && link !== '#') {
-            if (navigator.share) {
-                navigator.share({
-                    title: this.currentVideo?.title || 'KitsuneWatch',
-                    url: link
-                }).catch(() => {});
-            } else {
-                navigator.clipboard.writeText(link).then(() => {
-                    this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
-                    setTimeout(() => {
-                        this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
-                    }, 2000);
-                }).catch(() => {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = link;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    
-                    this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
-                    setTimeout(() => {
-                        this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
-                    }, 2000);
-                });
-            }
+        if (navigator.share) {
+            navigator.share({
+                title: this.currentVideo?.title || 'KitsuneWatch',
+                url: link
+            }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(link).then(() => {
+                this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
+                setTimeout(() => {
+                    this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
+                }, 2000);
+            });
         }
     }
 
     setupPlayerListener() {
-        if (window.addEventListener) {
-            window.addEventListener('message', (message) => {
-                this.handlePlayerMessage(message);
-            });
-        } else {
-            window.attachEvent('onmessage', (message) => {
-                this.handlePlayerMessage(message);
-            });
-        }
-    }
-
-    handlePlayerMessage(message) {
-        if (!message.data || !message.data.key) return;
-        
-        const { key, value } = message.data;
-        
-        switch (key) {
-            case 'kodik_player_play':
-                this.playerState.isPlaying = true;
-                break;
-            case 'kodik_player_pause':
-                this.playerState.isPlaying = false;
-                break;
-            case 'kodik_player_time_update':
-                this.playerState.currentTime = value;
-                break;
-            case 'kodik_player_duration_update':
-                this.playerState.duration = value;
-                break;
-            case 'kodik_player_volume_change':
-                this.playerState.isMuted = value.muted;
-                this.playerState.volume = value.volume;
-                break;
-        }
+        window.addEventListener('message', (message) => {
+            if (!message.data || !message.data.key) return;
+            
+            const { key, value } = message.data;
+            
+            switch (key) {
+                case 'kodik_player_play': this.playerState.isPlaying = true; break;
+                case 'kodik_player_pause': this.playerState.isPlaying = false; break;
+                case 'kodik_player_time_update': this.playerState.currentTime = value; break;
+                case 'kodik_player_duration_update': this.playerState.duration = value; break;
+                case 'kodik_player_volume_change':
+                    this.playerState.isMuted = value.muted;
+                    this.playerState.volume = value.volume;
+                    break;
+            }
+        });
     }
 
     handleKeyboardShortcuts(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            return;
-        }
-        
-        if (!this.hasSearched || !this.videoFrame.src || !this.videoFrame.src.includes('kodikplayer')) {
-            return;
-        }
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (!this.hasSearched || !this.videoFrame.src) return;
         
         switch (e.key.toLowerCase()) {
             case ' ':
@@ -1248,27 +1052,18 @@ class KitsuneWatchApp {
                 this.togglePlayback();
                 break;
             case 'arrowright':
-                e.preventDefault();
                 this.seekForward(10);
                 break;
             case 'arrowleft':
-                e.preventDefault();
                 this.seekBackward(10);
                 break;
-            case 'm':
-                this.toggleMute();
-                break;
-            case 'f':
-                this.toggleFullscreen();
-                break;
+            case 'm': this.toggleMute(); break;
+            case 'f': this.toggleFullscreen(); break;
         }
     }
 
     sendPlayerCommand(command) {
-        if (!this.videoFrame.contentWindow) {
-            console.error('Плеер не загружен');
-            return;
-        }
+        if (!this.videoFrame.contentWindow) return;
         
         this.videoFrame.contentWindow.postMessage({
             key: "kodik_player_api",
@@ -1277,47 +1072,33 @@ class KitsuneWatchApp {
     }
 
     togglePlayback() {
-        if (this.playerState.isPlaying) {
-            this.pausePlayback();
-        } else {
-            this.startPlayback();
-        }
+        this.playerState.isPlaying ? this.pausePlayback() : this.startPlayback();
     }
 
     startPlayback() { this.sendPlayerCommand({ method: "play" }); }
     pausePlayback() { this.sendPlayerCommand({ method: "pause" }); }
-    seekTo(seconds) { this.sendPlayerCommand({ method: "seek", seconds: seconds }); }
-    seekForward(seconds) { this.seekTo(this.playerState.currentTime + seconds); }
-    seekBackward(seconds) { this.seekTo(Math.max(0, this.playerState.currentTime - seconds)); }
+    seekTo(seconds) { this.sendPlayerCommand({ method: "seek", seconds }); }
+    seekForward(s) { this.seekTo(this.playerState.currentTime + s); }
+    seekBackward(s) { this.seekTo(Math.max(0, this.playerState.currentTime - s)); }
     mutePlayer() { this.sendPlayerCommand({ method: "mute" }); }
     unmutePlayer() { this.sendPlayerCommand({ method: "unmute" }); }
     
     toggleMute() {
-        if (this.playerState.isMuted) {
-            this.unmutePlayer();
-        } else {
-            this.mutePlayer();
-        }
+        this.playerState.isMuted ? this.unmutePlayer() : this.mutePlayer();
     }
     
     toggleFullscreen() {
         if (this.videoFrame.requestFullscreen) {
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                this.videoFrame.requestFullscreen();
-            }
+            document.fullscreenElement ? document.exitFullscreen() : this.videoFrame.requestFullscreen();
         }
     }
 }
 
-// Инициализация приложения
+// Инициализация
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        const app = new KitsuneWatchApp();
-        window.app = app;
+        window.app = new KitsuneWatchApp();
     });
 } else {
-    const app = new KitsuneWatchApp();
-    window.app = app;
+    window.app = new KitsuneWatchApp();
 }
