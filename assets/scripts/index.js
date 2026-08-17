@@ -170,8 +170,8 @@ class KitsuneWatchApp {
             '/imgs/logo.jpg',
             '/images/logo.jpg',
             '/imgs/logo.jpg',
-            '/logo.jpg',
-            '/favicon-32x32.png'
+            '/imgs/logo.jpg',
+            '/imgs/favicon-32x32.png'
         ];
         
         let index = 0;
