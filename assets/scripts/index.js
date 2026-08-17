@@ -1,10 +1,10 @@
-// assets/scripts/index.js - АБСОЛЮТНО ИТОГОВАЯ ВЕРСИЯ KitsuneWatch
-// Дата: 17 августа 2026
-// Версия: 1.0.0
+// assets/scripts/index.js - ПОЛНАЯ ИТОГОВАЯ ВЕРСИЯ KitsuneWatch
+// С прямым API токеном, без env
 
 class KitsuneWatchApp {
     constructor() {
-        // API конфигурация
+        // API конфигурация с прямым токеном
+        this.API_TOKEN = 'a036c8a4c59b43e72e212e4d0388ef7d';
         this.API_URL = 'https://kodik-api.com/search';
         
         // DOM элементы
@@ -138,8 +138,6 @@ class KitsuneWatchApp {
         const paths = [
             '/imgs/logo.svg',
             '/imgs/logo.jpg',
-            '/images/logo.svg',
-            '/logo.svg',
             '/favicon-32x32.png'
         ];
         
@@ -165,7 +163,7 @@ class KitsuneWatchApp {
     }
 
     // ============ ИНИЦИАЛИЗАЦИЯ ============
-    async init() {
+    init() {
         this.createUIElements();
         this.setupLogo();
         this.setupEventListeners();
@@ -214,8 +212,7 @@ class KitsuneWatchApp {
             this.installButton.innerHTML = '<i class="bi bi-download"></i> Установить';
             this.installButton.addEventListener('click', () => this.installApp());
             
-            const header = document.querySelector('.header_menu');
-            if (header) header.appendChild(this.installButton);
+            document.body.appendChild(this.installButton);
         }
         this.installButton.style.display = 'inline-flex';
     }
@@ -691,8 +688,8 @@ class KitsuneWatchApp {
         this.addToHistory(query);
         
         try {
-            // Используем прокси API на Vercel
-            const url = `/api/search?title=${encodeURIComponent(query)}`;
+            // Прямой запрос к Kodik API
+            const url = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true`;
             
             const data = await this.fetchWithTimeout(url);
             
@@ -707,14 +704,19 @@ class KitsuneWatchApp {
                     this.displayHistory();
                     this.displayFavorites();
                 }, 300);
-            } else if (data.error) {
-                this.showError(data.message || 'Ошибка API');
             } else {
                 this.showError('Ничего не найдено');
             }
         } catch (error) {
             console.error('Search error:', error);
-            this.showError('Ошибка при поиске');
+            
+            if (error.name === 'AbortError') {
+                this.showError('Превышено время ожидания');
+            } else if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                this.showError('Ошибка CORS. Попробуйте через VPN или прокси.');
+            } else {
+                this.showError('Ошибка при поиске');
+            }
         } finally {
             this.hideLoading();
         }
