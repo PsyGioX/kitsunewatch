@@ -1,4 +1,4 @@
-// main.js - Итоговая версия KitsuneWatch
+// assets/scripts/index.js - Итоговая версия KitsuneWatch
 
 class KitsuneWatchApp {
     constructor() {
@@ -69,9 +69,6 @@ class KitsuneWatchApp {
         if (typeof window !== 'undefined' && window.KODIK_API_URL) {
             return window.KODIK_API_URL;
         }
-        if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_URL) {
-            return process.env.KODIK_API_URL;
-        }
         return 'https://kodik-api.com/search';
     }
 
@@ -79,10 +76,7 @@ class KitsuneWatchApp {
         try {
             const response = await fetch('/api/config', {
                 method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Cache-Control': 'no-cache'
-                }
+                headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
             });
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -91,15 +85,13 @@ class KitsuneWatchApp {
             
             if (data.token) {
                 this.API_TOKEN = data.token;
-                console.log('API токен получен с сервера');
+                console.log('API токен получен');
             }
-            if (data.apiUrl) {
-                this.API_URL = data.apiUrl;
-            }
+            if (data.apiUrl) this.API_URL = data.apiUrl;
             
             return data;
         } catch (error) {
-            console.error('Ошибка получения конфигурации:', error);
+            console.error('Ошибка конфигурации:', error);
             return null;
         }
     }
@@ -107,22 +99,14 @@ class KitsuneWatchApp {
     createVideoPlaceholder() {
         this.videoContainer = document.createElement('div');
         this.videoContainer.className = 'video-container';
-        this.videoContainer.style.position = 'relative';
-        this.videoContainer.style.width = '100%';
-        this.videoContainer.style.display = 'none';
+        this.videoContainer.style.cssText = 'position:relative;width:100%;display:none;';
         
         this.videoFrame.parentElement.insertBefore(this.videoContainer, this.videoFrame);
         this.videoContainer.appendChild(this.videoFrame);
         
         this.videoPlaceholder = document.createElement('div');
         this.videoPlaceholder.className = 'video-placeholder';
-        this.videoPlaceholder.style.display = 'none';
-        this.videoPlaceholder.style.position = 'absolute';
-        this.videoPlaceholder.style.top = '0';
-        this.videoPlaceholder.style.left = '0';
-        this.videoPlaceholder.style.width = '100%';
-        this.videoPlaceholder.style.height = '100%';
-        this.videoPlaceholder.style.zIndex = '2';
+        this.videoPlaceholder.style.cssText = 'display:none;position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;';
         this.videoPlaceholder.innerHTML = `
             <div class="placeholder-content">
                 <div class="placeholder-spinner"></div>
@@ -164,20 +148,48 @@ class KitsuneWatchApp {
             this.videoPlaceholder.innerHTML = `
                 <div class="placeholder-content">
                     <i class="bi bi-exclamation-triangle placeholder-error"></i>
-                    <div class="placeholder-text">Ошибка загрузки плеера</div>
+                    <div class="placeholder-text">Ошибка загрузки</div>
                     <button class="placeholder-retry-button" id="retryVideoButton">
                         <i class="bi bi-arrow-clockwise"></i> Повторить
                     </button>
                 </div>
             `;
             
-            const retryButton = document.getElementById('retryVideoButton');
-            if (retryButton) {
-                retryButton.addEventListener('click', () => {
-                    if (this.currentVideo) this.loadVideo(this.currentVideo);
-                });
-            }
+            const btn = document.getElementById('retryVideoButton');
+            if (btn) btn.addEventListener('click', () => {
+                if (this.currentVideo) this.loadVideo(this.currentVideo);
+            });
         }
+    }
+
+    setupLogo() {
+        const logoImg = document.querySelector('.logo_img');
+        if (!logoImg) return;
+        
+        const paths = [
+            '/imgs/logo.jpg',
+            '/images/logo.jpg',
+            '/assets/logo.jpg',
+            '/logo.jpg',
+            '/favicon-32x32.png'
+        ];
+        
+        let index = 0;
+        
+        logoImg.onerror = () => {
+            index++;
+            if (index < paths.length) {
+                logoImg.src = paths[index];
+            } else {
+                logoImg.style.display = 'none';
+                const placeholder = logoImg.nextElementSibling;
+                if (placeholder && placeholder.classList.contains('logo_placeholder')) {
+                    placeholder.style.display = 'flex';
+                }
+            }
+        };
+        
+        logoImg.src = paths[0];
     }
 
     async init() {
@@ -186,6 +198,7 @@ class KitsuneWatchApp {
         }
         
         this.createUIElements();
+        this.setupLogo();
         this.setupEventListeners();
         this.setupProtection();
         this.setupPlayerListener();
@@ -206,10 +219,7 @@ class KitsuneWatchApp {
             this.showInstallButton();
         });
         
-        window.addEventListener('appinstalled', () => {
-            this.hideInstallButton();
-        });
-        
+        window.addEventListener('appinstalled', () => this.hideInstallButton());
         window.addEventListener('online', () => this.showNetworkStatus(true));
         window.addEventListener('offline', () => this.showNetworkStatus(false));
         
@@ -220,9 +230,9 @@ class KitsuneWatchApp {
         if ('serviceWorker' in navigator) {
             try {
                 await navigator.serviceWorker.register('/sw.js');
-                console.log('Service Worker зарегистрирован');
-            } catch (error) {
-                console.error('Ошибка Service Worker:', error);
+                console.log('SW зарегистрирован');
+            } catch (e) {
+                console.error('SW ошибка:', e);
             }
         }
     }
@@ -257,42 +267,17 @@ class KitsuneWatchApp {
         const status = document.createElement('div');
         status.className = `network-status ${isOnline ? 'online' : 'offline'}`;
         status.innerHTML = isOnline 
-            ? '<i class="bi bi-wifi"></i> Подключение восстановлено'
-            : '<i class="bi bi-wifi-off"></i> Отсутствует подключение';
+            ? '<i class="bi bi-wifi"></i> Онлайн'
+            : '<i class="bi bi-wifi-off"></i> Офлайн';
         document.body.appendChild(status);
         setTimeout(() => status.remove(), 3000);
     }
 
     handleURLParams() {
         const params = new URLSearchParams(window.location.search);
-        
         if (params.get('search') === 'true') this.searchInput.focus();
         if (params.get('favorites') === 'true') this.displayFavorites();
         if (params.get('history') === 'true') this.displayHistory();
-        
-        if (params.get('share-target')) this.handleShareTarget();
-        if (params.get('protocol')) this.handleProtocolHandler();
-    }
-
-    handleShareTarget() {
-        const params = new URLSearchParams(window.location.search);
-        const title = params.get('title');
-        const text = params.get('text');
-        
-        if (title || text) {
-            this.searchInput.value = title || text;
-            this.performSearch();
-        }
-    }
-
-    handleProtocolHandler() {
-        const params = new URLSearchParams(window.location.search);
-        const protocol = params.get('protocol');
-        
-        if (protocol) {
-            this.searchInput.value = protocol.replace('web+kitsunespace://', '');
-            this.performSearch();
-        }
     }
 
     createUIElements() {
@@ -361,13 +346,13 @@ class KitsuneWatchApp {
                     <h2>KitsuneWatch</h2>
                 </div>
                 <p class="about-project-description">
-                    Добро пожаловать на KitsuneWatch — ваш персональный портал в мир аниме!
+                    Ваш персональный портал в мир аниме!
                 </p>
                 <div class="about-project-features">
                     <div class="feature-card">
                         <i class="bi bi-search"></i>
-                        <h3>Умный поиск</h3>
-                        <p>Находите любимые аниме по названию</p>
+                        <h3>Поиск</h3>
+                        <p>Находите аниме по названию</p>
                     </div>
                     <div class="feature-card">
                         <i class="bi bi-collection-play"></i>
@@ -377,16 +362,16 @@ class KitsuneWatchApp {
                     <div class="feature-card">
                         <i class="bi bi-heart"></i>
                         <h3>Избранное</h3>
-                        <p>Сохраняйте любимые тайтлы</p>
+                        <p>Сохраняйте тайтлы</p>
                     </div>
                     <div class="feature-card">
                         <i class="bi bi-clock-history"></i>
                         <h3>История</h3>
-                        <p>Быстрый доступ к поискам</p>
+                        <p>Быстрый доступ</p>
                     </div>
                 </div>
                 <div class="about-project-cta">
-                    <p>Начните с поиска аниме</p>
+                    <p>Начните поиск</p>
                     <i class="bi bi-arrow-up"></i>
                 </div>
             </div>
@@ -394,9 +379,7 @@ class KitsuneWatchApp {
     }
 
     hideAboutProject() {
-        if (this.aboutProjectContainer) {
-            this.aboutProjectContainer.style.display = 'none';
-        }
+        if (this.aboutProjectContainer) this.aboutProjectContainer.style.display = 'none';
     }
 
     setupEventListeners() {
@@ -417,9 +400,7 @@ class KitsuneWatchApp {
     }
 
     setupProtection() {
-        if (window.top !== window.self) {
-            window.top.location = window.self.location;
-        }
+        if (window.top !== window.self) window.top.location = window.self.location;
         
         if (this.videoFrame) {
             this.videoFrame.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -439,24 +420,20 @@ class KitsuneWatchApp {
     sanitizeUrl(url) {
         if (!url) return '';
         const dangerous = ['javascript:', 'data:', 'vbscript:', 'file:'];
-        const lower = url.toLowerCase();
-        if (dangerous.some(s => lower.startsWith(s))) return '';
+        if (dangerous.some(s => url.toLowerCase().startsWith(s))) return '';
         return url;
     }
 
-    async fetchWithTimeout(url, options = {}, timeout = 10000) {
+    async fetchWithTimeout(url, timeout = 10000) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         
         try {
             const response = await fetch(url, {
-                ...options,
                 signal: controller.signal,
                 headers: { 'Accept': 'application/json' }
             });
-            
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
             return await response.json();
         } finally {
             clearTimeout(timeoutId);
@@ -477,7 +454,6 @@ class KitsuneWatchApp {
         this.tabsContainer.style.display = 'none';
         this.videoListContainer.style.display = 'none';
         this.hideAboutProject();
-        
         if (this.videoContainer) this.videoContainer.style.display = 'none';
     }
 
@@ -488,37 +464,26 @@ class KitsuneWatchApp {
         
         if (this.loadingOverlay) {
             this.loadingOverlay.classList.remove('active');
-            setTimeout(() => {
-                this.loadingOverlay.style.display = 'none';
-            }, 300);
+            setTimeout(() => this.loadingOverlay.style.display = 'none', 300);
         }
     }
 
     saveToStorage(key, data) {
-        try {
-            localStorage.setItem(key, JSON.stringify(data));
-        } catch (e) {
-            console.error('Ошибка сохранения:', e);
-        }
+        try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
     }
 
     loadFromStorage(key, defaultValue) {
         try {
             const data = localStorage.getItem(key);
             return data ? JSON.parse(data) : defaultValue;
-        } catch (e) {
-            return defaultValue;
-        }
+        } catch (e) { return defaultValue; }
     }
 
     addToHistory(query) {
         const clean = query.trim();
         if (!clean) return;
         
-        this.searchHistory = this.searchHistory.filter(item => 
-            item.query.toLowerCase() !== clean.toLowerCase()
-        );
-        
+        this.searchHistory = this.searchHistory.filter(i => i.query.toLowerCase() !== clean.toLowerCase());
         this.searchHistory.unshift({ query: clean, timestamp: Date.now() });
         this.searchHistory = this.searchHistory.slice(0, 10);
         
@@ -527,14 +492,14 @@ class KitsuneWatchApp {
     }
 
     removeFromHistory(query) {
-        this.searchHistory = this.searchHistory.filter(item => item.query !== query);
+        this.searchHistory = this.searchHistory.filter(i => i.query !== query);
         this.saveToStorage('kitsunewatch_history', this.searchHistory);
         this.displayHistory();
     }
 
     clearHistory() {
         this.searchHistory = [];
-        this.saveToStorage('kitsunewatch_history', this.searchHistory);
+        this.saveToStorage('kitsunewatch_history', []);
         this.displayHistory();
     }
 
@@ -548,63 +513,62 @@ class KitsuneWatchApp {
         }
         
         this.historyContainer.style.display = 'block';
-        this.historyContainer.classList.add('fade-in');
         
         const title = document.createElement('h3');
         title.className = 'history-title';
-        title.innerHTML = '<i class="bi bi-clock-history"></i> История поиска';
+        title.innerHTML = '<i class="bi bi-clock-history"></i> История';
         
-        const clearButton = document.createElement('button');
-        clearButton.className = 'clear-history-button';
-        clearButton.innerHTML = '<i class="bi bi-trash"></i> Очистить';
-        clearButton.addEventListener('click', () => this.clearHistory());
+        const clearBtn = document.createElement('button');
+        clearBtn.className = 'clear-history-button';
+        clearBtn.innerHTML = '<i class="bi bi-trash"></i> Очистить';
+        clearBtn.addEventListener('click', () => this.clearHistory());
         
-        const titleContainer = document.createElement('div');
-        titleContainer.className = 'history-title-container';
-        titleContainer.appendChild(title);
-        titleContainer.appendChild(clearButton);
+        const container = document.createElement('div');
+        container.className = 'history-title-container';
+        container.appendChild(title);
+        container.appendChild(clearBtn);
         
-        this.historyContainer.appendChild(titleContainer);
+        this.historyContainer.appendChild(container);
         
-        const historyList = document.createElement('div');
-        historyList.className = 'history-list';
+        const list = document.createElement('div');
+        list.className = 'history-list';
         
         this.searchHistory.forEach(item => {
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
+            const div = document.createElement('div');
+            div.className = 'history-item';
             
-            const querySpan = document.createElement('span');
-            querySpan.className = 'history-query';
-            querySpan.textContent = item.query;
-            querySpan.addEventListener('click', () => {
+            const span = document.createElement('span');
+            span.className = 'history-query';
+            span.textContent = item.query;
+            span.addEventListener('click', () => {
                 this.searchInput.value = item.query;
                 this.performSearch();
             });
             
-            const removeButton = document.createElement('button');
-            removeButton.className = 'remove-history-button';
-            removeButton.innerHTML = '<i class="bi bi-x"></i>';
-            removeButton.addEventListener('click', (e) => {
+            const remove = document.createElement('button');
+            remove.className = 'remove-history-button';
+            remove.innerHTML = '<i class="bi bi-x"></i>';
+            remove.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.removeFromHistory(item.query);
             });
             
-            historyItem.appendChild(querySpan);
-            historyItem.appendChild(removeButton);
-            historyList.appendChild(historyItem);
+            div.appendChild(span);
+            div.appendChild(remove);
+            list.appendChild(div);
         });
         
-        this.historyContainer.appendChild(historyList);
+        this.historyContainer.appendChild(list);
     }
 
     toggleFavorite() {
         if (!this.currentVideo) return;
         
         const videoId = this.currentVideo.id || this.currentVideo.link;
-        const isFavorite = this.favorites.some(fav => fav.id === videoId);
+        const isFav = this.favorites.some(f => f.id === videoId);
         
-        if (isFavorite) {
-            this.favorites = this.favorites.filter(fav => fav.id !== videoId);
+        if (isFav) {
+            this.favorites = this.favorites.filter(f => f.id !== videoId);
             this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
             this.favoriteButton.classList.remove('active');
         } else {
@@ -625,7 +589,7 @@ class KitsuneWatchApp {
     }
 
     removeFromFavorites(videoId) {
-        this.favorites = this.favorites.filter(fav => fav.id !== videoId);
+        this.favorites = this.favorites.filter(f => f.id !== videoId);
         this.saveToStorage('kitsunewatch_favorites', this.favorites);
         this.displayFavorites();
         
@@ -645,46 +609,45 @@ class KitsuneWatchApp {
         }
         
         this.favoritesContainer.style.display = 'block';
-        this.favoritesContainer.classList.add('fade-in');
         
         const title = document.createElement('h3');
         title.className = 'favorites-title';
         title.innerHTML = '<i class="bi bi-heart-fill"></i> Избранное';
         this.favoritesContainer.appendChild(title);
         
-        const favoritesList = document.createElement('div');
-        favoritesList.className = 'favorites-list';
+        const list = document.createElement('div');
+        list.className = 'favorites-list';
         
         this.favorites.forEach(fav => {
             const card = document.createElement('div');
             card.className = 'favorite-card';
             
-            const title = document.createElement('span');
-            title.className = 'favorite-card-title';
-            title.textContent = `${fav.title} (${fav.year || '?'})`;
+            const t = document.createElement('span');
+            t.className = 'favorite-card-title';
+            t.textContent = `${fav.title} (${fav.year || '?'})`;
             
             const type = document.createElement('span');
             type.className = 'favorite-card-info';
             type.textContent = this.getTypeName(fav.type);
             
-            const playBtn = document.createElement('button');
-            playBtn.className = 'favorite-play-button';
-            playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-            playBtn.addEventListener('click', () => this.playFavorite(fav));
+            const play = document.createElement('button');
+            play.className = 'favorite-play-button';
+            play.innerHTML = '<i class="bi bi-play-fill"></i>';
+            play.addEventListener('click', () => this.playFavorite(fav));
             
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'favorite-remove-button';
-            removeBtn.innerHTML = '<i class="bi bi-x"></i>';
-            removeBtn.addEventListener('click', () => this.removeFromFavorites(fav.id));
+            const remove = document.createElement('button');
+            remove.className = 'favorite-remove-button';
+            remove.innerHTML = '<i class="bi bi-x"></i>';
+            remove.addEventListener('click', () => this.removeFromFavorites(fav.id));
             
-            card.appendChild(title);
+            card.appendChild(t);
             card.appendChild(type);
-            card.appendChild(playBtn);
-            card.appendChild(removeBtn);
-            favoritesList.appendChild(card);
+            card.appendChild(play);
+            card.appendChild(remove);
+            list.appendChild(card);
         });
         
-        this.favoritesContainer.appendChild(favoritesList);
+        this.favoritesContainer.appendChild(list);
     }
 
     playFavorite(favorite) {
@@ -706,7 +669,6 @@ class KitsuneWatchApp {
         if (material.link) {
             const url = this.sanitizeUrl(material.link);
             const fullUrl = url.startsWith('//') ? 'https:' + url : url;
-            
             this.videoFrame.src = fullUrl;
             this.videoFrame.setAttribute('allow', 'autoplay *; fullscreen *; picture-in-picture *');
             this.videoFrame.setAttribute('allowfullscreen', 'true');
@@ -716,17 +678,14 @@ class KitsuneWatchApp {
         
         const shareUrl = this.sanitizeUrl(material.link);
         const fullShareUrl = shareUrl.startsWith('//') ? 'https:' + shareUrl : shareUrl;
-        
         this.shareLink.href = fullShareUrl;
-        this.shareLink.textContent = fullShareUrl;
         
         if (this.shareButton) this.shareButton.style.display = 'inline-flex';
         
         if (this.favoriteButton) {
             this.favoriteButton.style.display = 'inline-flex';
-            
             const videoId = material.id || material.link;
-            const isFav = this.favorites.some(fav => fav.id === videoId);
+            const isFav = this.favorites.some(f => f.id === videoId);
             
             if (isFav) {
                 this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
@@ -738,23 +697,17 @@ class KitsuneWatchApp {
         }
         
         this.resultsContainer.style.display = 'block';
-        this.resultsContainer.classList.add('fade-in');
     }
 
     async performSearch() {
         const query = this.searchInput.value.trim();
-        
         if (!query) {
             this.showError('Введите название аниме');
             return;
         }
-        
         if (this.isSearching) return;
         
-        if (!this.API_TOKEN) {
-            await this.fetchApiConfig();
-        }
-        
+        if (!this.API_TOKEN) await this.fetchApiConfig();
         if (!this.API_TOKEN) {
             this.showError('API токен не настроен');
             return;
@@ -764,13 +717,12 @@ class KitsuneWatchApp {
         this.addToHistory(query);
         
         try {
-            const safeQuery = this.sanitizeInput(query);
-            const encoded = encodeURIComponent(safeQuery);
+            const encoded = encodeURIComponent(this.sanitizeInput(query));
             const url = `${this.API_URL}?token=${this.API_TOKEN}&title=${encoded}&with_material_data=true`;
             
             const data = await this.fetchWithTimeout(url);
             
-            if (data.results && data.results.length > 0) {
+            if (data.results?.length > 0) {
                 this.hasSearched = true;
                 const grouped = this.groupResultsByTitle(data.results);
                 this.currentResults = grouped;
@@ -786,12 +738,7 @@ class KitsuneWatchApp {
             }
         } catch (error) {
             console.error('Search error:', error);
-            
-            if (error.name === 'AbortError') {
-                this.showError('Превышено время ожидания');
-            } else {
-                this.showError('Ошибка при поиске');
-            }
+            this.showError('Ошибка при поиске');
         } finally {
             this.hideLoading();
         }
@@ -838,7 +785,6 @@ class KitsuneWatchApp {
         
         const types = new Map();
         types.set('all', 'Все');
-        
         results.forEach(r => {
             if (!types.has(r.type)) types.set(r.type, this.getTypeName(r.type));
         });
@@ -877,7 +823,7 @@ class KitsuneWatchApp {
             
             const count = document.createElement('span');
             count.className = 'video-card-translations-count';
-            count.innerHTML = `<i class="bi bi-mic"></i> Озвучек: ${result.translations.length}`;
+            count.innerHTML = `<i class="bi bi-mic"></i> ${result.translations.length}`;
             
             const info = document.createElement('div');
             info.className = 'video-card-info';
@@ -887,7 +833,6 @@ class KitsuneWatchApp {
             
             card.appendChild(title);
             card.appendChild(info);
-            
             card.addEventListener('click', () => {
                 this.loadVideo(result);
                 this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
@@ -900,13 +845,11 @@ class KitsuneWatchApp {
     filterResults(type) {
         this.activeFilter = type;
         
-        const tabs = this.tabsContainer.querySelectorAll('.tab-button');
-        tabs.forEach(tab => {
+        this.tabsContainer.querySelectorAll('.tab-button').forEach(tab => {
             tab.classList.toggle('active', tab.dataset.type === type);
         });
         
-        const cards = this.videoListContainer.querySelectorAll('.video-card');
-        cards.forEach(card => {
+        this.videoListContainer.querySelectorAll('.video-card').forEach(card => {
             card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
         });
     }
@@ -914,27 +857,26 @@ class KitsuneWatchApp {
     displayVideoInfo(material) {
         let info = [];
         
-        if (material.title_orig) info.push(`Оригинальное название: ${this.sanitizeInput(material.title_orig)}`);
+        if (material.title_orig) info.push(`Оригинальное: ${this.sanitizeInput(material.title_orig)}`);
         if (material.translation) info.push(`Озвучка: ${this.sanitizeInput(material.translation.title)}`);
         
-        if (material.translations && material.translations.length > 1) {
-            info.push(`\nДоступные озвучки (${material.translations.length}):`);
+        if (material.translations?.length > 1) {
+            info.push(`\nОзвучки (${material.translations.length}):`);
             material.translations.forEach((t, i) => {
-                info.push(`  ${i + 1}. ${this.sanitizeInput(t.title)} (${this.sanitizeInput(t.quality)})`);
+                info.push(`  ${i + 1}. ${this.sanitizeInput(t.title)}`);
             });
         }
         
         if (material.quality) info.push(`Качество: ${this.sanitizeInput(material.quality)}`);
         if (material.type) info.push(`Тип: ${this.getTypeName(material.type)}`);
         
-        if (material.material_data) {
-            const md = material.material_data;
+        const md = material.material_data;
+        if (md) {
             if (md.genres?.length) info.push(`Жанры: ${md.genres.join(', ')}`);
             if (md.countries?.length) info.push(`Страны: ${md.countries.join(', ')}`);
             if (md.kinopoisk_rating) info.push(`КиноПоиск: ${md.kinopoisk_rating}`);
             if (md.imdb_rating) info.push(`IMDb: ${md.imdb_rating}`);
-            if (md.duration) info.push(`Длительность: ${md.duration} мин`);
-            if (md.description) info.push(`\nОписание: ${this.sanitizeInput(md.description)}`);
+            if (md.description) info.push(`\n${this.sanitizeInput(md.description)}`);
         }
         
         this.videoAbout.textContent = info.join('\n');
@@ -943,11 +885,9 @@ class KitsuneWatchApp {
 
     showError(message) {
         this.clearAllResults();
-        
         const error = document.createElement('div');
         error.className = 'error-message';
         error.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message}`;
-        
         this.resultsContainer.appendChild(error);
         this.resultsContainer.style.display = 'block';
     }
@@ -960,30 +900,16 @@ class KitsuneWatchApp {
         this.videoName.textContent = '';
         this.videoFrame.src = '';
         this.videoFrame.style.display = 'none';
-        
         if (this.videoContainer) this.videoContainer.style.display = 'none';
         if (this.videoPlaceholder) this.videoPlaceholder.style.display = 'none';
-        
         this.videoAbout.textContent = '';
         this.aboutBlock.style.display = 'none';
         this.shareLink.href = '#';
-        this.shareLink.textContent = '';
-        
         if (this.shareButton) this.shareButton.style.display = 'none';
         if (this.favoriteButton) this.favoriteButton.style.display = 'none';
-        
         this.resultsContainer.style.display = 'none';
-        
-        if (this.tabsContainer) {
-            this.tabsContainer.style.display = 'none';
-            this.tabsContainer.innerHTML = '';
-        }
-        
-        if (this.videoListContainer) {
-            this.videoListContainer.style.display = 'none';
-            this.videoListContainer.innerHTML = '';
-        }
-        
+        if (this.tabsContainer) { this.tabsContainer.style.display = 'none'; this.tabsContainer.innerHTML = ''; }
+        if (this.videoListContainer) { this.videoListContainer.style.display = 'none'; this.videoListContainer.innerHTML = ''; }
         this.currentResults = [];
         this.hasSearched = false;
         this.currentVideo = null;
@@ -1025,8 +951,7 @@ class KitsuneWatchApp {
 
     setupPlayerListener() {
         window.addEventListener('message', (message) => {
-            if (!message.data || !message.data.key) return;
-            
+            if (!message.data?.key) return;
             const { key, value } = message.data;
             
             switch (key) {
@@ -1047,16 +972,9 @@ class KitsuneWatchApp {
         if (!this.hasSearched || !this.videoFrame.src) return;
         
         switch (e.key.toLowerCase()) {
-            case ' ':
-                e.preventDefault();
-                this.togglePlayback();
-                break;
-            case 'arrowright':
-                this.seekForward(10);
-                break;
-            case 'arrowleft':
-                this.seekBackward(10);
-                break;
+            case ' ': e.preventDefault(); this.togglePlayback(); break;
+            case 'arrowright': this.seekForward(10); break;
+            case 'arrowleft': this.seekBackward(10); break;
             case 'm': this.toggleMute(); break;
             case 'f': this.toggleFullscreen(); break;
         }
@@ -1064,7 +982,6 @@ class KitsuneWatchApp {
 
     sendPlayerCommand(command) {
         if (!this.videoFrame.contentWindow) return;
-        
         this.videoFrame.contentWindow.postMessage({
             key: "kodik_player_api",
             value: command
