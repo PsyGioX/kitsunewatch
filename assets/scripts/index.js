@@ -1,10 +1,13 @@
-// assets/scripts/index.js - Итоговая версия KitsuneWatch
+// assets/scripts/index.js - АБСОЛЮТНО ИТОГОВАЯ ВЕРСИЯ KitsuneWatch
+// Дата: 17 августа 2026
+// Версия: 1.0.0
 
 class KitsuneWatchApp {
     constructor() {
-        this.API_TOKEN = this.getApiToken();
-        this.API_URL = this.getApiUrl();
+        // API конфигурация
+        this.API_URL = 'https://kodik-api.com/search';
         
+        // DOM элементы
         this.searchInput = document.querySelector('.search_input_query');
         this.searchButton = document.querySelector('.search_push');
         this.resultsContainer = document.getElementById('resultsParseVideosBlock');
@@ -14,12 +17,15 @@ class KitsuneWatchApp {
         this.aboutBlock = document.getElementById('aboutVideoBlock');
         this.shareLink = document.getElementById('LInkToVideoForShare');
         
+        // Скрываем начальные элементы
         this.resultsContainer.style.display = 'none';
         this.videoFrame.style.display = 'none';
         this.aboutBlock.style.display = 'none';
         
+        // Создаем placeholder
         this.createVideoPlaceholder();
         
+        // Состояние приложения
         this.tabsContainer = null;
         this.videoListContainer = null;
         this.shareButton = null;
@@ -37,9 +43,11 @@ class KitsuneWatchApp {
         this.isSearching = false;
         this.isVideoLoading = false;
         
+        // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
         this.favorites = this.loadFromStorage('kitsunewatch_favorites', []);
         
+        // Состояние плеера
         this.playerState = {
             isPlaying: false,
             currentTime: 0,
@@ -55,47 +63,7 @@ class KitsuneWatchApp {
         this.init();
     }
 
-    getApiToken() {
-        if (typeof window !== 'undefined' && window.KODIK_API_TOKEN) {
-            return window.KODIK_API_TOKEN;
-        }
-        if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_TOKEN) {
-            return process.env.KODIK_API_TOKEN;
-        }
-        return null;
-    }
-
-    getApiUrl() {
-        if (typeof window !== 'undefined' && window.KODIK_API_URL) {
-            return window.KODIK_API_URL;
-        }
-        return 'https://kodik-api.com/search';
-    }
-
-    async fetchApiConfig() {
-        try {
-            const response = await fetch('/api/config.js', {
-                method: 'GET',
-                headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' }
-            });
-            
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
-            const data = await response.json();
-            
-            if (data.token) {
-                this.API_TOKEN = data.token;
-                console.log('API токен получен');
-            }
-            if (data.apiUrl) this.API_URL = data.apiUrl;
-            
-            return data;
-        } catch (error) {
-            console.error('Ошибка конфигурации:', error);
-            return null;
-        }
-    }
-
+    // ============ ВИДЕО PLACEHOLDER ============
     createVideoPlaceholder() {
         this.videoContainer = document.createElement('div');
         this.videoContainer.className = 'video-container';
@@ -162,16 +130,17 @@ class KitsuneWatchApp {
         }
     }
 
+    // ============ ЛОГОТИП ============
     setupLogo() {
         const logoImg = document.querySelector('.logo_img');
         if (!logoImg) return;
         
         const paths = [
+            '/imgs/logo.svg',
             '/imgs/logo.jpg',
-            '/imgs/logo.jpg',
-            '/imgs/logo.jpg',
-            '/imgs/logo.jpg',
-            '/imgs/favicon-32x32.png'
+            '/images/logo.svg',
+            '/logo.svg',
+            '/favicon-32x32.png'
         ];
         
         let index = 0;
@@ -182,9 +151,12 @@ class KitsuneWatchApp {
                 logoImg.src = paths[index];
             } else {
                 logoImg.style.display = 'none';
-                const placeholder = logoImg.nextElementSibling;
-                if (placeholder && placeholder.classList.contains('logo_placeholder')) {
-                    placeholder.style.display = 'flex';
+                const parent = logoImg.parentElement;
+                if (parent) {
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-stars logo-fallback';
+                    icon.style.cssText = 'font-size:24px;color:#b44dff;';
+                    parent.insertBefore(icon, logoImg.nextSibling);
                 }
             }
         };
@@ -192,11 +164,8 @@ class KitsuneWatchApp {
         logoImg.src = paths[0];
     }
 
+    // ============ ИНИЦИАЛИЗАЦИЯ ============
     async init() {
-        if (!this.API_TOKEN) {
-            await this.fetchApiConfig();
-        }
-        
         this.createUIElements();
         this.setupLogo();
         this.setupEventListeners();
@@ -212,6 +181,7 @@ class KitsuneWatchApp {
         }, 500);
     }
 
+    // ============ PWA ============
     setupPWA() {
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -280,6 +250,7 @@ class KitsuneWatchApp {
         if (params.get('history') === 'true') this.displayHistory();
     }
 
+    // ============ UI ЭЛЕМЕНТЫ ============
     createUIElements() {
         this.tabsContainer = document.createElement('div');
         this.tabsContainer.className = 'video-tabs';
@@ -382,6 +353,7 @@ class KitsuneWatchApp {
         if (this.aboutProjectContainer) this.aboutProjectContainer.style.display = 'none';
     }
 
+    // ============ СОБЫТИЯ ============
     setupEventListeners() {
         this.searchButton.addEventListener('click', () => this.performSearch());
         
@@ -410,6 +382,7 @@ class KitsuneWatchApp {
         }
     }
 
+    // ============ БЕЗОПАСНОСТЬ ============
     sanitizeInput(input) {
         if (!input) return '';
         const div = document.createElement('div');
@@ -424,6 +397,7 @@ class KitsuneWatchApp {
         return url;
     }
 
+    // ============ FETCH ============
     async fetchWithTimeout(url, timeout = 10000) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -440,6 +414,7 @@ class KitsuneWatchApp {
         }
     }
 
+    // ============ ЗАГРУЗКА ============
     showLoading() {
         this.isSearching = true;
         this.searchButton.disabled = true;
@@ -468,6 +443,7 @@ class KitsuneWatchApp {
         }
     }
 
+    // ============ localStorage ============
     saveToStorage(key, data) {
         try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
     }
@@ -479,6 +455,7 @@ class KitsuneWatchApp {
         } catch (e) { return defaultValue; }
     }
 
+    // ============ ИСТОРИЯ ============
     addToHistory(query) {
         const clean = query.trim();
         if (!clean) return;
@@ -561,6 +538,7 @@ class KitsuneWatchApp {
         this.historyContainer.appendChild(list);
     }
 
+    // ============ ИЗБРАННОЕ ============
     toggleFavorite() {
         if (!this.currentVideo) return;
         
@@ -655,6 +633,7 @@ class KitsuneWatchApp {
         this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ============ ВИДЕО ============
     loadVideo(material) {
         this.currentVideo = material;
         this.isVideoLoading = true;
@@ -699,6 +678,7 @@ class KitsuneWatchApp {
         this.resultsContainer.style.display = 'block';
     }
 
+    // ============ ПОИСК ============
     async performSearch() {
         const query = this.searchInput.value.trim();
         if (!query) {
@@ -707,18 +687,12 @@ class KitsuneWatchApp {
         }
         if (this.isSearching) return;
         
-        if (!this.API_TOKEN) await this.fetchApiConfig();
-        if (!this.API_TOKEN) {
-            this.showError('API токен не настроен');
-            return;
-        }
-        
         this.showLoading();
         this.addToHistory(query);
         
         try {
-            const encoded = encodeURIComponent(this.sanitizeInput(query));
-            const url = `${this.API_URL}?token=${this.API_TOKEN}&title=${encoded}&with_material_data=true`;
+            // Используем прокси API на Vercel
+            const url = `/api/search?title=${encodeURIComponent(query)}`;
             
             const data = await this.fetchWithTimeout(url);
             
@@ -733,6 +707,8 @@ class KitsuneWatchApp {
                     this.displayHistory();
                     this.displayFavorites();
                 }, 300);
+            } else if (data.error) {
+                this.showError(data.message || 'Ошибка API');
             } else {
                 this.showError('Ничего не найдено');
             }
@@ -854,6 +830,7 @@ class KitsuneWatchApp {
         });
     }
 
+    // ============ ИНФОРМАЦИЯ О ВИДЕО ============
     displayVideoInfo(material) {
         let info = [];
         
@@ -883,6 +860,7 @@ class KitsuneWatchApp {
         this.aboutBlock.style.display = info.length > 0 ? 'block' : 'none';
     }
 
+    // ============ ОШИБКИ ============
     showError(message) {
         this.clearAllResults();
         const error = document.createElement('div');
@@ -915,6 +893,7 @@ class KitsuneWatchApp {
         this.currentVideo = null;
     }
 
+    // ============ ТИПЫ ============
     getTypeName(type) {
         const map = {
             'foreign-movie': 'Фильм',
@@ -930,6 +909,7 @@ class KitsuneWatchApp {
         return map[type] || type;
     }
 
+    // ============ ПОДЕЛИТЬСЯ ============
     copyShareLink() {
         const link = this.shareLink.href;
         if (!link || link === '#') return;
@@ -949,6 +929,7 @@ class KitsuneWatchApp {
         }
     }
 
+    // ============ ПЛЕЕР ============
     setupPlayerListener() {
         window.addEventListener('message', (message) => {
             if (!message.data?.key) return;
@@ -1011,7 +992,7 @@ class KitsuneWatchApp {
     }
 }
 
-// Инициализация
+// ============ ИНИЦИАЛИЗАЦИЯ ============
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         window.app = new KitsuneWatchApp();

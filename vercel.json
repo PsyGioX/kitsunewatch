@@ -2,11 +2,11 @@
     "version": 2,
     "builds": [
         {
-            "src": "api/config.js",
+            "src": "api/**/*.js",
             "use": "@vercel/node"
         },
         {
-            "src": "**/*.{html,css,js,json,png,ico,webmanifest,svg}",
+            "src": "**/*.{html,css,js,json,png,ico,webmanifest,svg,jpg,jpeg}",
             "use": "@vercel/static"
         }
     ],
@@ -21,6 +21,10 @@
                 "Cache-Control": "no-cache"
             },
             "dest": "/sw.js"
+        },
+        {
+            "src": "/imgs/(.*)",
+            "dest": "/imgs/$1"
         },
         {
             "src": "/(.*)",
