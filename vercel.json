@@ -1,50 +1,32 @@
 {
     "version": 2,
-    "builds": [
-        {
-            "src": "api/**/*.js",
-            "use": "@vercel/node"
-        },
-        {
-            "src": "**/*.{html,css,js,json,svg,png,ico,webmanifest}",
-            "use": "@vercel/static"
+    "functions": {
+        "api/*.js": {
+            "maxDuration": 10
         }
-    ],
+    },
     "routes": [
         {
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
+            "src": "/api/search",
+            "dest": "/api/search.js"
+        },
+        {
+            "src": "/api/config",
+            "dest": "/api/config.js"
         },
         {
             "src": "/sw.js",
             "headers": {
-                "Cache-Control": "no-cache",
-                "Service-Worker-Allowed": "/"
+                "Cache-Control": "no-cache"
             },
-            "dest": "/sw.js"
+            "continue": true
+        },
+        {
+            "handle": "filesystem"
         },
         {
             "src": "/(.*)",
             "dest": "/$1"
-        }
-    ],
-    "headers": [
-        {
-            "source": "/(.*)",
-            "headers": [
-                {
-                    "key": "Content-Security-Policy",
-                    "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://kodikplayer.com http://kodikplayer.com; connect-src 'self' https://kodik-api.com; worker-src 'self'; manifest-src 'self'"
-                },
-                {
-                    "key": "X-Content-Type-Options",
-                    "value": "nosniff"
-                },
-                {
-                    "key": "X-Frame-Options",
-                    "value": "SAMEORIGIN"
-                }
-            ]
         }
     ]
 }

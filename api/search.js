@@ -1,6 +1,6 @@
-// api/search.js - Прокси для Kodik API
-export default async function handler(req, res) {
-    // CORS
+// api/search.js
+module.exports = async (req, res) => {
+    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,30 +16,27 @@ export default async function handler(req, res) {
     
     const token = process.env.KODIK_API_TOKEN;
     
+    console.log('Token exists:', !!token);
+    
     if (!token || token === 'your_token_here') {
         return res.status(500).json({ 
-            error: 'KODIK_API_TOKEN not configured',
-            message: 'Добавьте переменную KODIK_API_TOKEN в Vercel'
+            error: 'Token not configured',
+            message: 'Add KODIK_API_TOKEN in Vercel'
         });
     }
     
     try {
-        const { title, id, kinopoisk_id, imdb_id, limit } = req.query;
+        const { title } = req.query;
         
-        let kodikUrl = `https://kodik-api.com/search?token=${token}`;
+        if (!title) {
+            return res.status(400).json({ error: 'Title is required' });
+        }
         
-        if (title) kodikUrl += `&title=${encodeURIComponent(title)}`;
-        if (id) kodikUrl += `&id=${id}`;
-        if (kinopoisk_id) kodikUrl += `&kinopoisk_id=${kinopoisk_id}`;
-        if (imdb_id) kodikUrl += `&imdb_id=${imdb_id}`;
-        if (limit) kodikUrl += `&limit=${limit}`;
+        const kodikUrl = `https://kodik-api.com/search?token=${token}&title=${encodeURIComponent(title)}&with_material_data=true`;
         
-        kodikUrl += '&with_material_data=true';
+        console.log('Fetching:', kodikUrl);
         
-        const response = await fetch(kodikUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        });
+        const response = await fetch(kodikUrl);
         
         if (!response.ok) {
             throw new Error(`Kodik API error: ${response.status}`);
@@ -49,10 +46,10 @@ export default async function handler(req, res) {
         
         res.status(200).json(data);
     } catch (error) {
-        console.error('Proxy error:', error);
+        console.error('Error:', error);
         res.status(500).json({ 
-            error: 'Failed to fetch from Kodik API',
-            message: error.message
+            error: 'Failed to fetch',
+            message: error.message 
         });
     }
-}
+};
