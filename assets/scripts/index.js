@@ -1,14 +1,10 @@
-// index.js
+// main.js - Итоговая версия KitsuneWatch с поддержкой Vercel API
 
 class KitsuneWatchApp {
     constructor() {
-        // API Token загружается из .env или из window
+        // API Token будет загружен асинхронно из /api/config
         this.API_TOKEN = this.getApiToken();
         this.API_URL = this.getApiUrl();
-        
-        if (!this.API_TOKEN) {
-            console.error('KODIK_API_TOKEN не найден. Проверьте файл .env');
-        }
         
         this.searchInput = document.querySelector('.search_input_query');
         this.searchButton = document.querySelector('.search_push');
@@ -67,37 +63,59 @@ class KitsuneWatchApp {
     }
 
     getApiToken() {
-        // Проверяем разные источники токена
-        if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_TOKEN) {
-            return process.env.KODIK_API_TOKEN;
-        }
-        
+        // Проверяем window (для локальной разработки)
         if (typeof window !== 'undefined' && window.KODIK_API_TOKEN) {
             return window.KODIK_API_TOKEN;
         }
         
-        if (typeof window !== 'undefined' && window.__KODIK_API_TOKEN__) {
-            return window.__KODIK_API_TOKEN__;
-        }
-        
-        // Для Vercel с статическим экспортом
-        if (typeof window !== 'undefined' && window.ENV && window.ENV.KODIK_API_TOKEN) {
-            return window.ENV.KODIK_API_TOKEN;
+        // Проверяем process.env (для Node.js)
+        if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_TOKEN) {
+            return process.env.KODIK_API_TOKEN;
         }
         
         return null;
     }
 
     getApiUrl() {
-        if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_URL) {
-            return process.env.KODIK_API_URL;
-        }
-        
         if (typeof window !== 'undefined' && window.KODIK_API_URL) {
             return window.KODIK_API_URL;
         }
         
+        if (typeof process !== 'undefined' && process.env && process.env.KODIK_API_URL) {
+            return process.env.KODIK_API_URL;
+        }
+        
         return 'https://kodik-api.com/search';
+    }
+
+    async fetchApiConfig() {
+        try {
+            const response = await fetch('/api/config', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.token) {
+                this.API_TOKEN = data.token;
+            }
+            
+            if (data.apiUrl) {
+                this.API_URL = data.apiUrl;
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Ошибка получения конфигурации API:', error);
+            return null;
+        }
     }
 
     createVideoPlaceholder() {
@@ -178,7 +196,12 @@ class KitsuneWatchApp {
         }
     }
 
-    init() {
+    async init() {
+        // Получаем конфигурацию API с сервера
+        if (!this.API_TOKEN) {
+            await this.fetchApiConfig();
+        }
+        
         this.createUIElements();
         this.setupEventListeners();
         this.setupProtection();
@@ -815,7 +838,11 @@ class KitsuneWatchApp {
         if (this.isSearching) return;
         
         if (!this.API_TOKEN) {
-            this.showError('API токен не настроен. Создайте файл .env с KODIK_API_TOKEN');
+            await this.fetchApiConfig();
+        }
+        
+        if (!this.API_TOKEN) {
+            this.showError('API токен не настроен. Добавьте KODIK_API_TOKEN в Vercel.');
             return;
         }
         
