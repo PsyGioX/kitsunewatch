@@ -1,9 +1,8 @@
-// assets/scripts/index.js - ПОЛНАЯ ИТОГОВАЯ ВЕРСИЯ KitsuneWatch
-// С прямым API токеном, без env
+// assets/scripts/index.js
 
 class KitsuneWatchApp {
     constructor() {
-        // API конфигурация с прямым токеном
+        // API конфигурация
         this.API_TOKEN = 'a036c8a4c59b43e72e212e4d0388ef7d';
         this.API_URL = 'https://kodik-api.com/search';
         
