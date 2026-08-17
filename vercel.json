@@ -1,18 +1,19 @@
 {
     "version": 2,
-    "functions": {
-        "api/*.js": {
-            "maxDuration": 10
-        }
-    },
-    "routes": [
+    "builds": [
         {
-            "src": "/api/search",
-            "dest": "/api/search.js"
+            "src": "api/**/*.js",
+            "use": "@vercel/node"
         },
         {
-            "src": "/api/config",
-            "dest": "/api/config.js"
+            "src": "**/*.{html,css,js,json,svg,png,ico,webmanifest,jpg,jpeg}",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/$1"
         },
         {
             "src": "/sw.js",
@@ -22,11 +23,19 @@
             "continue": true
         },
         {
+            "src": "/imgs/(.*)",
+            "dest": "/imgs/$1"
+        },
+        {
+            "src": "/assets/(.*)",
+            "dest": "/assets/$1"
+        },
+        {
             "handle": "filesystem"
         },
         {
-            "src": "/(.*)",
-            "dest": "/$1"
+            "src": "/.*",
+            "dest": "/index.html"
         }
     ]
 }
