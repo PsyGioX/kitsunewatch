@@ -169,7 +169,7 @@ class KitsuneWatchApp {
         const paths = [
             '/imgs/logo.jpg',
             '/images/logo.jpg',
-            '/assets/logo.jpg',
+            '/imgs/logo.jpg',
             '/logo.jpg',
             '/favicon-32x32.png'
         ];
