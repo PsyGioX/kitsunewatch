@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitsuneWatch — аниме смотреть онлайн бесплатно</title>
+    <meta name="description"
+        content="KitsuneWatch — смотреть аниме онлайн бесплатно. Новинки аниме, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="author" content="KitsuneWatch">
+    <meta name="application-name" content="KitsuneWatch">
+    <meta http-equiv="content-language" content="ru">
+    <link rel="alternate" hreflang="ru" href="https://example.com/">
+    <link rel="canonical" href="https://example.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="KitsuneWatch">
+    <meta property="og:title" content="KitsuneWatch — аниме смотреть онлайн бесплатно">
+    <meta property="og:description"
+        content="Смотрите аниме онлайн бесплатно: новинки, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.">
+    <meta property="og:url" content="https://example.com/">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:image" content="https://example.com/images/KitsuneWatch-og.jpg">
+    <meta property="og:image:alt" content="KitsuneWatch — аниме онлайн">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="KitsuneWatch — аниме смотреть онлайн бесплатно">
+    <meta name="twitter:description"
+        content="Новинки аниме, популярные сериалы, фильмы, озвучка и субтитры на KitsuneWatch.">
+    <meta name="twitter:image" content="https://example.com/images/KitsuneWatch-og.jpg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/imgs/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/imgs/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/imgs/favicon-16x16.png">
+    <meta name="theme-color" content="#111111">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Ваши стили -->
+    <link rel="stylesheet" href="/assets/styles/index.css">
+</head>
+
+<body>
+
+    <section class="bg_page">
+
+        <main class="app">
+
+            <header class="header_menu">
+                <div class="logo_details">
+                    <img src="/imgs/logo.jpg" alt="" class="logo_img">
+                    <span class="logo_text_header">KitsuneWatch</span>
+                </div>
+            </header>
+
+            <section class="main_block">
+
+                <div class="search_container">
+                    <input type="text" class="search_input_query">
+                    <button class="search_push">Искать в сети</button>
+                </div>
+
+                <div class="results_search" id="res_search_on_id">
+                    <div class="resVideosBlock" id="resultsParseVideosBlock">
+                        <span class="name_video" id="name_video"></span>
+                        <iframe class="video_link" id="parse_link_on_video" src="" frameborder="0"
+                            allowfullscreen></iframe>
+                        <details class="about_video_details" id="aboutVideoBlock">
+                            <summary class="about_video_parse">О видео</summary>
+                            <span class="aboutVideoParse" id="videoAboutPasteToParse"></span>
+                        </details>
+                    </div>
+                    <div class="shareToDirectLinkOnVideoBlock">
+                        <link rel="stylesheet" href="" class="linkToDirectVideo" id="LInkToVideoForShare">
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Футер -->
+            <footer class="site-footer">
+                <div class="footer-content">
+                    <div class="footer-logo">
+                        <i class="bi bi-film"></i>
+                        <span>KitsuneWatch</span>
+                    </div>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                            <i class="bi bi-info-circle"></i> О проекте
+                        </a>
+                        <a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#dmcaModal">
+                            <i class="bi bi-shield-check"></i> DMCA
+                        </a>
+                        <a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#thanksModal">
+                            <i class="bi bi-heart"></i> Благодарности
+                        </a>
+                    </div>
+                    <div class="footer-copyright">
+                        <p>&copy; <span id="currentYear">2024</span> KitsuneWatch. Все права защищены.</p>
+                        <p class="footer-disclaimer">Контент предоставлен <a href="https://bd.kodikres.com/films"
+                                target="_blank" rel="noopener noreferrer">bd.kodikres.com</a></p>
+                    </div>
+                </div>
+            </footer>
+        </main>
+
+    </section>
+
+        <!-- Модальное окно: О проекте -->
+        <div class="modal fade" id="aboutModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-info-circle"></i> О проекте</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>KitsuneWatch</strong> — это некоммерческий проект, созданный для удобного поиска и
+                            просмотра аниме.</p>
+                        <p>Мы используем открытые API для предоставления доступа к контенту.</p>
+                        <p>Проект не хранит на своих серверах никаких видеофайлов.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно: DMCA -->
+        <div class="modal fade" id="dmcaModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-shield-check"></i> Digital Millennium Copyright Act
+                            (DMCA)</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="dmca-content">
+                            <p><strong>Уведомление об авторских правах</strong></p>
+                            <p>Весь видеоконтент и материалы, представленные на данном сайте, взяты из открытого
+                                источника:</p>
+                            <div class="dmca-source">
+                                <a href="https://bd.kodikres.com/films" target="_blank" rel="noopener noreferrer">
+                                    <i class="bi bi-link-45deg"></i> https://bd.kodikres.com/films
+                                </a>
+                            </div>
+                            <p>KitsuneWatch не хранит, не загружает и не распространяет видеофайлы. Все материалы
+                                предоставляются через API сервиса Kodik.</p>
+                            <p>Все права на аниме, фильмы и сериалы принадлежат их законным правообладателям.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно: Благодарности -->
+        <div class="modal fade" id="thanksModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-heart"></i> Благодарности</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="thanks-content text-center">
+                            <div class="thanks-icon">
+                                <i class="bi bi-heart-fill"></i>
+                            </div>
+                            <h6>Особая благодарность</h6>
+                            <p>Мы выражаем искреннюю благодарность сервису Kodik за предоставление API и доступа к
+                                контенту.</p>
+                            <div class="thanks-source">
+                                <a href="https://bd.kodikres.com/films" target="_blank" rel="noopener noreferrer">
+                                    <i class="bi bi-link-45deg"></i> bd.kodikres.com
+                                </a>
+                            </div>
+                            <p>Без их поддержки этот проект был бы невозможен.</p>
+                            <hr>
+                            <h6>Bootstrap Team</h6>
+                            <p>Спасибо команде Bootstrap за создание отличного CSS-фреймворка, который используется в
+                                этом проекте.</p>
+                            <div class="bootstrap-logo">
+                                <i class="bi bi-bootstrap-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Скрипт смены года -->
+        <script>
+            // Автоматическое обновление года в футере
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        </script>
+
+        <!-- Bootstrap JS Bundle с Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/assets/scripts/index.js"></script>
+</body>
+
+</html>
