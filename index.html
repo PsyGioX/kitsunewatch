@@ -10,11 +10,12 @@
           content="default-src 'self'; 
                    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; 
                    style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; 
-                   font-src 'self' https://fonts.gstatic.com; 
+                   font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; 
                    img-src 'self' data: https:; 
                    frame-src 'self' https://kodikplayer.com http://kodikplayer.com; 
-                   connect-src 'self' https://kodik-api.com; 
-                   worker-src 'self'">
+                   connect-src 'self' https://kodik-api.com https://cdn.jsdelivr.net; 
+                   worker-src 'self'; 
+                   manifest-src 'self'">
 
     <meta name="description"
         content="KitsuneWatch — смотреть аниме онлайн бесплатно. Новинки аниме, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.">
@@ -31,13 +32,13 @@
         content="Смотрите аниме онлайн бесплатно: новинки, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.">
     <meta property="og:url" content="https://kitsunewatch.vercel.app/">
     <meta property="og:locale" content="ru_RU">
-    <meta property="og:image" content="https://kitsunewatch.vercel.app/images/KitsuneWatch-og.jpg">
+    <meta property="og:image" content="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg">
     <meta property="og:image:alt" content="KitsuneWatch — аниме онлайн">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="KitsuneWatch — аниме смотреть онлайн бесплатно">
     <meta name="twitter:description"
         content="Новинки аниме, популярные сериалы, фильмы, озвучка и субтитры на KitsuneWatch.">
-    <meta name="twitter:image" content="https://kitsunewatch.vercel.app/images/KitsuneWatch-og.jpg">
+    <meta name="twitter:image" content="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg">
     <link rel="apple-touch-icon" sizes="180x180" href="/imgs/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/imgs/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/imgs/favicon-16x16.png">
