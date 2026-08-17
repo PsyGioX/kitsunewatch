@@ -1,4 +1,6 @@
+// api/search.js - Прокси для Kodik API
 export default async function handler(req, res) {
+    // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -17,14 +19,13 @@ export default async function handler(req, res) {
     if (!token || token === 'your_token_here') {
         return res.status(500).json({ 
             error: 'KODIK_API_TOKEN not configured',
-            message: 'Добавьте переменную KODIK_API_TOKEN в настройках Vercel'
+            message: 'Добавьте переменную KODIK_API_TOKEN в Vercel'
         });
     }
     
     try {
         const { title, id, kinopoisk_id, imdb_id, limit } = req.query;
         
-        // Строим URL для Kodik API
         let kodikUrl = `https://kodik-api.com/search?token=${token}`;
         
         if (title) kodikUrl += `&title=${encodeURIComponent(title)}`;
@@ -37,9 +38,7 @@ export default async function handler(req, res) {
         
         const response = await fetch(kodikUrl, {
             method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
         });
         
         if (!response.ok) {
