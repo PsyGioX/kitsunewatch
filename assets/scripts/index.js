@@ -182,10 +182,40 @@ class KitsuneWatchApp {
         this.handleURLParams();
         this.updateSEO();
         
+        // Предотвращаем прокрутку body
+        this.preventBodyScroll();
+        
         setTimeout(() => {
             this.displayHistory();
             this.displayFavorites();
         }, 500);
+    }
+
+    // ============ ПРЕДОТВРАЩЕНИЕ ПРОКРУТКИ BODY ============
+    preventBodyScroll() {
+        const appContainer = document.querySelector('.app');
+        if (!appContainer) return;
+        
+        // Блокируем прокрутку body когда курсор над .app
+        appContainer.addEventListener('mouseenter', () => {
+            document.body.style.overflow = 'hidden';
+        });
+        
+        appContainer.addEventListener('mouseleave', () => {
+            document.body.style.overflow = '';
+        });
+        
+        // Для мобильных устройств
+        appContainer.addEventListener('touchstart', () => {
+            document.body.style.overflow = 'hidden';
+        }, { passive: true });
+        
+        // Восстанавливаем прокрутку при клике вне .app
+        document.addEventListener('click', (e) => {
+            if (!appContainer.contains(e.target)) {
+                document.body.style.overflow = '';
+            }
+        });
     }
 
     // ============ ЗАГРУЗКА ПРЕМЬЕР ГОДА ============
@@ -193,16 +223,13 @@ class KitsuneWatchApp {
         try {
             const currentYear = new Date().getFullYear();
             
-            // Получаем список годов для разных типов контента
             const response = await fetch(`${this.YEARS_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial,foreign-movie,foreign-serial&sort=year`);
             const data = await response.json();
             
             if (data.results && data.results.length > 0) {
-                // Находим текущий год или ближайший доступный
                 let targetYear = currentYear;
                 let yearData = data.results.find(item => item.year === currentYear);
                 
-                // Если текущего года нет, ищем ближайший
                 if (!yearData) {
                     yearData = data.results.reduce((closest, item) => {
                         const currentDiff = Math.abs(item.year - currentYear);
@@ -216,7 +243,6 @@ class KitsuneWatchApp {
             }
         } catch (error) {
             console.error('Error loading year premieres:', error);
-            // Показываем заглушку с текущим годом
             const currentYear = new Date().getFullYear();
             this.displayPremieres(currentYear, 0);
         }
@@ -279,24 +305,12 @@ class KitsuneWatchApp {
                 }
             } catch (e) {}
             
-            if (title) {
-                title.textContent = `${query} - смотреть аниме онлайн | KitsuneWatch`;
-            }
-            if (metaDescription) {
-                metaDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch. Бесплатно, без регистрации.`;
-            }
-            if (metaKeywords) {
-                metaKeywords.content = `${query}, смотреть ${query}, ${query} аниме, ${query} онлайн, аниме ${query}`;
-            }
-            if (ogTitle) {
-                ogTitle.content = `${query} - смотреть онлайн | KitsuneWatch`;
-            }
-            if (ogDescription) {
-                ogDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch.`;
-            }
-            if (ogUrl) {
-                ogUrl.content = window.location.href;
-            }
+            if (title) title.textContent = `${query} - смотреть аниме онлайн | KitsuneWatch`;
+            if (metaDescription) metaDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch. Бесплатно, без регистрации.`;
+            if (metaKeywords) metaKeywords.content = `${query}, смотреть ${query}, ${query} аниме, ${query} онлайн, аниме ${query}`;
+            if (ogTitle) ogTitle.content = `${query} - смотреть онлайн | KitsuneWatch`;
+            if (ogDescription) ogDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch.`;
+            if (ogUrl) ogUrl.content = window.location.href;
             this.updateCanonicalLink(window.location.href);
             
         } else if (params.get('favorites') === 'true') {
@@ -856,47 +870,58 @@ class KitsuneWatchApp {
         this.scrollToVideoPlayer();
     }
 
-    // ============ ПРОКРУТКА К ПЛЕЕРУ ============
+    // ============ ПРОКРУТКА К ПЛЕЕРУ (ТОЛЬКО ВНУТРИ .app) ============
     scrollToVideoPlayer() {
-        // Даем время на рендеринг видео
         setTimeout(() => {
             const videoContainer = document.querySelector('.video-container');
-            const resultsContainer = document.querySelector('.results_search');
             const appContainer = document.querySelector('.app');
             
             if (!videoContainer || !appContainer) return;
             
-            // Проверяем, является ли устройство мобильным
-            const isMobile = window.innerWidth <= 768;
-            
-            // Находим позицию видео относительно app контейнера
-            const videoRect = videoContainer.getBoundingClientRect();
+            // Получаем позиции элементов
             const appRect = appContainer.getBoundingClientRect();
+            const videoRect = videoContainer.getBoundingClientRect();
             
-            // Вычисляем позицию прокрутки внутри app контейнера
-            const scrollPosition = videoRect.top - appRect.top + appContainer.scrollTop - 20;
+            // Вычисляем относительную позицию видео внутри app
+            const relativePosition = videoRect.top - appRect.top;
             
-            if (isMobile) {
-                // Для мобильных устройств используем плавную прокрутку внутри app
-                appContainer.scrollTo({
-                    top: Math.max(0, scrollPosition),
-                    behavior: 'smooth'
-                });
+            // Целевая позиция скролла (с отступом 20px сверху)
+            const targetScroll = appContainer.scrollTop + relativePosition - 20;
+            
+            // Анимируем прокрутку вручную для полного контроля
+            const startScroll = appContainer.scrollTop;
+            const distance = targetScroll - startScroll;
+            const duration = 500;
+            const startTime = performance.now();
+            
+            // Блокируем прокрутку body
+            const originalBodyOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            
+            function animateScroll(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
                 
-                // Запасной вариант для iOS Safari
-                if (window.navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                // Easing function (easeInOutCubic)
+                const easeProgress = progress < 0.5 
+                    ? 4 * progress * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                
+                // Прокручиваем только app контейнер
+                appContainer.scrollTop = startScroll + distance * easeProgress;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateScroll);
+                } else {
+                    // Восстанавливаем overflow после завершения
                     setTimeout(() => {
-                        appContainer.scrollTop = Math.max(0, scrollPosition);
-                    }, 300);
+                        document.body.style.overflow = originalBodyOverflow;
+                    }, 100);
                 }
-            } else {
-                // Для десктопа используем стандартный scrollIntoView
-                videoContainer.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                    inline: 'nearest'
-                });
             }
+            
+            requestAnimationFrame(animateScroll);
+            
         }, 100);
     }
 
@@ -917,7 +942,6 @@ class KitsuneWatchApp {
             const url = this.sanitizeUrl(material.link);
             let fullUrl = url.startsWith('//') ? 'https:' + url : url;
             
-            // Добавляем poster без кодирования (Kodik сам обработает)
             const posterUrl = 'https://kitsunewatch.vercel.app/imgs/video_obl.jpg';
             const separator = fullUrl.includes('?') ? '&' : '?';
             fullUrl = `${fullUrl}${separator}poster=${posterUrl}`;
@@ -1013,7 +1037,6 @@ class KitsuneWatchApp {
         this.paginationContainer.style.display = 'flex';
         this.paginationContainer.innerHTML = '';
         
-        // Кнопка "Назад"
         const prevButton = document.createElement('button');
         prevButton.className = 'pagination-button';
         prevButton.innerHTML = '<i class="bi bi-chevron-left"></i>';
@@ -1027,7 +1050,6 @@ class KitsuneWatchApp {
         });
         this.paginationContainer.appendChild(prevButton);
         
-        // Номера страниц
         const maxVisiblePages = 5;
         let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
         let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
@@ -1065,7 +1087,6 @@ class KitsuneWatchApp {
             this.paginationContainer.appendChild(lastPageButton);
         }
         
-        // Кнопка "Вперед"
         const nextButton = document.createElement('button');
         nextButton.className = 'pagination-button';
         nextButton.innerHTML = '<i class="bi bi-chevron-right"></i>';
@@ -1103,18 +1124,18 @@ class KitsuneWatchApp {
             this.createPagination(this.filteredResults.length);
         }
         
-        // Прокрутка к началу списка
+        // Прокрутка к началу списка только внутри .app
         if (this.videoListContainer) {
             const appContainer = document.querySelector('.app');
-            if (appContainer && window.innerWidth <= 768) {
+            if (appContainer) {
                 const rect = this.videoListContainer.getBoundingClientRect();
                 const appRect = appContainer.getBoundingClientRect();
+                const targetScroll = rect.top - appRect.top + appContainer.scrollTop - 20;
+                
                 appContainer.scrollTo({
-                    top: rect.top - appRect.top + appContainer.scrollTop - 20,
+                    top: Math.max(0, targetScroll),
                     behavior: 'smooth'
                 });
-            } else {
-                this.videoListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
     }
@@ -1326,7 +1347,7 @@ class KitsuneWatchApp {
                     this.loadVideo(result);
                 }
                 
-                // Исправленная прокрутка для мобильных устройств
+                // Прокрутка только внутри .app
                 this.scrollToVideoPlayer();
             });
             
