@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     
     <url>
         <loc>https://kitsunewatch.vercel.app/</loc>
@@ -14,10 +13,6 @@
         <lastmod>2026-01-15</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
-        <image:image>
-            <image:loc>https://kitsunewatch.vercel.app/imgs/poster_naruto.jpg</image:loc>
-            <image:caption>Наруто - смотреть онлайн</image:caption>
-        </image:image>
     </url>
 
     <url>
@@ -25,10 +20,6 @@
         <lastmod>2026-01-15</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
-        <image:image>
-            <image:loc>https://kitsunewatch.vercel.app/imgs/poster_onepiece.jpg</image:loc>
-            <image:caption>One Piece - смотреть онлайн</image:caption>
-        </image:image>
     </url>
 
     <url>
@@ -36,10 +27,6 @@
         <lastmod>2026-01-15</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
-        <image:image>
-            <image:loc>https://kitsunewatch.vercel.app/imgs/poster_attackontitan.jpg</image:loc>
-            <image:caption>Атака Титанов - смотреть онлайн</image:caption>
-        </image:image>
     </url>
 
     <url>
