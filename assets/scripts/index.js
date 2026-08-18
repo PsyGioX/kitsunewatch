@@ -196,11 +196,9 @@ class KitsuneWatchApp {
         const baseKeywords = 'аниме, смотреть аниме, аниме онлайн, KitsuneWatch, аниме сериалы, японская анимация';
         
         if (searchQuery && searchQuery.trim()) {
-            // Декодируем запрос для SEO
             let query = searchQuery.trim();
             try {
                 query = decodeURIComponent(query);
-                // Если есть %25 - декодируем повторно
                 if (query.includes('%25')) {
                     query = decodeURIComponent(query);
                 }
@@ -324,20 +322,16 @@ class KitsuneWatchApp {
     handleURLParams() {
         const params = new URLSearchParams(window.location.search);
         
-        // Обработка параметра search - автоматический поиск по названию
         const searchQuery = params.get('search');
         if (searchQuery && searchQuery.trim()) {
-            // Декодируем URL-параметр
             let decodedQuery = searchQuery.trim();
             
-            // Декодируем один раз
             try {
                 decodedQuery = decodeURIComponent(decodedQuery);
             } catch (e) {
                 console.warn('Failed to decode URI:', e);
             }
             
-            // Проверяем, не осталось ли ещё %25 (двойное кодирование)
             if (decodedQuery.includes('%25')) {
                 try {
                     decodedQuery = decodeURIComponent(decodedQuery);
@@ -355,7 +349,6 @@ class KitsuneWatchApp {
             return;
         }
         
-        // Обработка параметра video - прямой показ видео по ID
         const videoId = params.get('video');
         if (videoId && videoId.trim()) {
             const fav = this.favorites.find(f => f.id === videoId || f.link.includes(videoId));
@@ -367,12 +360,10 @@ class KitsuneWatchApp {
             return;
         }
         
-        // Обработка параметра favorites
         if (params.get('favorites') === 'true') {
             this.displayFavorites();
         }
         
-        // Обработка параметра history
         if (params.get('history') === 'true') {
             this.displayHistory();
         }
@@ -654,7 +645,6 @@ class KitsuneWatchApp {
             span.className = 'history-query';
             span.textContent = item.query;
             span.addEventListener('click', () => {
-                // Декодируем запрос из истории
                 let query = item.query;
                 try {
                     query = decodeURIComponent(query);
@@ -778,7 +768,7 @@ class KitsuneWatchApp {
         this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ============ ВИДЕО ============
+    // ============ ВИДЕО (ОБНОВЛЕН С POSTER) ============
     loadVideo(material) {
         this.currentVideo = material;
         this.isVideoLoading = true;
@@ -792,7 +782,13 @@ class KitsuneWatchApp {
         
         if (material.link) {
             const url = this.sanitizeUrl(material.link);
-            const fullUrl = url.startsWith('//') ? 'https:' + url : url;
+            let fullUrl = url.startsWith('//') ? 'https:' + url : url;
+            
+            // Добавляем poster параметр к ссылке
+            const posterUrl = 'https://kitsunewatch.vercel.app/imgs/video_obl.jpg';
+            const separator = fullUrl.includes('?') ? '&' : '?';
+            fullUrl = `${fullUrl}${separator}poster=${encodeURIComponent(posterUrl)}`;
+            
             this.videoFrame.src = fullUrl;
             this.videoFrame.setAttribute('allow', 'autoplay *; fullscreen *; picture-in-picture *');
             this.videoFrame.setAttribute('allowfullscreen', 'true');
