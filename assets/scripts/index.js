@@ -182,40 +182,10 @@ class KitsuneWatchApp {
         this.handleURLParams();
         this.updateSEO();
         
-        // Предотвращаем прокрутку body
-        this.preventBodyScroll();
-        
         setTimeout(() => {
             this.displayHistory();
             this.displayFavorites();
         }, 500);
-    }
-
-    // ============ ПРЕДОТВРАЩЕНИЕ ПРОКРУТКИ BODY ============
-    preventBodyScroll() {
-        const appContainer = document.querySelector('.app');
-        if (!appContainer) return;
-        
-        // Блокируем прокрутку body когда курсор над .app
-        appContainer.addEventListener('mouseenter', () => {
-            document.body.style.overflow = 'hidden';
-        });
-        
-        appContainer.addEventListener('mouseleave', () => {
-            document.body.style.overflow = '';
-        });
-        
-        // Для мобильных устройств
-        appContainer.addEventListener('touchstart', () => {
-            document.body.style.overflow = 'hidden';
-        }, { passive: true });
-        
-        // Восстанавливаем прокрутку при клике вне .app
-        document.addEventListener('click', (e) => {
-            if (!appContainer.contains(e.target)) {
-                document.body.style.overflow = '';
-            }
-        });
     }
 
     // ============ ЗАГРУЗКА ПРЕМЬЕР ГОДА ============
@@ -870,57 +840,19 @@ class KitsuneWatchApp {
         this.scrollToVideoPlayer();
     }
 
-    // ============ ПРОКРУТКА К ПЛЕЕРУ (ТОЛЬКО ВНУТРИ .app) ============
+    // ============ ПРОКРУТКА К ПЛЕЕРУ ============
     scrollToVideoPlayer() {
         setTimeout(() => {
             const videoContainer = document.querySelector('.video-container');
-            const appContainer = document.querySelector('.app');
             
-            if (!videoContainer || !appContainer) return;
+            if (!videoContainer) return;
             
-            // Получаем позиции элементов
-            const appRect = appContainer.getBoundingClientRect();
-            const videoRect = videoContainer.getBoundingClientRect();
-            
-            // Вычисляем относительную позицию видео внутри app
-            const relativePosition = videoRect.top - appRect.top;
-            
-            // Целевая позиция скролла (с отступом 20px сверху)
-            const targetScroll = appContainer.scrollTop + relativePosition - 20;
-            
-            // Анимируем прокрутку вручную для полного контроля
-            const startScroll = appContainer.scrollTop;
-            const distance = targetScroll - startScroll;
-            const duration = 500;
-            const startTime = performance.now();
-            
-            // Блокируем прокрутку body
-            const originalBodyOverflow = document.body.style.overflow;
-            document.body.style.overflow = 'hidden';
-            
-            function animateScroll(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // Easing function (easeInOutCubic)
-                const easeProgress = progress < 0.5 
-                    ? 4 * progress * progress * progress 
-                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-                
-                // Прокручиваем только app контейнер
-                appContainer.scrollTop = startScroll + distance * easeProgress;
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animateScroll);
-                } else {
-                    // Восстанавливаем overflow после завершения
-                    setTimeout(() => {
-                        document.body.style.overflow = originalBodyOverflow;
-                    }, 100);
-                }
-            }
-            
-            requestAnimationFrame(animateScroll);
+            // Используем scrollIntoView с блокировкой только горизонтальной прокрутки
+            videoContainer.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+                inline: 'nearest'
+            });
             
         }, 100);
     }
@@ -942,7 +874,7 @@ class KitsuneWatchApp {
             const url = this.sanitizeUrl(material.link);
             let fullUrl = url.startsWith('//') ? 'https:' + url : url;
             
-            const posterUrl = 'https://raw.githubusercontent.com/PsyGioX/kitsunewatch/refs/heads/main/imgs/video_obl.jpg';
+            const posterUrl = 'https://kitsunewatch.vercel.app/imgs/video_obl.jpg';
             const separator = fullUrl.includes('?') ? '&' : '?';
             fullUrl = `${fullUrl}${separator}poster=${posterUrl}`;
             
@@ -1124,19 +1056,12 @@ class KitsuneWatchApp {
             this.createPagination(this.filteredResults.length);
         }
         
-        // Прокрутка к началу списка только внутри .app
+        // Прокрутка к началу списка
         if (this.videoListContainer) {
-            const appContainer = document.querySelector('.app');
-            if (appContainer) {
-                const rect = this.videoListContainer.getBoundingClientRect();
-                const appRect = appContainer.getBoundingClientRect();
-                const targetScroll = rect.top - appRect.top + appContainer.scrollTop - 20;
-                
-                appContainer.scrollTo({
-                    top: Math.max(0, targetScroll),
-                    behavior: 'smooth'
-                });
-            }
+            this.videoListContainer.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
         }
     }
     
@@ -1347,7 +1272,7 @@ class KitsuneWatchApp {
                     this.loadVideo(result);
                 }
                 
-                // Прокрутка только внутри .app
+                // Прокрутка к плееру
                 this.scrollToVideoPlayer();
             });
             
