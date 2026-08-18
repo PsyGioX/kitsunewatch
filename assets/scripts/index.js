@@ -847,7 +847,7 @@ class KitsuneWatchApp {
             
             if (!videoContainer) return;
             
-            // Используем scrollIntoView с блокировкой только горизонтальной прокрутки
+            // Используем scrollIntoView для всех устройств
             videoContainer.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
@@ -1196,7 +1196,9 @@ class KitsuneWatchApp {
         this.createPagination(results.length);
         
         // Прокручиваем к плееру после отображения результатов
-        this.scrollToVideoPlayer();
+        setTimeout(() => {
+            this.scrollToVideoPlayer();
+        }, 300);
     }
 
     createTabs(results) {
@@ -1272,8 +1274,10 @@ class KitsuneWatchApp {
                     this.loadVideo(result);
                 }
                 
-                // Прокрутка к плееру
-                this.scrollToVideoPlayer();
+                // Прокрутка к плееру с задержкой
+                setTimeout(() => {
+                    this.scrollToVideoPlayer();
+                }, 200);
             });
             
             this.videoListContainer.appendChild(card);
