@@ -844,16 +844,40 @@ class KitsuneWatchApp {
     scrollToVideoPlayer() {
         setTimeout(() => {
             const videoContainer = document.querySelector('.video-container');
+            const appContainer = document.querySelector('.app');
             
-            if (!videoContainer) return;
+            if (!videoContainer || !appContainer) return;
             
-            // Используем scrollIntoView для всех устройств
-            videoContainer.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-                inline: 'nearest'
-            });
+            // Проверяем, может ли .app прокручиваться
+            const appHasScroll = appContainer.scrollHeight > appContainer.clientHeight;
             
+            if (appHasScroll) {
+                // Если .app имеет внутреннюю прокрутку, прокручиваем внутри него
+                const appRect = appContainer.getBoundingClientRect();
+                const videoRect = videoContainer.getBoundingClientRect();
+                
+                // Вычисляем позицию видео относительно .app
+                const relativePosition = videoRect.top - appRect.top;
+                
+                // Целевая позиция скролла
+                const targetScroll = appContainer.scrollTop + relativePosition - 20;
+                
+                // Плавная прокрутка внутри .app
+                appContainer.scrollTo({
+                    top: Math.max(0, targetScroll),
+                    behavior: 'smooth'
+                });
+            } else {
+                // Если .app не имеет внутренней прокрутки, используем window
+                const videoRect = videoContainer.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const targetPosition = videoRect.top + scrollTop - 20;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
         }, 100);
     }
 
@@ -1058,10 +1082,26 @@ class KitsuneWatchApp {
         
         // Прокрутка к началу списка
         if (this.videoListContainer) {
-            this.videoListContainer.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
-            });
+            const appContainer = document.querySelector('.app');
+            
+            if (appContainer && appContainer.scrollHeight > appContainer.clientHeight) {
+                // Прокручиваем внутри .app
+                const appRect = appContainer.getBoundingClientRect();
+                const listRect = this.videoListContainer.getBoundingClientRect();
+                const relativePosition = listRect.top - appRect.top;
+                const targetScroll = appContainer.scrollTop + relativePosition - 20;
+                
+                appContainer.scrollTo({
+                    top: Math.max(0, targetScroll),
+                    behavior: 'smooth'
+                });
+            } else {
+                // Прокручиваем окно
+                this.videoListContainer.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
         }
     }
     
