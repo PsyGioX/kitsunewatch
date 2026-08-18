@@ -171,11 +171,92 @@ class KitsuneWatchApp {
         this.setupPWA();
         this.displayAboutProject();
         this.handleURLParams();
+        this.updateSEO();
         
         setTimeout(() => {
             this.displayHistory();
             this.displayFavorites();
         }, 500);
+    }
+
+    // ============ SEO ОПТИМИЗАЦИЯ ============
+    updateSEO() {
+        const params = new URLSearchParams(window.location.search);
+        const searchQuery = params.get('search');
+        const title = document.querySelector('title');
+        const metaDescription = document.querySelector('meta[name="description"]');
+        const metaKeywords = document.querySelector('meta[name="keywords"]');
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDescription = document.querySelector('meta[property="og:description"]');
+        const ogUrl = document.querySelector('meta[property="og:url"]');
+        
+        const baseTitle = 'KitsuneWatch - Смотри аниме онлайн';
+        const baseDescription = 'KitsuneWatch - бесплатный онлайн-кинотеатр аниме. Смотрите любимые аниме сериалы и фильмы в высоком качестве.';
+        const baseKeywords = 'аниме, смотреть аниме, аниме онлайн, KitsuneWatch, аниме сериалы, японская анимация';
+        
+        if (searchQuery && searchQuery.trim()) {
+            const query = searchQuery.trim();
+            // Динамический title
+            if (title) {
+                title.textContent = `${query} - смотреть аниме онлайн | KitsuneWatch`;
+            }
+            
+            // Динамическое описание
+            if (metaDescription) {
+                metaDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch. Бесплатно, без регистрации.`;
+            }
+            
+            // Динамические ключевые слова
+            if (metaKeywords) {
+                metaKeywords.content = `${query}, смотреть ${query}, ${query} аниме, ${query} онлайн, аниме ${query}`;
+            }
+            
+            // Open Graph
+            if (ogTitle) {
+                ogTitle.content = `${query} - смотреть онлайн | KitsuneWatch`;
+            }
+            if (ogDescription) {
+                ogDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch.`;
+            }
+            if (ogUrl) {
+                ogUrl.content = window.location.href;
+            }
+            
+            // Каноническая ссылка
+            this.updateCanonicalLink(window.location.href);
+            
+        } else if (params.get('favorites') === 'true') {
+            if (title) title.textContent = 'Избранное | KitsuneWatch';
+            if (metaDescription) metaDescription.content = 'Ваши любимые аниме в избранном на KitsuneWatch. Быстрый доступ к сохраненным тайтлам.';
+            if (ogTitle) ogTitle.content = 'Избранное | KitsuneWatch';
+            this.updateCanonicalLink(window.location.origin + '/?favorites=true');
+            
+        } else if (params.get('history') === 'true') {
+            if (title) title.textContent = 'История просмотров | KitsuneWatch';
+            if (metaDescription) metaDescription.content = 'История просмотров аниме на KitsuneWatch. Продолжайте смотреть с того места, где остановились.';
+            if (ogTitle) ogTitle.content = 'История просмотров | KitsuneWatch';
+            this.updateCanonicalLink(window.location.origin + '/?history=true');
+            
+        } else {
+            // Главная страница
+            if (title) title.textContent = baseTitle;
+            if (metaDescription) metaDescription.content = baseDescription;
+            if (metaKeywords) metaKeywords.content = baseKeywords;
+            if (ogTitle) ogTitle.content = baseTitle;
+            if (ogDescription) ogDescription.content = baseDescription;
+            if (ogUrl) ogUrl.content = window.location.origin;
+            this.updateCanonicalLink(window.location.origin);
+        }
+    }
+    
+    updateCanonicalLink(href) {
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.rel = 'canonical';
+            document.head.appendChild(canonical);
+        }
+        canonical.href = href;
     }
 
     // ============ PWA ============
@@ -394,10 +475,19 @@ class KitsuneWatchApp {
             if (!this.searchInput.value.trim()) {
                 this.clearAllResults();
                 this.displayAboutProject();
+                // Обновляем URL при очистке
+                this.updateUrlWithoutReload('/');
+                this.updateSEO();
             }
         });
         
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
+        
+        // Обновляем SEO при изменении истории браузера
+        window.addEventListener('popstate', () => {
+            this.handleURLParams();
+            this.updateSEO();
+        });
     }
 
     setupProtection() {
@@ -684,9 +774,9 @@ class KitsuneWatchApp {
         
         this.displayVideoInfo(material);
         
-        const shareUrl = this.sanitizeUrl(material.link);
-        const fullShareUrl = shareUrl.startsWith('//') ? 'https:' + shareUrl : shareUrl;
-        this.shareLink.href = fullShareUrl;
+        // Обновляем ссылку для шеринга
+        const shareUrl = this.generateShareUrl(material);
+        this.shareLink.href = shareUrl;
         
         if (this.shareButton) this.shareButton.style.display = 'inline-flex';
         
@@ -707,6 +797,39 @@ class KitsuneWatchApp {
         this.resultsContainer.style.display = 'block';
     }
 
+    // ============ ГЕНЕРАЦИЯ ССЫЛОК ДЛЯ ШЕРИНГА ============
+    generateShareUrl(material) {
+        const baseUrl = window.location.origin;
+        const params = new URLSearchParams();
+        
+        // Если есть поисковый запрос - используем его
+        const searchQuery = this.searchInput.value.trim();
+        if (searchQuery) {
+            params.set('search', encodeURIComponent(searchQuery));
+            return `${baseUrl}/?${params.toString()}`;
+        }
+        
+        // Если есть ID видео - используем его
+        if (material.id) {
+            params.set('video', material.id);
+            return `${baseUrl}/?${params.toString()}`;
+        }
+        
+        // Если есть ссылка на видео - используем её
+        if (material.link) {
+            return material.link;
+        }
+        
+        return baseUrl;
+    }
+
+    // ============ ОБНОВЛЕНИЕ URL БЕЗ ПЕРЕЗАГРУЗКИ ============
+    updateUrlWithoutReload(url) {
+        if (window.history && window.history.pushState) {
+            window.history.pushState({}, '', url);
+        }
+    }
+
     // ============ ПОИСК ============
     async performSearch() {
         const query = this.searchInput.value.trim();
@@ -715,6 +838,11 @@ class KitsuneWatchApp {
             return;
         }
         if (this.isSearching) return;
+        
+        // Обновляем URL с поисковым запросом
+        const newUrl = `${window.location.origin}/?search=${encodeURIComponent(query)}`;
+        this.updateUrlWithoutReload(newUrl);
+        this.updateSEO();
         
         this.showLoading();
         this.addToHistory(query);
@@ -925,6 +1053,10 @@ class KitsuneWatchApp {
         this.currentResults = [];
         this.hasSearched = false;
         this.currentVideo = null;
+        
+        // Возвращаем SEO на главную
+        this.updateUrlWithoutReload(window.location.origin);
+        this.updateSEO();
     }
 
     // ============ ТИПЫ ============
@@ -943,23 +1075,48 @@ class KitsuneWatchApp {
         return map[type] || type;
     }
 
-    // ============ ПОДЕЛИТЬСЯ ============
-    copyShareLink() {
-        const link = this.shareLink.href;
-        if (!link || link === '#') return;
+    // ============ ПОДЕЛИТЬСЯ (ОБНОВЛЕНА) ============
+    async copyShareLink() {
+        // Генерируем ссылку для шеринга
+        let shareUrl = this.shareLink.href;
         
-        if (navigator.share) {
-            navigator.share({
-                title: this.currentVideo?.title || 'KitsuneWatch',
-                url: link
-            }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(link).then(() => {
-                this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
-                setTimeout(() => {
-                    this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
-                }, 2000);
-            });
+        // Если это относительная ссылка или пустая, генерируем новую
+        if (!shareUrl || shareUrl === '#' || shareUrl === window.location.href) {
+            shareUrl = this.generateShareUrl(this.currentVideo);
+        }
+        
+        if (!shareUrl || shareUrl === '#') {
+            this.showError('Нет ссылки для копирования');
+            return;
+        }
+        
+        try {
+            // Используем Web Share API если доступно
+            if (navigator.share) {
+                await navigator.share({
+                    title: this.currentVideo?.title || 'KitsuneWatch - Смотри аниме онлайн',
+                    text: `Смотрите "${this.currentVideo?.title || 'аниме'}" на KitsuneWatch!`,
+                    url: shareUrl
+                });
+                return;
+            }
+            
+            // Копируем в буфер обмена
+            await navigator.clipboard.writeText(shareUrl);
+            
+            // Показываем уведомление об успехе
+            this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
+            this.shareButton.classList.add('copied');
+            
+            setTimeout(() => {
+                this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
+                this.shareButton.classList.remove('copied');
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Share error:', error);
+            // Fallback - показываем ссылку в alert
+            alert(`Скопируйте ссылку вручную:\n${shareUrl}`);
         }
     }
 
