@@ -48,6 +48,7 @@ class KitsuneWatchApp {
         this.currentPage = 1;
         this.itemsPerPage = 20;
         this.totalPages = 1;
+        this.filteredResults = [];
         
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
@@ -852,7 +853,51 @@ class KitsuneWatchApp {
 
     playFavorite(favorite) {
         this.loadVideo(favorite);
-        this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        this.scrollToVideoPlayer();
+    }
+
+    // ============ ПРОКРУТКА К ПЛЕЕРУ ============
+    scrollToVideoPlayer() {
+        // Даем время на рендеринг видео
+        setTimeout(() => {
+            const videoContainer = document.querySelector('.video-container');
+            const resultsContainer = document.querySelector('.results_search');
+            const appContainer = document.querySelector('.app');
+            
+            if (!videoContainer || !appContainer) return;
+            
+            // Проверяем, является ли устройство мобильным
+            const isMobile = window.innerWidth <= 768;
+            
+            // Находим позицию видео относительно app контейнера
+            const videoRect = videoContainer.getBoundingClientRect();
+            const appRect = appContainer.getBoundingClientRect();
+            
+            // Вычисляем позицию прокрутки внутри app контейнера
+            const scrollPosition = videoRect.top - appRect.top + appContainer.scrollTop - 20;
+            
+            if (isMobile) {
+                // Для мобильных устройств используем плавную прокрутку внутри app
+                appContainer.scrollTo({
+                    top: Math.max(0, scrollPosition),
+                    behavior: 'smooth'
+                });
+                
+                // Запасной вариант для iOS Safari
+                if (window.navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                    setTimeout(() => {
+                        appContainer.scrollTop = Math.max(0, scrollPosition);
+                    }, 300);
+                }
+            } else {
+                // Для десктопа используем стандартный scrollIntoView
+                videoContainer.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                    inline: 'nearest'
+                });
+            }
+        }, 100);
     }
 
     // ============ ВИДЕО (С POSTER БЕЗ КОДИРОВАНИЯ) ============
@@ -1052,22 +1097,42 @@ class KitsuneWatchApp {
     }
     
     updatePagination() {
-        if (this.currentResults.length > 0) {
+        if (this.activeFilter === 'all') {
             this.createPagination(this.currentResults.length);
+        } else {
+            this.createPagination(this.filteredResults.length);
         }
         
         // Прокрутка к началу списка
         if (this.videoListContainer) {
-            this.videoListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const appContainer = document.querySelector('.app');
+            if (appContainer && window.innerWidth <= 768) {
+                const rect = this.videoListContainer.getBoundingClientRect();
+                const appRect = appContainer.getBoundingClientRect();
+                appContainer.scrollTo({
+                    top: rect.top - appRect.top + appContainer.scrollTop - 20,
+                    behavior: 'smooth'
+                });
+            } else {
+                this.videoListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
     }
     
     displayCurrentPage() {
-        if (!this.currentResults.length) return;
+        if (this.activeFilter === 'all') {
+            this.displayCurrentPageFromResults(this.currentResults);
+        } else {
+            this.displayCurrentPageFromResults(this.filteredResults);
+        }
+    }
+    
+    displayCurrentPageFromResults(results) {
+        if (!results.length) return;
         
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = Math.min(startIndex + this.itemsPerPage, this.currentResults.length);
-        const pageResults = this.currentResults.slice(startIndex, endIndex);
+        const endIndex = Math.min(startIndex + this.itemsPerPage, results.length);
+        const pageResults = results.slice(startIndex, endIndex);
         
         this.createVideoList(pageResults);
     }
@@ -1112,7 +1177,8 @@ class KitsuneWatchApp {
         if (this.isSearching) return;
         
         this.currentSearchQuery = query;
-        this.currentPage = 1; // Сброс страницы при новом поиске
+        this.currentPage = 1;
+        this.activeFilter = 'all';
         
         const newUrl = `${window.location.origin}/?search=${encodeURIComponent(query)}`;
         this.updateUrlWithoutReload(newUrl);
@@ -1130,6 +1196,7 @@ class KitsuneWatchApp {
                 this.hasSearched = true;
                 const grouped = this.groupResultsByTitle(data.results);
                 this.currentResults = grouped;
+                this.filteredResults = grouped;
                 this.clearErrorMessages();
                 this.displayAllResults(grouped);
                 
@@ -1181,6 +1248,9 @@ class KitsuneWatchApp {
         this.createTabs(results);
         this.displayCurrentPage();
         this.createPagination(results.length);
+        
+        // Прокручиваем к плееру после отображения результатов
+        this.scrollToVideoPlayer();
     }
 
     createTabs(results) {
@@ -1255,7 +1325,9 @@ class KitsuneWatchApp {
                 } else {
                     this.loadVideo(result);
                 }
-                this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
+                
+                // Исправленная прокрутка для мобильных устройств
+                this.scrollToVideoPlayer();
             });
             
             this.videoListContainer.appendChild(card);
@@ -1264,32 +1336,26 @@ class KitsuneWatchApp {
 
     filterResults(type) {
         this.activeFilter = type;
-        this.currentPage = 1; // Сброс страницы при фильтрации
+        this.currentPage = 1;
         
         this.tabsContainer.querySelectorAll('.tab-button').forEach(tab => {
             tab.classList.toggle('active', tab.dataset.type === type);
         });
         
-        const filteredResults = type === 'all' 
-            ? this.currentResults 
-            : this.currentResults.filter(r => r.type === type);
+        if (type === 'all') {
+            this.filteredResults = this.currentResults;
+        } else {
+            this.filteredResults = this.currentResults.filter(r => r.type === type);
+        }
         
-        if (filteredResults.length > 0) {
-            this.displayCurrentPageFiltered(filteredResults);
-            this.createPagination(filteredResults.length);
+        if (this.filteredResults.length > 0) {
+            this.displayCurrentPage();
+            this.createPagination(this.filteredResults.length);
         } else {
             this.videoListContainer.innerHTML = '';
             this.videoListContainer.style.display = 'none';
             this.paginationContainer.style.display = 'none';
         }
-    }
-    
-    displayCurrentPageFiltered(filteredResults) {
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = Math.min(startIndex + this.itemsPerPage, filteredResults.length);
-        const pageResults = filteredResults.slice(startIndex, endIndex);
-        
-        this.createVideoList(pageResults);
     }
 
     // ============ ИНФОРМАЦИЯ О ВИДЕО ============
@@ -1355,9 +1421,11 @@ class KitsuneWatchApp {
         if (this.videoListContainer) { this.videoListContainer.style.display = 'none'; this.videoListContainer.innerHTML = ''; }
         if (this.paginationContainer) { this.paginationContainer.style.display = 'none'; this.paginationContainer.innerHTML = ''; }
         this.currentResults = [];
+        this.filteredResults = [];
         this.hasSearched = false;
         this.currentVideo = null;
         this.currentPage = 1;
+        this.activeFilter = 'all';
         
         this.updateUrlWithoutReload(window.location.origin);
         this.updateSEO();
