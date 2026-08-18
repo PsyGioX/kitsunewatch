@@ -41,6 +41,7 @@ class KitsuneWatchApp {
         this.currentVideo = null;
         this.isSearching = false;
         this.isVideoLoading = false;
+        this.currentSearchQuery = ''; // Храним текущий поисковый запрос
         
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
@@ -329,6 +330,7 @@ class KitsuneWatchApp {
         if (searchQuery && searchQuery.trim()) {
             // Устанавливаем значение в поле поиска
             this.searchInput.value = searchQuery.trim();
+            this.currentSearchQuery = searchQuery.trim();
             // Запускаем поиск после небольшой задержки (чтобы DOM успел подготовиться)
             setTimeout(() => {
                 this.performSearch();
@@ -478,6 +480,7 @@ class KitsuneWatchApp {
                 // Обновляем URL при очистке
                 this.updateUrlWithoutReload('/');
                 this.updateSEO();
+                this.currentSearchQuery = '';
             }
         });
         
@@ -638,6 +641,7 @@ class KitsuneWatchApp {
             span.textContent = item.query;
             span.addEventListener('click', () => {
                 this.searchInput.value = item.query;
+                this.currentSearchQuery = item.query;
                 this.performSearch();
             });
             
@@ -774,11 +778,16 @@ class KitsuneWatchApp {
         
         this.displayVideoInfo(material);
         
-        // Обновляем ссылку для шеринга
+        // Обновляем ссылку для шеринга с полным названием аниме
         const shareUrl = this.generateShareUrl(material);
         this.shareLink.href = shareUrl;
         
-        if (this.shareButton) this.shareButton.style.display = 'inline-flex';
+        if (this.shareButton) {
+            this.shareButton.style.display = 'inline-flex';
+            // Сбрасываем состояние кнопки при загрузке нового видео
+            this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
+            this.shareButton.classList.remove('copied');
+        }
         
         if (this.favoriteButton) {
             this.favoriteButton.style.display = 'inline-flex';
@@ -795,6 +804,14 @@ class KitsuneWatchApp {
         }
         
         this.resultsContainer.style.display = 'block';
+        
+        // Обновляем URL с полным названием аниме при загрузке видео
+        if (material.title) {
+            const newUrl = `${window.location.origin}/?search=${encodeURIComponent(material.title)}`;
+            this.updateUrlWithoutReload(newUrl);
+            this.updateSEO();
+            this.currentSearchQuery = material.title;
+        }
     }
 
     // ============ ГЕНЕРАЦИЯ ССЫЛОК ДЛЯ ШЕРИНГА ============
@@ -802,24 +819,25 @@ class KitsuneWatchApp {
         const baseUrl = window.location.origin;
         const params = new URLSearchParams();
         
-        // Если есть поисковый запрос - используем его
-        const searchQuery = this.searchInput.value.trim();
-        if (searchQuery) {
-            params.set('search', encodeURIComponent(searchQuery));
+        // Используем полное название выбранного аниме
+        if (material && material.title) {
+            params.set('search', encodeURIComponent(material.title));
             return `${baseUrl}/?${params.toString()}`;
         }
         
-        // Если есть ID видео - используем его
-        if (material.id) {
+        // Если есть ID видео - используем его (как запасной вариант)
+        if (material && material.id) {
             params.set('video', material.id);
             return `${baseUrl}/?${params.toString()}`;
         }
         
-        // Если есть ссылка на видео - используем её
-        if (material.link) {
-            return material.link;
+        // Если есть поисковый запрос - используем его (как последний вариант)
+        if (this.currentSearchQuery) {
+            params.set('search', encodeURIComponent(this.currentSearchQuery));
+            return `${baseUrl}/?${params.toString()}`;
         }
         
+        // Если ничего нет - возвращаем главную страницу
         return baseUrl;
     }
 
@@ -838,6 +856,9 @@ class KitsuneWatchApp {
             return;
         }
         if (this.isSearching) return;
+        
+        // Сохраняем поисковый запрос
+        this.currentSearchQuery = query;
         
         // Обновляем URL с поисковым запросом
         const newUrl = `${window.location.origin}/?search=${encodeURIComponent(query)}`;
@@ -972,6 +993,7 @@ class KitsuneWatchApp {
             card.appendChild(title);
             card.appendChild(info);
             card.addEventListener('click', () => {
+                // При клике на карточку загружаем видео и обновляем URL с полным названием
                 this.loadVideo(result);
                 this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
             });
@@ -1045,7 +1067,11 @@ class KitsuneWatchApp {
         this.videoAbout.textContent = '';
         this.aboutBlock.style.display = 'none';
         this.shareLink.href = '#';
-        if (this.shareButton) this.shareButton.style.display = 'none';
+        if (this.shareButton) {
+            this.shareButton.style.display = 'none';
+            this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
+            this.shareButton.classList.remove('copied');
+        }
         if (this.favoriteButton) this.favoriteButton.style.display = 'none';
         this.resultsContainer.style.display = 'none';
         if (this.tabsContainer) { this.tabsContainer.style.display = 'none'; this.tabsContainer.innerHTML = ''; }
@@ -1057,6 +1083,7 @@ class KitsuneWatchApp {
         // Возвращаем SEO на главную
         this.updateUrlWithoutReload(window.location.origin);
         this.updateSEO();
+        this.currentSearchQuery = '';
     }
 
     // ============ ТИПЫ ============
@@ -1077,15 +1104,10 @@ class KitsuneWatchApp {
 
     // ============ ПОДЕЛИТЬСЯ (ОБНОВЛЕНА) ============
     async copyShareLink() {
-        // Генерируем ссылку для шеринга
-        let shareUrl = this.shareLink.href;
+        // Генерируем ссылку для шеринга с полным названием аниме
+        let shareUrl = this.generateShareUrl(this.currentVideo);
         
-        // Если это относительная ссылка или пустая, генерируем новую
-        if (!shareUrl || shareUrl === '#' || shareUrl === window.location.href) {
-            shareUrl = this.generateShareUrl(this.currentVideo);
-        }
-        
-        if (!shareUrl || shareUrl === '#') {
+        if (!shareUrl || shareUrl === '#' || shareUrl === window.location.origin + '/') {
             this.showError('Нет ссылки для копирования');
             return;
         }
