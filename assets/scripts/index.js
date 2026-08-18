@@ -942,7 +942,7 @@ class KitsuneWatchApp {
             const url = this.sanitizeUrl(material.link);
             let fullUrl = url.startsWith('//') ? 'https:' + url : url;
             
-            const posterUrl = 'https://kitsunewatch.vercel.app/imgs/video_obl.jpg';
+            const posterUrl = 'https://raw.githubusercontent.com/PsyGioX/kitsunewatch/refs/heads/main/imgs/video_obl.jpg';
             const separator = fullUrl.includes('?') ? '&' : '?';
             fullUrl = `${fullUrl}${separator}poster=${posterUrl}`;
             
