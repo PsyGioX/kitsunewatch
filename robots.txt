@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /assets/
+Disallow: /sw.js
+Disallow: /*?favorites=true
+Disallow: /*?history=true
+Disallow: /*?video=*
+
+Sitemap: https://kitsunewatch.vercel.app/sitemap.xml
+
+Crawl-delay: 1
