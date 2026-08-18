@@ -41,7 +41,7 @@ class KitsuneWatchApp {
         this.currentVideo = null;
         this.isSearching = false;
         this.isVideoLoading = false;
-        this.currentSearchQuery = ''; // Храним текущий поисковый запрос
+        this.currentSearchQuery = '';
         
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
@@ -196,23 +196,25 @@ class KitsuneWatchApp {
         const baseKeywords = 'аниме, смотреть аниме, аниме онлайн, KitsuneWatch, аниме сериалы, японская анимация';
         
         if (searchQuery && searchQuery.trim()) {
-            const query = searchQuery.trim();
-            // Динамический title
+            // Декодируем запрос для SEO
+            let query = searchQuery.trim();
+            try {
+                query = decodeURIComponent(query);
+                // Если есть %25 - декодируем повторно
+                if (query.includes('%25')) {
+                    query = decodeURIComponent(query);
+                }
+            } catch (e) {}
+            
             if (title) {
                 title.textContent = `${query} - смотреть аниме онлайн | KitsuneWatch`;
             }
-            
-            // Динамическое описание
             if (metaDescription) {
                 metaDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch. Бесплатно, без регистрации.`;
             }
-            
-            // Динамические ключевые слова
             if (metaKeywords) {
                 metaKeywords.content = `${query}, смотреть ${query}, ${query} аниме, ${query} онлайн, аниме ${query}`;
             }
-            
-            // Open Graph
             if (ogTitle) {
                 ogTitle.content = `${query} - смотреть онлайн | KitsuneWatch`;
             }
@@ -222,8 +224,6 @@ class KitsuneWatchApp {
             if (ogUrl) {
                 ogUrl.content = window.location.href;
             }
-            
-            // Каноническая ссылка
             this.updateCanonicalLink(window.location.href);
             
         } else if (params.get('favorites') === 'true') {
@@ -239,7 +239,6 @@ class KitsuneWatchApp {
             this.updateCanonicalLink(window.location.origin + '/?history=true');
             
         } else {
-            // Главная страница
             if (title) title.textContent = baseTitle;
             if (metaDescription) metaDescription.content = baseDescription;
             if (metaKeywords) metaKeywords.content = baseKeywords;
@@ -328,20 +327,37 @@ class KitsuneWatchApp {
         // Обработка параметра search - автоматический поиск по названию
         const searchQuery = params.get('search');
         if (searchQuery && searchQuery.trim()) {
-            // Устанавливаем значение в поле поиска
-            this.searchInput.value = searchQuery.trim();
-            this.currentSearchQuery = searchQuery.trim();
-            // Запускаем поиск после небольшой задержки (чтобы DOM успел подготовиться)
+            // Декодируем URL-параметр
+            let decodedQuery = searchQuery.trim();
+            
+            // Декодируем один раз
+            try {
+                decodedQuery = decodeURIComponent(decodedQuery);
+            } catch (e) {
+                console.warn('Failed to decode URI:', e);
+            }
+            
+            // Проверяем, не осталось ли ещё %25 (двойное кодирование)
+            if (decodedQuery.includes('%25')) {
+                try {
+                    decodedQuery = decodeURIComponent(decodedQuery);
+                } catch (e) {
+                    console.warn('Failed second decode URI:', e);
+                }
+            }
+            
+            this.searchInput.value = decodedQuery;
+            this.currentSearchQuery = decodedQuery;
+            
             setTimeout(() => {
                 this.performSearch();
             }, 500);
-            return; // Выходим, чтобы не обрабатывать другие параметры
+            return;
         }
         
         // Обработка параметра video - прямой показ видео по ID
         const videoId = params.get('video');
         if (videoId && videoId.trim()) {
-            // Ищем в избранном
             const fav = this.favorites.find(f => f.id === videoId || f.link.includes(videoId));
             if (fav) {
                 setTimeout(() => {
@@ -477,7 +493,6 @@ class KitsuneWatchApp {
             if (!this.searchInput.value.trim()) {
                 this.clearAllResults();
                 this.displayAboutProject();
-                // Обновляем URL при очистке
                 this.updateUrlWithoutReload('/');
                 this.updateSEO();
                 this.currentSearchQuery = '';
@@ -486,7 +501,6 @@ class KitsuneWatchApp {
         
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
         
-        // Обновляем SEO при изменении истории браузера
         window.addEventListener('popstate', () => {
             this.handleURLParams();
             this.updateSEO();
@@ -640,8 +654,16 @@ class KitsuneWatchApp {
             span.className = 'history-query';
             span.textContent = item.query;
             span.addEventListener('click', () => {
-                this.searchInput.value = item.query;
-                this.currentSearchQuery = item.query;
+                // Декодируем запрос из истории
+                let query = item.query;
+                try {
+                    query = decodeURIComponent(query);
+                    if (query.includes('%25')) {
+                        query = decodeURIComponent(query);
+                    }
+                } catch (e) {}
+                this.searchInput.value = query;
+                this.currentSearchQuery = query;
                 this.performSearch();
             });
             
@@ -778,13 +800,11 @@ class KitsuneWatchApp {
         
         this.displayVideoInfo(material);
         
-        // Обновляем ссылку для шеринга с полным названием аниме
         const shareUrl = this.generateShareUrl(material);
         this.shareLink.href = shareUrl;
         
         if (this.shareButton) {
             this.shareButton.style.display = 'inline-flex';
-            // Сбрасываем состояние кнопки при загрузке нового видео
             this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
             this.shareButton.classList.remove('copied');
         }
@@ -805,7 +825,6 @@ class KitsuneWatchApp {
         
         this.resultsContainer.style.display = 'block';
         
-        // Обновляем URL с полным названием аниме при загрузке видео
         if (material.title) {
             const newUrl = `${window.location.origin}/?search=${encodeURIComponent(material.title)}`;
             this.updateUrlWithoutReload(newUrl);
@@ -819,25 +838,21 @@ class KitsuneWatchApp {
         const baseUrl = window.location.origin;
         const params = new URLSearchParams();
         
-        // Используем полное название выбранного аниме
         if (material && material.title) {
             params.set('search', encodeURIComponent(material.title));
             return `${baseUrl}/?${params.toString()}`;
         }
         
-        // Если есть ID видео - используем его (как запасной вариант)
         if (material && material.id) {
             params.set('video', material.id);
             return `${baseUrl}/?${params.toString()}`;
         }
         
-        // Если есть поисковый запрос - используем его (как последний вариант)
         if (this.currentSearchQuery) {
             params.set('search', encodeURIComponent(this.currentSearchQuery));
             return `${baseUrl}/?${params.toString()}`;
         }
         
-        // Если ничего нет - возвращаем главную страницу
         return baseUrl;
     }
 
@@ -857,10 +872,8 @@ class KitsuneWatchApp {
         }
         if (this.isSearching) return;
         
-        // Сохраняем поисковый запрос
         this.currentSearchQuery = query;
         
-        // Обновляем URL с поисковым запросом
         const newUrl = `${window.location.origin}/?search=${encodeURIComponent(query)}`;
         this.updateUrlWithoutReload(newUrl);
         this.updateSEO();
@@ -869,7 +882,6 @@ class KitsuneWatchApp {
         this.addToHistory(query);
         
         try {
-            // Прямой запрос к Kodik API
             const url = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true`;
             
             const data = await this.fetchWithTimeout(url);
@@ -993,7 +1005,6 @@ class KitsuneWatchApp {
             card.appendChild(title);
             card.appendChild(info);
             card.addEventListener('click', () => {
-                // При клике на карточку загружаем видео и обновляем URL с полным названием
                 this.loadVideo(result);
                 this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
             });
@@ -1080,7 +1091,6 @@ class KitsuneWatchApp {
         this.hasSearched = false;
         this.currentVideo = null;
         
-        // Возвращаем SEO на главную
         this.updateUrlWithoutReload(window.location.origin);
         this.updateSEO();
         this.currentSearchQuery = '';
@@ -1102,9 +1112,8 @@ class KitsuneWatchApp {
         return map[type] || type;
     }
 
-    // ============ ПОДЕЛИТЬСЯ (ОБНОВЛЕНА) ============
+    // ============ ПОДЕЛИТЬСЯ ============
     async copyShareLink() {
-        // Генерируем ссылку для шеринга с полным названием аниме
         let shareUrl = this.generateShareUrl(this.currentVideo);
         
         if (!shareUrl || shareUrl === '#' || shareUrl === window.location.origin + '/') {
@@ -1113,7 +1122,6 @@ class KitsuneWatchApp {
         }
         
         try {
-            // Используем Web Share API если доступно
             if (navigator.share) {
                 await navigator.share({
                     title: this.currentVideo?.title || 'KitsuneWatch - Смотри аниме онлайн',
@@ -1123,10 +1131,8 @@ class KitsuneWatchApp {
                 return;
             }
             
-            // Копируем в буфер обмена
             await navigator.clipboard.writeText(shareUrl);
             
-            // Показываем уведомление об успехе
             this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
             this.shareButton.classList.add('copied');
             
@@ -1137,7 +1143,6 @@ class KitsuneWatchApp {
             
         } catch (error) {
             console.error('Share error:', error);
-            // Fallback - показываем ссылку в alert
             alert(`Скопируйте ссылку вручную:\n${shareUrl}`);
         }
     }
