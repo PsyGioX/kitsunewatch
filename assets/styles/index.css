@@ -1494,3 +1494,323 @@ h3 .bi,
         font-size: 14px;
     }
 }
+
+
+/* =========================================================
+   БЛОК ПРЕМЬЕР ГОДА
+   ========================================================= */
+
+.premieres-container {
+    margin: 20px 0;
+    padding: 25px;
+    background: linear-gradient(135deg, 
+        rgba(85, 8, 153, 0.25) 0%, 
+        rgba(113, 0, 179, 0.35) 50%, 
+        rgba(85, 8, 153, 0.25) 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(85, 8, 153, 0.4);
+    backdrop-filter: blur(20px);
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Декоративное свечение */
+.premieres-container::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(180, 77, 255, 0.15) 0%,
+        transparent 70%
+    );
+    pointer-events: none;
+    animation: premieresGlow 8s ease-in-out infinite alternate;
+}
+
+@keyframes premieresGlow {
+    0% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+.premieres-block {
+    position: relative;
+    z-index: 1;
+}
+
+.premieres-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.5s ease-out 0.4s both;
+}
+
+.premieres-header i {
+    font-size: 28px;
+    color: #b44dff;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.premieres-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease;
+}
+
+.premieres-header h2:hover {
+    color: #b44dff;
+}
+
+.premieres-content {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.premieres-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex: 1;
+}
+
+.premieres-stat {
+    text-align: center;
+    background: rgba(85, 8, 153, 0.3);
+    padding: 15px 20px;
+    border-radius: 12px;
+    min-width: 120px;
+    border: 1px solid rgba(85, 8, 153, 0.4);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out 0.5s both;
+}
+
+.premieres-stat:hover {
+    background: rgba(85, 8, 153, 0.45);
+    border-color: #7100b3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(113, 0, 179, 0.3);
+}
+
+.premieres-stat-number {
+    display: block;
+    font-size: 36px;
+    font-weight: 900;
+    color: #b44dff;
+    line-height: 1;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+}
+
+.premieres-stat:hover .premieres-stat-number {
+    color: #d4a5ff;
+}
+
+.premieres-stat-label {
+    display: block;
+    font-size: 13px;
+    margin-top: 5px;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}
+
+.premieres-description {
+    flex: 1;
+    animation: fadeInUp 0.5s ease-out 0.6s both;
+}
+
+.premieres-description p {
+    margin: 0 0 15px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 300;
+}
+
+.premieres-search-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(85, 8, 153, 0.56);
+    border: 1px solid #550899;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    font-family: 'Roboto', sans-serif;
+}
+
+.premieres-search-button .bi {
+    font-size: 0.95em;
+    margin-right: 0;
+    transition: transform 0.3s ease;
+}
+
+.premieres-search-button:hover {
+    background-color: #7100b3;
+    border-color: #7100b3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(113, 0, 179, 0.4);
+}
+
+.premieres-search-button:hover .bi {
+    transform: scale(1.1);
+}
+
+.premieres-search-button:active {
+    background-color: #550899;
+    border-color: #550899;
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(113, 0, 179, 0.3);
+}
+
+.premieres-search-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(107, 0, 179, 0.25);
+}
+
+/* Анимация появления */
+@keyframes premieresFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность для планшетов */
+@media (max-width: 768px) {
+    .premieres-container {
+        padding: 20px;
+        margin: 15px 0;
+    }
+    
+    .premieres-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .premieres-stats {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .premieres-stat {
+        width: 100%;
+        min-width: auto;
+        padding: 12px;
+    }
+    
+    .premieres-stat-number {
+        font-size: 28px;
+    }
+    
+    .premieres-header h2 {
+        font-size: 20px;
+    }
+    
+    .premieres-header i {
+        font-size: 24px;
+    }
+    
+    .premieres-description {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .premieres-description p {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 480px) {
+    .premieres-container {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 12px;
+    }
+    
+    .premieres-header {
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .premieres-header i {
+        font-size: 20px;
+    }
+    
+    .premieres-header h2 {
+        font-size: 18px;
+    }
+    
+    .premieres-stat {
+        padding: 10px;
+        border-radius: 8px;
+    }
+    
+    .premieres-stat-number {
+        font-size: 24px;
+    }
+    
+    .premieres-stat-label {
+        font-size: 12px;
+    }
+    
+    .premieres-description p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    
+    .premieres-search-button {
+        width: 100%;
+        padding: 10px;
+        font-size: 13px;
+    }
+}
+
+/* Поддержка reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .premieres-container::before {
+        animation: none;
+    }
+    
+    .premieres-container,
+    .premieres-header,
+    .premieres-stat,
+    .premieres-description {
+        animation: none;
+    }
+    
+    .premieres-header i {
+        animation: none;
+    }
+}
