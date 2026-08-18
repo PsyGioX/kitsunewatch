@@ -55,69 +55,253 @@ h3 .bi,
     min-height: 100vh;
 }
 
-/* Анимированный фон */
-.bg_page::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(circle at 20% 50%, rgba(85, 8, 153, 0.5) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(107, 0, 179, 0.5) 0%, transparent 50%),
-        radial-gradient(circle at 50% 80%, rgba(46, 4, 64, 0.7) 0%, transparent 50%);
-    animation: backgroundMove 10s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 0;
+/* =========================================================
+   PREMIUM ANIME / CYBER FANTASY BACKGROUND
+   ========================================================= */
+
+.bg_page {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    /* Базовый глубокий фон */
+    background:
+        radial-gradient(
+            ellipse at 50% 120%,
+            rgba(92, 18, 145, 0.22),
+            transparent 55%
+        ),
+        linear-gradient(
+            135deg,
+            #08020f 0%,
+            #12051e 45%,
+            #05010b 100%
+        );
 }
+
+
+/* =========================================================
+   1. Основная энергетическая атмосфера
+   ========================================================= */
+
+.bg_page::before {
+    content: "";
+    position: fixed;
+    inset: -25%;
+
+    pointer-events: none;
+    z-index: -2;
+
+    background:
+        radial-gradient(
+            ellipse 35% 45% at 18% 48%,
+            rgba(139, 26, 255, 0.38) 0%,
+            rgba(105, 0, 190, 0.18) 35%,
+            transparent 72%
+        ),
+
+        radial-gradient(
+            ellipse 40% 35% at 82% 22%,
+            rgba(180, 43, 255, 0.30) 0%,
+            rgba(100, 0, 180, 0.14) 38%,
+            transparent 72%
+        ),
+
+        radial-gradient(
+            ellipse 45% 40% at 55% 90%,
+            rgba(56, 5, 91, 0.50) 0%,
+            transparent 70%
+        );
+
+    filter: blur(35px);
+
+    animation:
+        animeAtmosphere 18s cubic-bezier(.45, 0, .55, 1) infinite alternate,
+        animeBreathing 8s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   2. Вращающаяся магическая аура
+   ========================================================= */
 
 .bg_page::after {
-    content: '';
+    content: "";
     position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: 
-        radial-gradient(circle at 70% 30%, rgba(113, 0, 179, 0.4) 0%, transparent 30%),
-        radial-gradient(circle at 30% 70%, rgba(85, 8, 153, 0.4) 0%, transparent 30%),
-        radial-gradient(circle at 60% 60%, rgba(180, 77, 255, 0.3) 0%, transparent 25%);
-    animation: backgroundRotate 20s linear infinite;
+
+    width: 150vmax;
+    height: 150vmax;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
+
+    background:
+        conic-gradient(
+            from 0deg,
+
+            transparent 0deg,
+
+            rgba(157, 43, 255, 0.00) 35deg,
+            rgba(157, 43, 255, 0.12) 70deg,
+            transparent 105deg,
+
+            transparent 155deg,
+
+            rgba(76, 0, 140, 0.16) 205deg,
+            rgba(196, 67, 255, 0.08) 240deg,
+            transparent 280deg,
+
+            transparent 330deg,
+            rgba(157, 43, 255, 0.10) 350deg,
+            transparent 360deg
+        );
+
+    filter: blur(50px);
+
+    animation:
+        animeAura 32s linear infinite,
+        animeAuraPulse 7s ease-in-out infinite alternate;
 }
 
-@keyframes backgroundMove {
-    0%, 100% {
-        transform: translate(0, 0) scale(1);
-    }
-    25% {
-        transform: translate(80px, -50px) scale(1.1);
-    }
-    50% {
-        transform: translate(-40px, 70px) scale(0.9);
-    }
-    75% {
-        transform: translate(60px, 30px) scale(1.05);
-    }
+
+/* =========================================================
+   3. Дополнительный слой через background у самого блока
+      Добавляется отдельным элементом без изменения HTML
+   ========================================================= */
+
+.bg_page {
+    background-image:
+        radial-gradient(
+            circle at 15% 35%,
+            rgba(176, 47, 255, 0.10) 0,
+            transparent 18%
+        ),
+
+        radial-gradient(
+            circle at 85% 65%,
+            rgba(103, 0, 196, 0.12) 0,
+            transparent 22%
+        ),
+
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 0.015) 0,
+            transparent 50%
+        );
 }
 
-@keyframes backgroundRotate {
+
+/* =========================================================
+   ATMOSPHERE MOTION
+   ========================================================= */
+
+@keyframes animeAtmosphere {
+
     0% {
-        transform: rotate(0deg) scale(1);
+        transform:
+            translate3d(-3%, 1%, 0)
+            scale(1);
     }
+
     25% {
-        transform: rotate(90deg) scale(1.1);
+        transform:
+            translate3d(2%, -3%, 0)
+            scale(1.04);
     }
+
     50% {
-        transform: rotate(180deg) scale(0.9);
+        transform:
+            translate3d(5%, 2%, 0)
+            scale(1.08);
     }
+
     75% {
-        transform: rotate(270deg) scale(1.05);
+        transform:
+            translate3d(-2%, 5%, 0)
+            scale(1.04);
     }
+
     100% {
-        transform: rotate(360deg) scale(1);
+        transform:
+            translate3d(-5%, -2%, 0)
+            scale(1.10);
+    }
+}
+
+
+/* =========================================================
+   Очень медленное "дыхание" света
+   ========================================================= */
+
+@keyframes animeBreathing {
+
+    0%,
+    100% {
+        opacity: 0.78;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+   Aura rotation
+   ========================================================= */
+
+@keyframes animeAura {
+
+    from {
+        transform:
+            translate(-50%, -50%)
+            rotate(0deg)
+            scale(1);
+    }
+
+    to {
+        transform:
+            translate(-50%, -50%)
+            rotate(360deg)
+            scale(1.06);
+    }
+}
+
+
+/* =========================================================
+   Aura intensity
+   ========================================================= */
+
+@keyframes animeAuraPulse {
+
+    0% {
+        opacity: 0.45;
+    }
+
+    50% {
+        opacity: 0.75;
+    }
+
+    100% {
+        opacity: 0.52;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .bg_page::before,
+    .bg_page::after {
+        animation: none;
     }
 }
 
