@@ -31,7 +31,7 @@
 - 🔄 **Offline Support** — Service Worker with smart caching strategies
 - 🔔 **Push Notifications** — Stay updated with new content
 - 🔗 **Share Target** — Receive shared links from other apps
-- 📡 **Protocol Handler** — Custom `web+kitsunespace://` protocol support
+- 📡 **Protocol Handler** — Custom `web+KitsuneWatch://` protocol support
 - 🔄 **Background Sync** — Synchronize data when connection is restored
 
 ### Security Features

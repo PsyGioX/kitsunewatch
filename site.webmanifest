@@ -1,8 +1,8 @@
 {
-    "name": "KitsuneSpace — аниме смотреть онлайн",
-    "short_name": "KitsuneSpace",
-    "description": "KitsuneSpace — смотреть аниме онлайн бесплатно. Новинки аниме, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.",
-    "id": "kitsunespace-app",
+    "name": "KitsuneWatch — аниме смотреть онлайн",
+    "short_name": "KitsuneWatch",
+    "description": "KitsuneWatch — смотреть аниме онлайн бесплатно. Новинки аниме, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.",
+    "id": "KitsuneWatch-app",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
@@ -130,7 +130,7 @@
     "related_applications": [],
     "protocol_handlers": [
         {
-            "protocol": "web+kitsunespace",
+            "protocol": "web+KitsuneWatch",
             "url": "/?protocol=%s"
         }
     ],
@@ -140,14 +140,14 @@
             "sizes": "1920x1080",
             "type": "image/png",
             "form_factor": "wide",
-            "label": "Главная страница KitsuneSpace на десктопе"
+            "label": "Главная страница KitsuneWatch на десктопе"
         },
         {
             "src": "/screenshots/mobile.png",
             "sizes": "1080x1920",
             "type": "image/png",
             "form_factor": "narrow",
-            "label": "Главная страница KitsuneSpace на мобильном"
+            "label": "Главная страница KitsuneWatch на мобильном"
         }
     ]
 }
