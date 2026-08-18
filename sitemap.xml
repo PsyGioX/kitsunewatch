@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+    
+    <url>
+        <loc>https://kitsunewatch.vercel.app/</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Наруто</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+        <image:image>
+            <image:loc>https://kitsunewatch.vercel.app/imgs/poster_naruto.jpg</image:loc>
+            <image:caption>Наруто - смотреть онлайн</image:caption>
+        </image:image>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=One%20Piece</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+        <image:image>
+            <image:loc>https://kitsunewatch.vercel.app/imgs/poster_onepiece.jpg</image:loc>
+            <image:caption>One Piece - смотреть онлайн</image:caption>
+        </image:image>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Атака%20Титанов</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+        <image:image>
+            <image:loc>https://kitsunewatch.vercel.app/imgs/poster_attackontitan.jpg</image:loc>
+            <image:caption>Атака Титанов - смотреть онлайн</image:caption>
+        </image:image>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Тетрадь%20смерти</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Ван%20Пис</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Токийский%20гуль</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Смерть%20в%20раю</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Блич</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Врата%20Штейна</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Клинок%20рассекающий%20демонов</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Магическая%20битва</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Реинкарнация%20безработного</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Обещанный%20Неверленд</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Стальной%20алхимик</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Хантер%20х%20Хантер</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=Евангелион</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?favorites=true</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?history=true</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=боевик</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=романтика</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=комедия</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=фэнтези</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=приключения</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=драма</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=мистика</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=2025</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=2024</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=2023</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://kitsunewatch.vercel.app/?search=top</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+</urlset>
