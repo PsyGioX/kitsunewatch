@@ -239,11 +239,44 @@ class KitsuneWatchApp {
         setTimeout(() => status.remove(), 3000);
     }
 
+    // ============ ОБРАБОТКА ПАРАМЕТРОВ URL ============
     handleURLParams() {
         const params = new URLSearchParams(window.location.search);
-        if (params.get('search') === 'true') this.searchInput.focus();
-        if (params.get('favorites') === 'true') this.displayFavorites();
-        if (params.get('history') === 'true') this.displayHistory();
+        
+        // Обработка параметра search - автоматический поиск по названию
+        const searchQuery = params.get('search');
+        if (searchQuery && searchQuery.trim()) {
+            // Устанавливаем значение в поле поиска
+            this.searchInput.value = searchQuery.trim();
+            // Запускаем поиск после небольшой задержки (чтобы DOM успел подготовиться)
+            setTimeout(() => {
+                this.performSearch();
+            }, 500);
+            return; // Выходим, чтобы не обрабатывать другие параметры
+        }
+        
+        // Обработка параметра video - прямой показ видео по ID
+        const videoId = params.get('video');
+        if (videoId && videoId.trim()) {
+            // Ищем в избранном
+            const fav = this.favorites.find(f => f.id === videoId || f.link.includes(videoId));
+            if (fav) {
+                setTimeout(() => {
+                    this.loadVideo(fav);
+                }, 500);
+            }
+            return;
+        }
+        
+        // Обработка параметра favorites
+        if (params.get('favorites') === 'true') {
+            this.displayFavorites();
+        }
+        
+        // Обработка параметра history
+        if (params.get('history') === 'true') {
+            this.displayHistory();
+        }
     }
 
     // ============ UI ЭЛЕМЕНТЫ ============
