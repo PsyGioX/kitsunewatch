@@ -5,6 +5,7 @@ class KitsuneWatchApp {
         // API конфигурация
         this.API_TOKEN = 'a036c8a4c59b43e72e212e4d0388ef7d';
         this.API_URL = 'https://kodik-api.com/search';
+        this.YEARS_API_URL = 'https://kodik-api.com/years';
         
         // DOM элементы
         this.searchInput = document.querySelector('.search_input_query');
@@ -33,6 +34,7 @@ class KitsuneWatchApp {
         this.favoritesContainer = null;
         this.loadingOverlay = null;
         this.aboutProjectContainer = null;
+        this.premieresContainer = null;
         this.installButton = null;
         this.deferredPrompt = null;
         this.currentResults = [];
@@ -171,6 +173,7 @@ class KitsuneWatchApp {
         this.setupPlayerListener();
         this.setupPWA();
         this.displayAboutProject();
+        this.loadYearPremieres();
         this.handleURLParams();
         this.updateSEO();
         
@@ -178,6 +181,73 @@ class KitsuneWatchApp {
             this.displayHistory();
             this.displayFavorites();
         }, 500);
+    }
+
+    // ============ ЗАГРУЗКА ПРЕМЬЕР ГОДА ============
+    async loadYearPremieres() {
+        try {
+            const currentYear = new Date().getFullYear();
+            
+            // Получаем список годов для разных типов контента
+            const response = await fetch(`${this.YEARS_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial,foreign-movie,foreign-serial&sort=year`);
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                // Находим текущий год или ближайший доступный
+                let targetYear = currentYear;
+                let yearData = data.results.find(item => item.year === currentYear);
+                
+                // Если текущего года нет, ищем ближайший
+                if (!yearData) {
+                    yearData = data.results.reduce((closest, item) => {
+                        const currentDiff = Math.abs(item.year - currentYear);
+                        const closestDiff = Math.abs(closest.year - currentYear);
+                        return currentDiff < closestDiff ? item : closest;
+                    });
+                    targetYear = yearData.year;
+                }
+                
+                this.displayPremieres(targetYear, yearData.count);
+            }
+        } catch (error) {
+            console.error('Error loading year premieres:', error);
+            // Показываем заглушку с текущим годом
+            const currentYear = new Date().getFullYear();
+            this.displayPremieres(currentYear, 0);
+        }
+    }
+
+    displayPremieres(year, count) {
+        if (!this.premieresContainer) return;
+        
+        this.premieresContainer.innerHTML = `
+            <div class="premieres-block">
+                <div class="premieres-header">
+                    <i class="bi bi-calendar-event"></i>
+                    <h2>Премьеры ${year} года</h2>
+                </div>
+                <div class="premieres-content">
+                    <div class="premieres-stats">
+                        <div class="premieres-stat">
+                            <span class="premieres-stat-number">${count > 0 ? count : '...'}</span>
+                            <span class="premieres-stat-label">${count > 0 ? 'новых материалов' : 'загружаем данные'}</span>
+                        </div>
+                        <div class="premieres-description">
+                            <p>Лучшие новинки аниме и фильмов ${year} года уже доступны на KitsuneWatch!</p>
+                            <button class="premieres-search-button" onclick="window.app.searchYearPremieres(${year})">
+                                <i class="bi bi-search"></i> Показать премьеры
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    searchYearPremieres(year) {
+        this.searchInput.value = `${year}`;
+        this.currentSearchQuery = `${year}`;
+        this.performSearch();
     }
 
     // ============ SEO ОПТИМИЗАЦИЯ ============
@@ -391,6 +461,10 @@ class KitsuneWatchApp {
         this.aboutProjectContainer.className = 'about-project';
         this.aboutProjectContainer.style.display = 'block';
         
+        this.premieresContainer = document.createElement('div');
+        this.premieresContainer.className = 'premieres-container';
+        this.premieresContainer.style.display = 'block';
+        
         this.loadingOverlay = document.createElement('div');
         this.loadingOverlay.className = 'loading-overlay';
         this.loadingOverlay.style.display = 'none';
@@ -413,6 +487,7 @@ class KitsuneWatchApp {
         
         const mainBlock = document.querySelector('.main_block');
         mainBlock.appendChild(this.aboutProjectContainer);
+        mainBlock.appendChild(this.premieresContainer);
         mainBlock.appendChild(this.loadingOverlay);
         mainBlock.appendChild(this.tabsContainer);
         mainBlock.appendChild(this.videoListContainer);
@@ -484,6 +559,7 @@ class KitsuneWatchApp {
             if (!this.searchInput.value.trim()) {
                 this.clearAllResults();
                 this.displayAboutProject();
+                this.loadYearPremieres();
                 this.updateUrlWithoutReload('/');
                 this.updateSEO();
                 this.currentSearchQuery = '';
@@ -556,6 +632,7 @@ class KitsuneWatchApp {
         this.tabsContainer.style.display = 'none';
         this.videoListContainer.style.display = 'none';
         this.hideAboutProject();
+        if (this.premieresContainer) this.premieresContainer.style.display = 'none';
         if (this.videoContainer) this.videoContainer.style.display = 'none';
     }
 
@@ -773,6 +850,7 @@ class KitsuneWatchApp {
         this.currentVideo = material;
         this.isVideoLoading = true;
         this.hideAboutProject();
+        if (this.premieresContainer) this.premieresContainer.style.display = 'none';
         
         this.videoName.textContent = `${material.title || 'Без названия'} (${material.year || '?'})`;
         this.videoName.style.display = 'block';
