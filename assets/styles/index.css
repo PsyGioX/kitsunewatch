@@ -1284,6 +1284,9 @@ h3 .bi,
     .app {
         padding: 12px;
         border-radius: 16px;
+        width: 100%;
+        height: 100%;
+        padding-bottom: 80px;
     }
     
     .name_video {
