@@ -39,6 +39,8 @@ class KitsuneWatchApp {
         this.installButton = null;
         this.deferredPrompt = null;
         this.currentResults = [];
+        this.allResults = []; // Все результаты без пагинации
+        this.filteredResults = []; // Отфильтрованные результаты
         this.activeFilter = 'all';
         this.hasSearched = false;
         this.currentVideo = null;
@@ -48,6 +50,7 @@ class KitsuneWatchApp {
         this.currentPage = 1;
         this.itemsPerPage = 20;
         this.totalPages = 1;
+        this.totalItems = 0;
         
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
@@ -957,6 +960,7 @@ class KitsuneWatchApp {
     createPagination(totalItems) {
         if (!this.paginationContainer) return;
         
+        this.totalItems = totalItems;
         this.totalPages = Math.ceil(totalItems / this.itemsPerPage);
         
         if (this.totalPages <= 1) {
@@ -983,7 +987,7 @@ class KitsuneWatchApp {
         this.paginationContainer.appendChild(prevButton);
         
         // Номера страниц
-        const maxVisiblePages = 5;
+        const maxVisiblePages = 7; // Увеличено для лучшей навигации
         let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
         let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
         
@@ -991,6 +995,7 @@ class KitsuneWatchApp {
             startPage = Math.max(1, endPage - maxVisiblePages + 1);
         }
         
+        // Первая страница
         if (startPage > 1) {
             const firstPageButton = this.createPageButton(1);
             this.paginationContainer.appendChild(firstPageButton);
@@ -1003,11 +1008,13 @@ class KitsuneWatchApp {
             }
         }
         
+        // Страницы
         for (let i = startPage; i <= endPage; i++) {
             const pageButton = this.createPageButton(i);
             this.paginationContainer.appendChild(pageButton);
         }
         
+        // Последняя страница
         if (endPage < this.totalPages) {
             if (endPage < this.totalPages - 1) {
                 const ellipsis = document.createElement('span');
@@ -1052,8 +1059,8 @@ class KitsuneWatchApp {
     }
     
     updatePagination() {
-        if (this.currentResults.length > 0) {
-            this.createPagination(this.currentResults.length);
+        if (this.filteredResults.length > 0) {
+            this.createPagination(this.filteredResults.length);
         }
         
         // Прокрутка к началу списка
@@ -1063,11 +1070,11 @@ class KitsuneWatchApp {
     }
     
     displayCurrentPage() {
-        if (!this.currentResults.length) return;
+        if (!this.filteredResults.length) return;
         
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = Math.min(startIndex + this.itemsPerPage, this.currentResults.length);
-        const pageResults = this.currentResults.slice(startIndex, endIndex);
+        const endIndex = Math.min(startIndex + this.itemsPerPage, this.filteredResults.length);
+        const pageResults = this.filteredResults.slice(startIndex, endIndex);
         
         this.createVideoList(pageResults);
     }
@@ -1122,14 +1129,34 @@ class KitsuneWatchApp {
         this.addToHistory(query);
         
         try {
-            const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
+            // Загружаем все результаты (максимум 100 за запрос)
+            let allResults = [];
+            let page = 1;
+            let hasMore = true;
             
-            const data = await this.fetchWithTimeout(searchUrl, 15000);
+            while (hasMore && page <= 50) { // Максимум 50 запросов = 5000 результатов
+                const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true&limit=100&page=${page}`;
+                
+                const data = await this.fetchWithTimeout(searchUrl, 15000);
+                
+                if (data.results && data.results.length > 0) {
+                    allResults = allResults.concat(data.results);
+                    page++;
+                    
+                    // Если результатов меньше 100, значит это последняя страница
+                    if (data.results.length < 100) {
+                        hasMore = false;
+                    }
+                } else {
+                    hasMore = false;
+                }
+            }
             
-            if (data.results?.length > 0) {
+            if (allResults.length > 0) {
                 this.hasSearched = true;
-                const grouped = this.groupResultsByTitle(data.results);
-                this.currentResults = grouped;
+                const grouped = this.groupResultsByTitle(allResults);
+                this.allResults = grouped;
+                this.filteredResults = grouped;
                 this.clearErrorMessages();
                 this.displayAllResults(grouped);
                 
@@ -1270,26 +1297,20 @@ class KitsuneWatchApp {
             tab.classList.toggle('active', tab.dataset.type === type);
         });
         
-        const filteredResults = type === 'all' 
-            ? this.currentResults 
-            : this.currentResults.filter(r => r.type === type);
+        if (type === 'all') {
+            this.filteredResults = this.allResults;
+        } else {
+            this.filteredResults = this.allResults.filter(r => r.type === type);
+        }
         
-        if (filteredResults.length > 0) {
-            this.displayCurrentPageFiltered(filteredResults);
-            this.createPagination(filteredResults.length);
+        if (this.filteredResults.length > 0) {
+            this.displayCurrentPage();
+            this.createPagination(this.filteredResults.length);
         } else {
             this.videoListContainer.innerHTML = '';
             this.videoListContainer.style.display = 'none';
             this.paginationContainer.style.display = 'none';
         }
-    }
-    
-    displayCurrentPageFiltered(filteredResults) {
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = Math.min(startIndex + this.itemsPerPage, filteredResults.length);
-        const pageResults = filteredResults.slice(startIndex, endIndex);
-        
-        this.createVideoList(pageResults);
     }
 
     // ============ ИНФОРМАЦИЯ О ВИДЕО ============
@@ -1354,10 +1375,13 @@ class KitsuneWatchApp {
         if (this.tabsContainer) { this.tabsContainer.style.display = 'none'; this.tabsContainer.innerHTML = ''; }
         if (this.videoListContainer) { this.videoListContainer.style.display = 'none'; this.videoListContainer.innerHTML = ''; }
         if (this.paginationContainer) { this.paginationContainer.style.display = 'none'; this.paginationContainer.innerHTML = ''; }
-        this.currentResults = [];
+        this.allResults = [];
+        this.filteredResults = [];
         this.hasSearched = false;
         this.currentVideo = null;
         this.currentPage = 1;
+        this.totalPages = 1;
+        this.totalItems = 0;
         
         this.updateUrlWithoutReload(window.location.origin);
         this.updateSEO();
