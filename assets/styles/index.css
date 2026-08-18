@@ -329,7 +329,7 @@ h3 .bi,
 .video-container .video_link {
     position: relative;
     z-index: 1;
-    min-width: 100%;
+    width: 100%;
     min-height: 50vh;
     border-radius: 12px;
     border: 1px solid rgba(85, 8, 153, 0.3);
