@@ -525,7 +525,7 @@ class KitsuneWatchApp {
     }
 
     // ============ FETCH ============
-    async fetchWithTimeout(url, timeout = 10000) {
+    async fetchWithTimeout(url, timeout = 15000) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         
@@ -768,7 +768,7 @@ class KitsuneWatchApp {
         this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ============ ВИДЕО (ОБНОВЛЕН С POSTER) ============
+    // ============ ВИДЕО ============
     loadVideo(material) {
         this.currentVideo = material;
         this.isVideoLoading = true;
@@ -784,7 +784,6 @@ class KitsuneWatchApp {
             const url = this.sanitizeUrl(material.link);
             let fullUrl = url.startsWith('//') ? 'https:' + url : url;
             
-            // Добавляем poster параметр к ссылке
             const posterUrl = 'https://kitsunewatch.vercel.app/imgs/video_obl.jpg';
             const separator = fullUrl.includes('?') ? '&' : '?';
             fullUrl = `${fullUrl}${separator}poster=${encodeURIComponent(posterUrl)}`;
@@ -829,6 +828,45 @@ class KitsuneWatchApp {
         }
     }
 
+    // ============ ГРУППИРОВКА РЕЗУЛЬТАТОВ ============
+    groupResultsByTitle(results) {
+        const grouped = new Map();
+        
+        results.forEach(result => {
+            // Используем title + year + type как ключ для группировки
+            const key = `${result.title}_${result.year}_${result.type}`;
+            
+            if (!grouped.has(key)) {
+                // Первый результат - создаем запись с массивом переводов
+                grouped.set(key, {
+                    id: result.id,
+                    title: result.title,
+                    title_orig: result.title_orig,
+                    year: result.year,
+                    type: result.type,
+                    quality: result.quality,
+                    material_data: result.material_data,
+                    translations: [{
+                        id: result.translation?.id,
+                        title: result.translation?.title,
+                        link: result.link,
+                        quality: result.quality
+                    }]
+                });
+            } else {
+                // Добавляем перевод к существующей записи
+                grouped.get(key).translations.push({
+                    id: result.translation?.id,
+                    title: result.translation?.title,
+                    link: result.link,
+                    quality: result.quality
+                });
+            }
+        });
+        
+        return Array.from(grouped.values());
+    }
+
     // ============ ГЕНЕРАЦИЯ ССЫЛОК ДЛЯ ШЕРИНГА ============
     generateShareUrl(material) {
         const baseUrl = window.location.origin;
@@ -859,7 +897,7 @@ class KitsuneWatchApp {
         }
     }
 
-    // ============ ПОИСК ============
+    // ============ ПОИСК (ОСНОВНОЕ ИЗМЕНЕНИЕ) ============
     async performSearch() {
         const query = this.searchInput.value.trim();
         if (!query) {
@@ -878,12 +916,19 @@ class KitsuneWatchApp {
         this.addToHistory(query);
         
         try {
-            const url = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true`;
+            // ========== ГЛАВНОЕ ИЗМЕНЕНИЕ ==========
+            // Добавляем параметры для получения ВСЕХ результатов:
+            // limit=100 - получаем до 100 результатов
+            // sort=popular - сортируем по популярности
+            // с типом "anime" чтобы получать только аниме
+            const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
             
-            const data = await this.fetchWithTimeout(url);
+            const data = await this.fetchWithTimeout(searchUrl, 15000);
             
             if (data.results?.length > 0) {
                 this.hasSearched = true;
+                
+                // Группируем результаты по названию (чтобы не было дубликатов с разными озвучками)
                 const grouped = this.groupResultsByTitle(data.results);
                 this.currentResults = grouped;
                 this.clearErrorMessages();
@@ -911,37 +956,30 @@ class KitsuneWatchApp {
         }
     }
 
-    groupResultsByTitle(results) {
-        const grouped = new Map();
-        
-        results.forEach(result => {
-            const key = `${result.title}_${result.year}_${result.type}`;
-            
-            if (!grouped.has(key)) {
-                grouped.set(key, {
-                    ...result,
-                    translations: [{
-                        id: result.translation?.id,
-                        title: result.translation?.title,
-                        link: result.link,
-                        quality: result.quality
-                    }]
-                });
-            } else {
-                grouped.get(key).translations.push({
-                    id: result.translation?.id,
-                    title: result.translation?.title,
-                    link: result.link,
-                    quality: result.quality
-                });
-            }
-        });
-        
-        return Array.from(grouped.values());
-    }
-
+    // ============ ОТОБРАЖЕНИЕ РЕЗУЛЬТАТОВ ============
     displayAllResults(results) {
-        this.loadVideo(results[0]);
+        if (results.length === 0) {
+            this.showError('Ничего не найдено');
+            return;
+        }
+        
+        // Загружаем первое видео (с первым переводом)
+        const firstResult = results[0];
+        if (firstResult.translations && firstResult.translations.length > 0) {
+            const videoWithLink = {
+                ...firstResult,
+                link: firstResult.translations[0].link,
+                translation: {
+                    id: firstResult.translations[0].id,
+                    title: firstResult.translations[0].title
+                },
+                quality: firstResult.translations[0].quality
+            };
+            this.loadVideo(videoWithLink);
+        } else {
+            this.loadVideo(firstResult);
+        }
+        
         this.createTabs(results);
         this.createVideoList(results);
     }
@@ -953,7 +991,9 @@ class KitsuneWatchApp {
         const types = new Map();
         types.set('all', 'Все');
         results.forEach(r => {
-            if (!types.has(r.type)) types.set(r.type, this.getTypeName(r.type));
+            if (r.type && !types.has(r.type)) {
+                types.set(r.type, this.getTypeName(r.type));
+            }
         });
         
         types.forEach((name, type) => {
@@ -974,7 +1014,7 @@ class KitsuneWatchApp {
         results.forEach(result => {
             const card = document.createElement('div');
             card.className = 'video-card';
-            card.dataset.type = result.type;
+            card.dataset.type = result.type || 'unknown';
             
             const title = document.createElement('h3');
             title.className = 'video-card-title';
@@ -988,20 +1028,36 @@ class KitsuneWatchApp {
             type.className = 'video-card-type';
             type.textContent = this.getTypeName(result.type);
             
-            const count = document.createElement('span');
-            count.className = 'video-card-translations-count';
-            count.innerHTML = `<i class="bi bi-mic"></i> ${result.translations.length}`;
+            // Количество переводов
+            const transCount = document.createElement('span');
+            transCount.className = 'video-card-translations-count';
+            const count = result.translations?.length || 0;
+            transCount.innerHTML = `<i class="bi bi-mic"></i> ${count}`;
             
             const info = document.createElement('div');
             info.className = 'video-card-info';
             info.appendChild(year);
             info.appendChild(type);
-            info.appendChild(count);
+            info.appendChild(transCount);
             
             card.appendChild(title);
             card.appendChild(info);
             card.addEventListener('click', () => {
-                this.loadVideo(result);
+                // При клике загружаем видео с первым переводом
+                if (result.translations && result.translations.length > 0) {
+                    const videoWithLink = {
+                        ...result,
+                        link: result.translations[0].link,
+                        translation: {
+                            id: result.translations[0].id,
+                            title: result.translations[0].title
+                        },
+                        quality: result.translations[0].quality
+                    };
+                    this.loadVideo(videoWithLink);
+                } else {
+                    this.loadVideo(result);
+                }
                 this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
             });
             
@@ -1017,7 +1073,11 @@ class KitsuneWatchApp {
         });
         
         this.videoListContainer.querySelectorAll('.video-card').forEach(card => {
-            card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
+            if (type === 'all' || card.dataset.type === type) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
         });
     }
 
@@ -1027,16 +1087,16 @@ class KitsuneWatchApp {
         
         if (material.title_orig) info.push(`Оригинальное: ${this.sanitizeInput(material.title_orig)}`);
         if (material.translation) info.push(`Озвучка: ${this.sanitizeInput(material.translation.title)}`);
-        
-        if (material.translations?.length > 1) {
-            info.push(`\nОзвучки (${material.translations.length}):`);
-            material.translations.forEach((t, i) => {
-                info.push(`  ${i + 1}. ${this.sanitizeInput(t.title)}`);
-            });
-        }
-        
         if (material.quality) info.push(`Качество: ${this.sanitizeInput(material.quality)}`);
         if (material.type) info.push(`Тип: ${this.getTypeName(material.type)}`);
+        
+        // Показываем все доступные переводы
+        if (material.translations && material.translations.length > 1) {
+            info.push(`\nДоступные озвучки (${material.translations.length}):`);
+            material.translations.forEach((t, i) => {
+                info.push(`  ${i + 1}. ${this.sanitizeInput(t.title)} (${t.quality || 'HD'})`);
+            });
+        }
         
         const md = material.material_data;
         if (md) {
@@ -1103,9 +1163,11 @@ class KitsuneWatchApp {
             'anime-serial': 'Аниме сериал',
             'russian-serial': 'Русский сериал',
             'documentary-serial': 'Документальный',
-            'multi-part-film': 'Многосерийный'
+            'multi-part-film': 'Многосерийный',
+            'tv-series': 'TV Сериал',
+            'movie': 'Фильм'
         };
-        return map[type] || type;
+        return map[type] || type || 'Другое';
     }
 
     // ============ ПОДЕЛИТЬСЯ ============
