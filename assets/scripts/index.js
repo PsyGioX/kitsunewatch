@@ -768,7 +768,7 @@ class KitsuneWatchApp {
         this.resultsContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ============ ВИДЕО ============
+    // ============ ВИДЕО (С POSTER БЕЗ КОДИРОВАНИЯ) ============
     loadVideo(material) {
         this.currentVideo = material;
         this.isVideoLoading = true;
@@ -784,9 +784,10 @@ class KitsuneWatchApp {
             const url = this.sanitizeUrl(material.link);
             let fullUrl = url.startsWith('//') ? 'https:' + url : url;
             
+            // Добавляем poster без кодирования (Kodik сам обработает)
             const posterUrl = 'https://kitsunewatch.vercel.app/imgs/video_obl.jpg';
             const separator = fullUrl.includes('?') ? '&' : '?';
-            fullUrl = `${fullUrl}${separator}poster=${encodeURIComponent(posterUrl)}`;
+            fullUrl = `${fullUrl}${separator}poster=${posterUrl}`;
             
             this.videoFrame.src = fullUrl;
             this.videoFrame.setAttribute('allow', 'autoplay *; fullscreen *; picture-in-picture *');
@@ -833,11 +834,9 @@ class KitsuneWatchApp {
         const grouped = new Map();
         
         results.forEach(result => {
-            // Используем title + year + type как ключ для группировки
             const key = `${result.title}_${result.year}_${result.type}`;
             
             if (!grouped.has(key)) {
-                // Первый результат - создаем запись с массивом переводов
                 grouped.set(key, {
                     id: result.id,
                     title: result.title,
@@ -854,7 +853,6 @@ class KitsuneWatchApp {
                     }]
                 });
             } else {
-                // Добавляем перевод к существующей записи
                 grouped.get(key).translations.push({
                     id: result.translation?.id,
                     title: result.translation?.title,
@@ -897,7 +895,7 @@ class KitsuneWatchApp {
         }
     }
 
-    // ============ ПОИСК (ОСНОВНОЕ ИЗМЕНЕНИЕ) ============
+    // ============ ПОИСК ============
     async performSearch() {
         const query = this.searchInput.value.trim();
         if (!query) {
@@ -916,19 +914,12 @@ class KitsuneWatchApp {
         this.addToHistory(query);
         
         try {
-            // ========== ГЛАВНОЕ ИЗМЕНЕНИЕ ==========
-            // Добавляем параметры для получения ВСЕХ результатов:
-            // limit=100 - получаем до 100 результатов
-            // sort=popular - сортируем по популярности
-            // с типом "anime" чтобы получать только аниме
             const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
             
             const data = await this.fetchWithTimeout(searchUrl, 15000);
             
             if (data.results?.length > 0) {
                 this.hasSearched = true;
-                
-                // Группируем результаты по названию (чтобы не было дубликатов с разными озвучками)
                 const grouped = this.groupResultsByTitle(data.results);
                 this.currentResults = grouped;
                 this.clearErrorMessages();
@@ -963,7 +954,6 @@ class KitsuneWatchApp {
             return;
         }
         
-        // Загружаем первое видео (с первым переводом)
         const firstResult = results[0];
         if (firstResult.translations && firstResult.translations.length > 0) {
             const videoWithLink = {
@@ -1028,7 +1018,6 @@ class KitsuneWatchApp {
             type.className = 'video-card-type';
             type.textContent = this.getTypeName(result.type);
             
-            // Количество переводов
             const transCount = document.createElement('span');
             transCount.className = 'video-card-translations-count';
             const count = result.translations?.length || 0;
@@ -1043,7 +1032,6 @@ class KitsuneWatchApp {
             card.appendChild(title);
             card.appendChild(info);
             card.addEventListener('click', () => {
-                // При клике загружаем видео с первым переводом
                 if (result.translations && result.translations.length > 0) {
                     const videoWithLink = {
                         ...result,
@@ -1090,7 +1078,6 @@ class KitsuneWatchApp {
         if (material.quality) info.push(`Качество: ${this.sanitizeInput(material.quality)}`);
         if (material.type) info.push(`Тип: ${this.getTypeName(material.type)}`);
         
-        // Показываем все доступные переводы
         if (material.translations && material.translations.length > 1) {
             info.push(`\nДоступные озвучки (${material.translations.length}):`);
             material.translations.forEach((t, i) => {
