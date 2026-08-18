@@ -57,7 +57,7 @@
 1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/yourusername/kitsunewatch.git
+git clone https://github.com/PsyGioX/kitsunewatch.git
 cd kitsunewatch
 ```
 
