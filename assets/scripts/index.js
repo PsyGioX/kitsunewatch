@@ -35,6 +35,7 @@ class KitsuneWatchApp {
         this.loadingOverlay = null;
         this.aboutProjectContainer = null;
         this.premieresContainer = null;
+        this.paginationContainer = null;
         this.installButton = null;
         this.deferredPrompt = null;
         this.currentResults = [];
@@ -44,6 +45,9 @@ class KitsuneWatchApp {
         this.isSearching = false;
         this.isVideoLoading = false;
         this.currentSearchQuery = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 20;
+        this.totalPages = 1;
         
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
@@ -244,10 +248,10 @@ class KitsuneWatchApp {
         `;
     }
 
-    searchYearPremieres(year) {
+    async searchYearPremieres(year) {
         this.searchInput.value = `${year}`;
         this.currentSearchQuery = `${year}`;
-        this.performSearch();
+        await this.performSearch();
     }
 
     // ============ SEO ОПТИМИЗАЦИЯ ============
@@ -449,6 +453,10 @@ class KitsuneWatchApp {
         this.videoListContainer.className = 'video-list';
         this.videoListContainer.style.display = 'none';
         
+        this.paginationContainer = document.createElement('div');
+        this.paginationContainer.className = 'pagination-container';
+        this.paginationContainer.style.display = 'none';
+        
         this.historyContainer = document.createElement('div');
         this.historyContainer.className = 'search-history';
         this.historyContainer.style.display = 'none';
@@ -491,6 +499,7 @@ class KitsuneWatchApp {
         mainBlock.appendChild(this.loadingOverlay);
         mainBlock.appendChild(this.tabsContainer);
         mainBlock.appendChild(this.videoListContainer);
+        mainBlock.appendChild(this.paginationContainer);
         mainBlock.appendChild(this.historyContainer);
         mainBlock.appendChild(this.favoritesContainer);
         
@@ -631,6 +640,7 @@ class KitsuneWatchApp {
         this.resultsContainer.style.display = 'none';
         this.tabsContainer.style.display = 'none';
         this.videoListContainer.style.display = 'none';
+        this.paginationContainer.style.display = 'none';
         this.hideAboutProject();
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
         if (this.videoContainer) this.videoContainer.style.display = 'none';
@@ -943,6 +953,125 @@ class KitsuneWatchApp {
         return Array.from(grouped.values());
     }
 
+    // ============ ПАГИНАЦИЯ ============
+    createPagination(totalItems) {
+        if (!this.paginationContainer) return;
+        
+        this.totalPages = Math.ceil(totalItems / this.itemsPerPage);
+        
+        if (this.totalPages <= 1) {
+            this.paginationContainer.style.display = 'none';
+            this.paginationContainer.innerHTML = '';
+            return;
+        }
+        
+        this.paginationContainer.style.display = 'flex';
+        this.paginationContainer.innerHTML = '';
+        
+        // Кнопка "Назад"
+        const prevButton = document.createElement('button');
+        prevButton.className = 'pagination-button';
+        prevButton.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        prevButton.disabled = this.currentPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.updatePagination();
+                this.displayCurrentPage();
+            }
+        });
+        this.paginationContainer.appendChild(prevButton);
+        
+        // Номера страниц
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        if (startPage > 1) {
+            const firstPageButton = this.createPageButton(1);
+            this.paginationContainer.appendChild(firstPageButton);
+            
+            if (startPage > 2) {
+                const ellipsis = document.createElement('span');
+                ellipsis.className = 'pagination-ellipsis';
+                ellipsis.textContent = '...';
+                this.paginationContainer.appendChild(ellipsis);
+            }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageButton = this.createPageButton(i);
+            this.paginationContainer.appendChild(pageButton);
+        }
+        
+        if (endPage < this.totalPages) {
+            if (endPage < this.totalPages - 1) {
+                const ellipsis = document.createElement('span');
+                ellipsis.className = 'pagination-ellipsis';
+                ellipsis.textContent = '...';
+                this.paginationContainer.appendChild(ellipsis);
+            }
+            
+            const lastPageButton = this.createPageButton(this.totalPages);
+            this.paginationContainer.appendChild(lastPageButton);
+        }
+        
+        // Кнопка "Вперед"
+        const nextButton = document.createElement('button');
+        nextButton.className = 'pagination-button';
+        nextButton.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        nextButton.disabled = this.currentPage === this.totalPages;
+        nextButton.addEventListener('click', () => {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage++;
+                this.updatePagination();
+                this.displayCurrentPage();
+            }
+        });
+        this.paginationContainer.appendChild(nextButton);
+    }
+    
+    createPageButton(pageNumber) {
+        const pageButton = document.createElement('button');
+        pageButton.className = 'pagination-button page-number';
+        pageButton.textContent = pageNumber;
+        pageButton.disabled = pageNumber === this.currentPage;
+        if (pageNumber === this.currentPage) {
+            pageButton.classList.add('active');
+        }
+        pageButton.addEventListener('click', () => {
+            this.currentPage = pageNumber;
+            this.updatePagination();
+            this.displayCurrentPage();
+        });
+        return pageButton;
+    }
+    
+    updatePagination() {
+        if (this.currentResults.length > 0) {
+            this.createPagination(this.currentResults.length);
+        }
+        
+        // Прокрутка к началу списка
+        if (this.videoListContainer) {
+            this.videoListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+    
+    displayCurrentPage() {
+        if (!this.currentResults.length) return;
+        
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = Math.min(startIndex + this.itemsPerPage, this.currentResults.length);
+        const pageResults = this.currentResults.slice(startIndex, endIndex);
+        
+        this.createVideoList(pageResults);
+    }
+
     // ============ ГЕНЕРАЦИЯ ССЫЛОК ДЛЯ ШЕРИНГА ============
     generateShareUrl(material) {
         const baseUrl = window.location.origin;
@@ -983,6 +1112,7 @@ class KitsuneWatchApp {
         if (this.isSearching) return;
         
         this.currentSearchQuery = query;
+        this.currentPage = 1; // Сброс страницы при новом поиске
         
         const newUrl = `${window.location.origin}/?search=${encodeURIComponent(query)}`;
         this.updateUrlWithoutReload(newUrl);
@@ -1049,7 +1179,8 @@ class KitsuneWatchApp {
         }
         
         this.createTabs(results);
-        this.createVideoList(results);
+        this.displayCurrentPage();
+        this.createPagination(results.length);
     }
 
     createTabs(results) {
@@ -1133,18 +1264,32 @@ class KitsuneWatchApp {
 
     filterResults(type) {
         this.activeFilter = type;
+        this.currentPage = 1; // Сброс страницы при фильтрации
         
         this.tabsContainer.querySelectorAll('.tab-button').forEach(tab => {
             tab.classList.toggle('active', tab.dataset.type === type);
         });
         
-        this.videoListContainer.querySelectorAll('.video-card').forEach(card => {
-            if (type === 'all' || card.dataset.type === type) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
+        const filteredResults = type === 'all' 
+            ? this.currentResults 
+            : this.currentResults.filter(r => r.type === type);
+        
+        if (filteredResults.length > 0) {
+            this.displayCurrentPageFiltered(filteredResults);
+            this.createPagination(filteredResults.length);
+        } else {
+            this.videoListContainer.innerHTML = '';
+            this.videoListContainer.style.display = 'none';
+            this.paginationContainer.style.display = 'none';
+        }
+    }
+    
+    displayCurrentPageFiltered(filteredResults) {
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = Math.min(startIndex + this.itemsPerPage, filteredResults.length);
+        const pageResults = filteredResults.slice(startIndex, endIndex);
+        
+        this.createVideoList(pageResults);
     }
 
     // ============ ИНФОРМАЦИЯ О ВИДЕО ============
@@ -1208,9 +1353,11 @@ class KitsuneWatchApp {
         this.resultsContainer.style.display = 'none';
         if (this.tabsContainer) { this.tabsContainer.style.display = 'none'; this.tabsContainer.innerHTML = ''; }
         if (this.videoListContainer) { this.videoListContainer.style.display = 'none'; this.videoListContainer.innerHTML = ''; }
+        if (this.paginationContainer) { this.paginationContainer.style.display = 'none'; this.paginationContainer.innerHTML = ''; }
         this.currentResults = [];
         this.hasSearched = false;
         this.currentVideo = null;
+        this.currentPage = 1;
         
         this.updateUrlWithoutReload(window.location.origin);
         this.updateSEO();
