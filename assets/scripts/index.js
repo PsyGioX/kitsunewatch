@@ -37,7 +37,6 @@ class KitsuneWatchApp {
         this.aboutProjectContainer = null;
         this.premieresContainer = null;
         this.paginationContainer = null;
-        this.collectionsContainer = null;
         this.installButton = null;
         this.deferredPrompt = null;
         this.currentResults = [];
@@ -55,19 +54,6 @@ class KitsuneWatchApp {
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
         this.favorites = this.loadFromStorage('kitsunewatch_favorites', []);
-        
-        // Состояние плеера
-        this.playerState = {
-            isPlaying: false,
-            currentTime: 0,
-            duration: 0,
-            volume: 1,
-            isMuted: false,
-            playbackSpeed: 1,
-            currentEpisode: null,
-            currentSeason: null,
-            translation: null
-        };
         
         // Популярные аниме для рандомайзера
         this.popularAnime = [
@@ -368,231 +354,24 @@ class KitsuneWatchApp {
     }
 
     // ============ ТОП 100 АНИМЕ ============
-async loadTop100() {
-    this.showLoading();
-    
-    try {
-        // Используем search API для получения топ аниме с прямыми ссылками
-        const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial&with_material_data=true&limit=100&sort=rating`;
-        const data = await this.fetchWithTimeout(searchUrl, 15000);
+    async loadTop100() {
+        this.showLoading();
         
-        if (data.results && data.results.length > 0) {
-            // Группируем результаты по названию, чтобы убрать дубликаты
-            const groupedResults = this.groupResultsByTitle(data.results);
-            this.displayTop100(groupedResults);
-        } else {
-            this.showError('Не удалось загрузить топ 100');
-        }
-    } catch (error) {
-        console.error('Error loading top 100:', error);
-        this.showError('Ошибка при загрузке топ 100');
-    } finally {
-        this.hideLoading();
-    }
-}
-
-displayTop100(results) {
-    if (!this.videoListContainer) return;
-    
-    this.hideAboutProject();
-    if (this.premieresContainer) this.premieresContainer.style.display = 'none';
-    if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
-    
-    // Скрываем плеер, если он был открыт
-    if (this.videoContainer) this.videoContainer.style.display = 'none';
-    if (this.videoName) this.videoName.style.display = 'none';
-    if (this.aboutBlock) this.aboutBlock.style.display = 'none';
-    if (this.shareButton) this.shareButton.style.display = 'none';
-    if (this.favoriteButton) this.favoriteButton.style.display = 'none';
-    
-    this.resultsContainer.style.display = 'block';
-    this.videoListContainer.style.display = 'grid';
-    this.videoListContainer.innerHTML = '';
-    
-    // Создаем заголовок
-    const titleContainer = document.createElement('div');
-    titleContainer.className = 'top-100-header';
-    titleContainer.innerHTML = `
-        <h2 class="top-100-title">
-            <i class="bi bi-trophy"></i> Топ 100 аниме
-        </h2>
-        <button class="back-button" onclick="window.app.showMainPage()">
-            <i class="bi bi-arrow-left"></i> Назад
-        </button>
-    `;
-    this.videoListContainer.appendChild(titleContainer);
-    
-    // Создаем сетку для карточек
-    const grid = document.createElement('div');
-    grid.className = 'top-100-grid';
-    
-    results.forEach((result, index) => {
-        const card = document.createElement('div');
-        card.className = 'top-100-card';
-        
-        // Ранг
-        const rank = document.createElement('div');
-        rank.className = 'top-100-rank';
-        if (index < 3) {
-            rank.innerHTML = `<i class="bi bi-trophy-fill"></i> ${index + 1}`;
-            rank.classList.add('top-3');
-        } else {
-            rank.textContent = `#${index + 1}`;
-        }
-        
-        // Информация
-        const info = document.createElement('div');
-        info.className = 'top-100-info';
-        
-        const titleEl = document.createElement('h3');
-        titleEl.className = 'top-100-card-title';
-        titleEl.textContent = result.title || result.title_orig || 'Без названия';
-        
-        const details = document.createElement('div');
-        details.className = 'top-100-details';
-        
-        if (result.year) {
-            const year = document.createElement('span');
-            year.className = 'top-100-year';
-            year.textContent = result.year;
-            details.appendChild(year);
-        }
-        
-        if (result.type) {
-            const type = document.createElement('span');
-            type.className = 'top-100-type';
-            type.textContent = this.getTypeName(result.type);
-            details.appendChild(type);
-        }
-        
-        if (result.material_data?.kinopoisk_rating) {
-            const rating = document.createElement('span');
-            rating.className = 'top-100-rating';
-            rating.innerHTML = `<i class="bi bi-star-fill"></i> ${result.material_data.kinopoisk_rating}`;
-            details.appendChild(rating);
-        }
-        
-        if (result.material_data?.imdb_rating) {
-            const rating = document.createElement('span');
-            rating.className = 'top-100-rating imdb';
-            rating.innerHTML = `<i class="bi bi-star-fill"></i> ${result.material_data.imdb_rating}`;
-            details.appendChild(rating);
-        }
-        
-        // Количество переводов
-        if (result.translations && result.translations.length > 0) {
-            const transCount = document.createElement('span');
-            transCount.className = 'top-100-translations';
-            transCount.innerHTML = `<i class="bi bi-mic"></i> ${result.translations.length}`;
-            details.appendChild(transCount);
-        }
-        
-        info.appendChild(titleEl);
-        info.appendChild(details);
-        
-        // Кнопка просмотра
-        const playButton = document.createElement('button');
-        playButton.className = 'top-100-play-button';
-        playButton.innerHTML = '<i class="bi bi-play-fill"></i>';
-        playButton.title = 'Смотреть';
-        playButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.playFromTop100(result);
-        });
-        
-        card.appendChild(rank);
-        card.appendChild(info);
-        card.appendChild(playButton);
-        
-        // Клик по карточке
-        card.addEventListener('click', () => {
-            this.playFromTop100(result);
-        });
-        
-        grid.appendChild(card);
-    });
-    
-    this.videoListContainer.appendChild(grid);
-    
-    // Скрываем пагинацию
-    if (this.paginationContainer) {
-        this.paginationContainer.style.display = 'none';
-        this.paginationContainer.innerHTML = '';
-    }
-    
-    // Скрываем вкладки
-    if (this.tabsContainer) {
-        this.tabsContainer.style.display = 'none';
-        this.tabsContainer.innerHTML = '';
-    }
-    
-    // Обновляем URL
-    this.updateUrlWithoutReload(window.location.origin + '/?top100=true');
-    this.updateSEO();
-}
-
-playFromTop100(result) {
-    // Проверяем, есть ли у результата ссылка
-    if (result.translations && result.translations.length > 0) {
-        // Берем первую доступную озвучку
-        const videoWithLink = {
-            ...result,
-            link: result.translations[0].link,
-            translation: {
-                id: result.translations[0].id,
-                title: result.translations[0].title
-            },
-            quality: result.translations[0].quality
-        };
-        this.loadVideo(videoWithLink);
-        this.scrollToVideoPlayer();
-    } else if (result.link) {
-        // Если есть прямая ссылка
-        this.loadVideo(result);
-        this.scrollToVideoPlayer();
-    } else {
-        // Если нет ссылки, ищем по названию
-        this.searchInput.value = result.title || result.title_orig;
-        this.currentSearchQuery = result.title || result.title_orig;
-        this.performSearch();
-    }
-}
-
-    async getLinksForTop100(results) {
-        const resultsWithLinks = [];
-        
-        for (const result of results) {
-            try {
-                // Запрашиваем ссылки для каждого аниме по ID
-                const linkResponse = await fetch(`${this.API_URL}?token=${this.API_TOKEN}&id=${result.id}&with_material_data=true`);
-                const linkData = await linkResponse.json();
-                
-                if (linkData.results && linkData.results.length > 0) {
-                    // Берем первый результат с ссылкой
-                    const materialWithLink = linkData.results.find(r => r.link);
-                    if (materialWithLink) {
-                        resultsWithLinks.push({
-                            ...result,
-                            link: materialWithLink.link,
-                            translation: materialWithLink.translation,
-                            quality: materialWithLink.quality
-                        });
-                    } else {
-                        resultsWithLinks.push(result);
-                    }
-                } else {
-                    resultsWithLinks.push(result);
-                }
-            } catch (error) {
-                console.error(`Error getting link for ${result.title}:`, error);
-                resultsWithLinks.push(result);
-            }
+        try {
+            const response = await fetch(`${this.TOP_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial&sort=rating&limit=100`);
+            const data = await response.json();
             
-            // Небольшая задержка, чтобы не перегружать API
-            await new Promise(resolve => setTimeout(resolve, 100));
+            if (data.results && data.results.length > 0) {
+                this.displayTop100(data.results);
+            } else {
+                this.showError('Не удалось загрузить топ 100');
+            }
+        } catch (error) {
+            console.error('Error loading top 100:', error);
+            this.showError('Ошибка при загрузке топ 100');
+        } finally {
+            this.hideLoading();
         }
-        
-        return resultsWithLinks;
     }
 
     displayTop100(results) {
@@ -602,31 +381,15 @@ playFromTop100(result) {
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
         if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
         
-        // Скрываем плеер, если он был открыт
-        if (this.videoContainer) this.videoContainer.style.display = 'none';
-        if (this.videoName) this.videoName.style.display = 'none';
-        if (this.aboutBlock) this.aboutBlock.style.display = 'none';
-        if (this.shareButton) this.shareButton.style.display = 'none';
-        if (this.favoriteButton) this.favoriteButton.style.display = 'none';
-        
         this.resultsContainer.style.display = 'block';
         this.videoListContainer.style.display = 'grid';
         this.videoListContainer.innerHTML = '';
         
-        // Создаем заголовок
-        const titleContainer = document.createElement('div');
-        titleContainer.className = 'top-100-header';
-        titleContainer.innerHTML = `
-            <h2 class="top-100-title">
-                <i class="bi bi-trophy"></i> Топ 100 аниме
-            </h2>
-            <button class="back-button" onclick="window.app.showMainPage()">
-                <i class="bi bi-arrow-left"></i> Назад
-            </button>
-        `;
-        this.videoListContainer.appendChild(titleContainer);
+        const title = document.createElement('h2');
+        title.className = 'top-100-title';
+        title.innerHTML = '<i class="bi bi-trophy"></i> Топ 100 аниме';
+        this.videoListContainer.appendChild(title);
         
-        // Создаем сетку для карточек
         const grid = document.createElement('div');
         grid.className = 'top-100-grid';
         
@@ -634,23 +397,16 @@ playFromTop100(result) {
             const card = document.createElement('div');
             card.className = 'top-100-card';
             
-            // Ранг
             const rank = document.createElement('div');
             rank.className = 'top-100-rank';
-            if (index < 3) {
-                rank.innerHTML = `<i class="bi bi-trophy-fill"></i> ${index + 1}`;
-                rank.classList.add('top-3');
-            } else {
-                rank.textContent = `#${index + 1}`;
-            }
+            rank.textContent = `#${index + 1}`;
             
-            // Информация
             const info = document.createElement('div');
             info.className = 'top-100-info';
             
             const titleEl = document.createElement('h3');
             titleEl.className = 'top-100-card-title';
-            titleEl.textContent = result.title || result.title_orig || 'Без названия';
+            titleEl.textContent = result.title || 'Без названия';
             
             const details = document.createElement('div');
             details.className = 'top-100-details';
@@ -662,13 +418,6 @@ playFromTop100(result) {
                 details.appendChild(year);
             }
             
-            if (result.type) {
-                const type = document.createElement('span');
-                type.className = 'top-100-type';
-                type.textContent = this.getTypeName(result.type);
-                details.appendChild(type);
-            }
-            
             if (result.material_data?.kinopoisk_rating) {
                 const rating = document.createElement('span');
                 rating.className = 'top-100-rating';
@@ -676,112 +425,26 @@ playFromTop100(result) {
                 details.appendChild(rating);
             }
             
-            if (result.material_data?.imdb_rating) {
-                const rating = document.createElement('span');
-                rating.className = 'top-100-rating imdb';
-                rating.innerHTML = `<i class="bi bi-star-fill"></i> ${result.material_data.imdb_rating}`;
-                details.appendChild(rating);
-            }
-            
             info.appendChild(titleEl);
             info.appendChild(details);
             
-            // Кнопка просмотра
-            const playButton = document.createElement('button');
-            playButton.className = 'top-100-play-button';
-            playButton.innerHTML = '<i class="bi bi-play-fill"></i>';
-            playButton.title = 'Смотреть';
-            playButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.playFromTop100(result);
-            });
-            
             card.appendChild(rank);
             card.appendChild(info);
-            card.appendChild(playButton);
             
-            // Клик по карточке
             card.addEventListener('click', () => {
-                this.playFromTop100(result);
+                if (result.link) {
+                    this.loadVideo(result);
+                } else {
+                    this.searchInput.value = result.title;
+                    this.currentSearchQuery = result.title;
+                    this.performSearch();
+                }
             });
             
             grid.appendChild(card);
         });
         
         this.videoListContainer.appendChild(grid);
-        
-        // Скрываем пагинацию
-        if (this.paginationContainer) {
-            this.paginationContainer.style.display = 'none';
-            this.paginationContainer.innerHTML = '';
-        }
-        
-        // Скрываем вкладки
-        if (this.tabsContainer) {
-            this.tabsContainer.style.display = 'none';
-            this.tabsContainer.innerHTML = '';
-        }
-        
-        // Обновляем URL
-        this.updateUrlWithoutReload(window.location.origin + '/?top100=true');
-        this.updateSEO();
-    }
-
-    async playFromTop100(result) {
-        if (result.link) {
-            // Если есть прямая ссылка, сразу открываем
-            this.loadVideo(result);
-            this.scrollToVideoPlayer();
-        } else {
-            // Если нет ссылки, ищем её
-            this.showLoading();
-            try {
-                const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&id=${result.id}&with_material_data=true`;
-                const data = await this.fetchWithTimeout(searchUrl, 15000);
-                
-                if (data.results && data.results.length > 0) {
-                    const materialWithLink = data.results.find(r => r.link);
-                    if (materialWithLink) {
-                        const videoData = {
-                            ...result,
-                            link: materialWithLink.link,
-                            translation: materialWithLink.translation,
-                            quality: materialWithLink.quality
-                        };
-                        this.loadVideo(videoData);
-                        this.scrollToVideoPlayer();
-                    } else {
-                        // Если нет прямой ссылки, ищем по названию
-                        this.searchInput.value = result.title;
-                        this.currentSearchQuery = result.title;
-                        await this.performSearch();
-                    }
-                } else {
-                    // Если не нашли по ID, ищем по названию
-                    this.searchInput.value = result.title;
-                    this.currentSearchQuery = result.title;
-                    await this.performSearch();
-                }
-            } catch (error) {
-                console.error('Error playing from top 100:', error);
-                // В случае ошибки ищем по названию
-                this.searchInput.value = result.title;
-                this.currentSearchQuery = result.title;
-                await this.performSearch();
-            } finally {
-                this.hideLoading();
-            }
-        }
-    }
-
-    showMainPage() {
-        // Показываем главную страницу
-        this.clearAllResults();
-        this.displayAboutProject();
-        this.loadYearPremieres();
-        this.displayCollections();
-        this.updateUrlWithoutReload(window.location.origin);
-        this.updateSEO();
     }
 
     // ============ SEO ОПТИМИЗАЦИЯ ============
@@ -799,13 +462,7 @@ playFromTop100(result) {
         const baseDescription = 'KitsuneWatch - бесплатный онлайн-кинотеатр аниме. Смотрите любимые аниме сериалы и фильмы в высоком качестве.';
         const baseKeywords = 'аниме, смотреть аниме, аниме онлайн, KitsuneWatch, аниме сериалы, японская анимация';
         
-        if (params.get('top100') === 'true') {
-            if (title) title.textContent = 'Топ 100 аниме | KitsuneWatch';
-            if (metaDescription) metaDescription.content = 'Топ 100 лучших аниме всех времен. Рейтинг, оценки и просмотр онлайн на KitsuneWatch.';
-            if (ogTitle) ogTitle.content = 'Топ 100 аниме | KitsuneWatch';
-            this.updateCanonicalLink(window.location.origin + '/?top100=true');
-            
-        } else if (searchQuery && searchQuery.trim()) {
+        if (searchQuery && searchQuery.trim()) {
             let query = searchQuery.trim();
             try {
                 query = decodeURIComponent(query);
@@ -919,13 +576,6 @@ playFromTop100(result) {
     // ============ ОБРАБОТКА ПАРАМЕТРОВ URL ============
     handleURLParams() {
         const params = new URLSearchParams(window.location.search);
-        
-        if (params.get('top100') === 'true') {
-            setTimeout(() => {
-                this.loadTop100();
-            }, 500);
-            return;
-        }
         
         const searchQuery = params.get('search');
         if (searchQuery && searchQuery.trim()) {
