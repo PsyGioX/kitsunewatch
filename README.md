@@ -1,5 +1,7 @@
 # KitsuneWatch 🦊
 
+![KitsuneWatch Screenshot](https://raw.githubusercontent.com/PsyGioX/kitsunewatch/refs/heads/main/screenshots/desktop.png?raw=true)
+
 **KitsuneWatch** is a modern, progressive web application (PWA) for discovering and streaming anime content. Named after the mystical nine-tailed fox spirit from Japanese folklore, KitsuneWatch provides a sleek, user-friendly interface for anime enthusiasts to search, watch, and organize their favorite titles.
 
 > **Note:** All video content is sourced from the open API provided by [Kodik](https://bd.kodikres.com/films). KitsuneWatch does not host, store, or distribute any video files.
