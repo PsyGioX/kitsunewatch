@@ -1954,3 +1954,369 @@ h3 .bi,
         transform: none;
     }
 }
+
+
+/* =========================================================
+   РАНДОМАЙЗЕР И ТОП 100 КНОПКИ
+   ========================================================= */
+
+.random-anime-button,
+.top-100-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background-color: rgba(85, 8, 153, 0.56);
+    backdrop-filter: blur(24px);
+    color: white;
+    border: 1px solid #550899;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    font-family: 'Roboto', sans-serif;
+}
+
+.random-anime-button {
+    padding: 12px;
+    font-size: 18px;
+}
+
+.random-anime-button .bi,
+.top-100-button .bi {
+    font-size: 1.1em;
+    margin-right: 0;
+    transition: transform 0.3s ease;
+}
+
+.random-anime-button:hover,
+.top-100-button:hover {
+    background-color: #7100b3;
+    border-color: #7100b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(113, 0, 179, 0.4);
+}
+
+.random-anime-button:hover .bi {
+    transform: rotate(180deg);
+}
+
+.random-anime-button:active,
+.top-100-button:active {
+    background-color: #550899;
+    border-color: #550899;
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.random-anime-button.spinning .bi {
+    animation: spin 1s ease-in-out;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* =========================================================
+   ПОДБОРКИ АНИМЕ
+   ========================================================= */
+
+.collections-container {
+    margin: 20px 0;
+    padding: 25px;
+    background: rgba(85, 8, 153, 0.15);
+    border-radius: 16px;
+    border: 1px solid rgba(85, 8, 153, 0.3);
+    animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.collections-block {
+    width: 100%;
+}
+
+.collections-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.collections-header i {
+    font-size: 28px;
+    color: #b44dff;
+}
+
+.collections-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.collections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.collection-card {
+    background: rgba(85, 8, 153, 0.25);
+    border: 1px solid rgba(85, 8, 153, 0.4);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.collection-card:hover {
+    background: rgba(85, 8, 153, 0.4);
+    border-color: #7100b3;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(113, 0, 179, 0.3);
+}
+
+.collection-card i {
+    font-size: 32px;
+    color: #b44dff;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.collection-card h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.collection-card p {
+    font-size: 12px;
+    color: #bdc3c7;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* =========================================================
+   ТОП 100 АНИМЕ
+   ========================================================= */
+
+.top-100-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    grid-column: 1 / -1;
+}
+
+.top-100-title i {
+    color: #ffd700;
+    font-size: 28px;
+}
+
+.top-100-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    width: 100%;
+}
+
+.top-100-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(85, 8, 153, 0.25);
+    border: 1px solid rgba(85, 8, 153, 0.4);
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.top-100-card:hover {
+    background: rgba(85, 8, 153, 0.4);
+    border-color: #7100b3;
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(113, 0, 179, 0.3);
+}
+
+.top-100-rank {
+    font-size: 24px;
+    font-weight: 900;
+    color: #ffd700;
+    min-width: 50px;
+    text-align: center;
+}
+
+.top-100-info {
+    flex: 1;
+}
+
+.top-100-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 5px;
+    line-height: 1.3;
+}
+
+.top-100-details {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.top-100-year {
+    font-size: 12px;
+    color: #bdc3c7;
+}
+
+.top-100-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #ffd700;
+    font-weight: 500;
+}
+
+.top-100-rating i {
+    font-size: 14px;
+}
+
+/* =========================================================
+   ИСТОРИЯ ПО ДНЯМ
+   ========================================================= */
+
+.history-date-group {
+    margin-bottom: 15px;
+}
+
+.history-date-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #b44dff;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(85, 8, 153, 0.3);
+}
+
+.history-time {
+    font-size: 12px;
+    color: #6c7a89;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.history-item {
+    gap: 10px;
+}
+
+.history-query {
+    flex: 1;
+}
+
+/* =========================================================
+   ИЗБРАННОЕ ПО КАТЕГОРИЯМ
+   ========================================================= */
+
+.favorites-category {
+    margin-bottom: 15px;
+}
+
+.favorites-category-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #b44dff;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(85, 8, 153, 0.3);
+}
+
+.favorites-category-title i {
+    font-size: 16px;
+}
+
+.favorites-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    background: rgba(85, 8, 153, 0.4);
+    border-radius: 10px;
+    font-size: 12px;
+    color: #fff;
+    margin-left: auto;
+}
+
+/* Адаптивность для новых элементов */
+@media (max-width: 768px) {
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .collection-card {
+        padding: 15px;
+    }
+    
+    .collection-card i {
+        font-size: 24px;
+    }
+    
+    .collection-card h3 {
+        font-size: 14px;
+    }
+    
+    .top-100-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    .top-100-rank {
+        font-size: 20px;
+        min-width: 40px;
+    }
+    
+    .random-anime-button,
+    .top-100-button {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+    
+    .random-anime-button {
+        padding: 10px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .collections-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .top-100-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .top-100-card {
+        padding: 12px;
+    }
+    
+    .random-anime-button,
+    .top-100-button {
+        width: 100%;
+        justify-content: center;
+    }
+}

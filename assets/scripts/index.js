@@ -6,6 +6,7 @@ class KitsuneWatchApp {
         this.API_TOKEN = 'a036c8a4c59b43e72e212e4d0388ef7d';
         this.API_URL = 'https://kodik-api.com/search';
         this.YEARS_API_URL = 'https://kodik-api.com/years';
+        this.TOP_API_URL = 'https://kodik-api.com/list';
         
         // DOM элементы
         this.searchInput = document.querySelector('.search_input_query');
@@ -54,17 +55,66 @@ class KitsuneWatchApp {
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
         this.favorites = this.loadFromStorage('kitsunewatch_favorites', []);
         
-        // Состояние плеера
-        this.playerState = {
-            isPlaying: false,
-            currentTime: 0,
-            duration: 0,
-            volume: 1,
-            isMuted: false,
-            playbackSpeed: 1,
-            currentEpisode: null,
-            currentSeason: null,
-            translation: null
+        // Популярные аниме для рандомайзера
+        this.popularAnime = [
+            'Наруто', 'Блич', 'Ван Пис', 'Атака титанов', 'Тетрадь смерти',
+            'Клинок рассекающий демонов', 'Моя геройская академия', 'Токийский гуль',
+            'Стальной алхимик', 'Код Гиас', 'Врата Штейна', 'Твое имя',
+            'Ходячий замок', 'Унесенные призраками', 'Магическая битва',
+            'Человек-бензопила', 'Семья шпиона', 'Реинкарнация безработного',
+            'О моем перерождении в слизь', 'Восхождение героя щита'
+        ];
+        
+        // Подборки аниме
+        this.animeCollections = {
+            'popular': {
+                title: 'Популярное аниме',
+                icon: 'bi-fire',
+                description: 'Самые популярные аниме последних лет',
+                query: 'популярное аниме'
+            },
+            'romance': {
+                title: 'Романтика',
+                icon: 'bi-heart',
+                description: 'Лучшие романтические аниме',
+                query: 'романтика аниме'
+            },
+            'fantasy': {
+                title: 'Фэнтези',
+                icon: 'bi-magic',
+                description: 'Магия и приключения',
+                query: 'фэнтези аниме'
+            },
+            'action': {
+                title: 'Экшен',
+                icon: 'bi-lightning',
+                description: 'Боевики и сражения',
+                query: 'экшен аниме'
+            },
+            'comedy': {
+                title: 'Комедия',
+                icon: 'bi-emoji-laughing',
+                description: 'Веселые и смешные аниме',
+                query: 'комедия аниме'
+            },
+            'drama': {
+                title: 'Драма',
+                icon: 'bi-droplet',
+                description: 'Серьезные и глубокие истории',
+                query: 'драма аниме'
+            },
+            'horror': {
+                title: 'Ужасы',
+                icon: 'bi-ghost',
+                description: 'Мистика и хоррор',
+                query: 'ужасы аниме'
+            },
+            'science': {
+                title: 'Научная фантастика',
+                icon: 'bi-rocket',
+                description: 'Космос и технологии',
+                query: 'научная фантастика аниме'
+            }
         };
         
         this.init();
@@ -179,6 +229,7 @@ class KitsuneWatchApp {
         this.setupPWA();
         this.displayAboutProject();
         this.loadYearPremieres();
+        this.displayCollections();
         this.handleURLParams();
         this.updateSEO();
         
@@ -249,6 +300,151 @@ class KitsuneWatchApp {
         this.searchInput.value = `${year}`;
         this.currentSearchQuery = `${year}`;
         await this.performSearch();
+    }
+
+    // ============ ПОДБОРКИ АНИМЕ ============
+    displayCollections() {
+        if (!this.collectionsContainer) return;
+        
+        this.collectionsContainer.innerHTML = `
+            <div class="collections-block">
+                <div class="collections-header">
+                    <i class="bi bi-collection"></i>
+                    <h2>Популярные подборки</h2>
+                </div>
+                <div class="collections-grid">
+                    ${Object.entries(this.animeCollections).map(([key, collection]) => `
+                        <div class="collection-card" onclick="window.app.searchCollection('${key}')">
+                            <i class="bi ${collection.icon}"></i>
+                            <h3>${collection.title}</h3>
+                            <p>${collection.description}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    async searchCollection(collectionKey) {
+        const collection = this.animeCollections[collectionKey];
+        if (!collection) return;
+        
+        this.searchInput.value = collection.query;
+        this.currentSearchQuery = collection.query;
+        await this.performSearch();
+    }
+
+    // ============ РАНДОМАЙЗЕР ============
+    randomAnime() {
+        const randomIndex = Math.floor(Math.random() * this.popularAnime.length);
+        const randomTitle = this.popularAnime[randomIndex];
+        
+        this.searchInput.value = randomTitle;
+        this.currentSearchQuery = randomTitle;
+        this.performSearch();
+        
+        // Анимация кнопки
+        const randomButton = document.getElementById('randomAnimeButton');
+        if (randomButton) {
+            randomButton.classList.add('spinning');
+            setTimeout(() => {
+                randomButton.classList.remove('spinning');
+            }, 1000);
+        }
+    }
+
+    // ============ ТОП 100 АНИМЕ ============
+    async loadTop100() {
+        this.showLoading();
+        
+        try {
+            const response = await fetch(`${this.TOP_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial&sort=rating&limit=100`);
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                this.displayTop100(data.results);
+            } else {
+                this.showError('Не удалось загрузить топ 100');
+            }
+        } catch (error) {
+            console.error('Error loading top 100:', error);
+            this.showError('Ошибка при загрузке топ 100');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    displayTop100(results) {
+        if (!this.videoListContainer) return;
+        
+        this.hideAboutProject();
+        if (this.premieresContainer) this.premieresContainer.style.display = 'none';
+        if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
+        
+        this.resultsContainer.style.display = 'block';
+        this.videoListContainer.style.display = 'grid';
+        this.videoListContainer.innerHTML = '';
+        
+        const title = document.createElement('h2');
+        title.className = 'top-100-title';
+        title.innerHTML = '<i class="bi bi-trophy"></i> Топ 100 аниме';
+        this.videoListContainer.appendChild(title);
+        
+        const grid = document.createElement('div');
+        grid.className = 'top-100-grid';
+        
+        results.forEach((result, index) => {
+            const card = document.createElement('div');
+            card.className = 'top-100-card';
+            
+            const rank = document.createElement('div');
+            rank.className = 'top-100-rank';
+            rank.textContent = `#${index + 1}`;
+            
+            const info = document.createElement('div');
+            info.className = 'top-100-info';
+            
+            const titleEl = document.createElement('h3');
+            titleEl.className = 'top-100-card-title';
+            titleEl.textContent = result.title || 'Без названия';
+            
+            const details = document.createElement('div');
+            details.className = 'top-100-details';
+            
+            if (result.year) {
+                const year = document.createElement('span');
+                year.className = 'top-100-year';
+                year.textContent = result.year;
+                details.appendChild(year);
+            }
+            
+            if (result.material_data?.kinopoisk_rating) {
+                const rating = document.createElement('span');
+                rating.className = 'top-100-rating';
+                rating.innerHTML = `<i class="bi bi-star-fill"></i> ${result.material_data.kinopoisk_rating}`;
+                details.appendChild(rating);
+            }
+            
+            info.appendChild(titleEl);
+            info.appendChild(details);
+            
+            card.appendChild(rank);
+            card.appendChild(info);
+            
+            card.addEventListener('click', () => {
+                if (result.link) {
+                    this.loadVideo(result);
+                } else {
+                    this.searchInput.value = result.title;
+                    this.currentSearchQuery = result.title;
+                    this.performSearch();
+                }
+            });
+            
+            grid.appendChild(card);
+        });
+        
+        this.videoListContainer.appendChild(grid);
     }
 
     // ============ SEO ОПТИМИЗАЦИЯ ============
@@ -458,6 +654,10 @@ class KitsuneWatchApp {
         this.premieresContainer.className = 'premieres-container';
         this.premieresContainer.style.display = 'block';
         
+        this.collectionsContainer = document.createElement('div');
+        this.collectionsContainer.className = 'collections-container';
+        this.collectionsContainer.style.display = 'block';
+        
         this.loadingOverlay = document.createElement('div');
         this.loadingOverlay.className = 'loading-overlay';
         this.loadingOverlay.style.display = 'none';
@@ -481,6 +681,7 @@ class KitsuneWatchApp {
         const mainBlock = document.querySelector('.main_block');
         mainBlock.appendChild(this.aboutProjectContainer);
         mainBlock.appendChild(this.premieresContainer);
+        mainBlock.appendChild(this.collectionsContainer);
         mainBlock.appendChild(this.loadingOverlay);
         mainBlock.appendChild(this.tabsContainer);
         mainBlock.appendChild(this.videoListContainer);
@@ -493,6 +694,32 @@ class KitsuneWatchApp {
             shareBlock.appendChild(this.favoriteButton);
             shareBlock.appendChild(this.shareButton);
         }
+        
+        // Добавляем кнопку рандомайзера
+        this.addRandomButton();
+    }
+
+    addRandomButton() {
+        const searchContainer = document.querySelector('.search_container');
+        if (!searchContainer) return;
+        
+        const randomButton = document.createElement('button');
+        randomButton.id = 'randomAnimeButton';
+        randomButton.className = 'random-anime-button';
+        randomButton.innerHTML = '<i class="bi bi-shuffle"></i>';
+        randomButton.title = 'Случайное аниме';
+        randomButton.addEventListener('click', () => this.randomAnime());
+        
+        searchContainer.appendChild(randomButton);
+        
+        // Добавляем кнопку топ 100
+        const topButton = document.createElement('button');
+        topButton.className = 'top-100-button';
+        topButton.innerHTML = '<i class="bi bi-trophy"></i> Топ 100';
+        topButton.title = 'Топ 100 аниме';
+        topButton.addEventListener('click', () => this.loadTop100());
+        
+        searchContainer.appendChild(topButton);
     }
 
     displayAboutProject() {
@@ -514,19 +741,19 @@ class KitsuneWatchApp {
                         <p>Находите аниме по названию</p>
                     </div>
                     <div class="feature-card">
+                        <i class="bi bi-shuffle"></i>
+                        <h3>Рандомайзер</h3>
+                        <p>Случайное аниме</p>
+                    </div>
+                    <div class="feature-card">
                         <i class="bi bi-collection-play"></i>
-                        <h3>HD качество</h3>
-                        <p>Смотрите в высоком качестве</p>
+                        <h3>Подборки</h3>
+                        <p>Тематические коллекции</p>
                     </div>
                     <div class="feature-card">
-                        <i class="bi bi-heart"></i>
-                        <h3>Избранное</h3>
-                        <p>Сохраняйте тайтлы</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="bi bi-clock-history"></i>
-                        <h3>История</h3>
-                        <p>Быстрый доступ</p>
+                        <i class="bi bi-trophy"></i>
+                        <h3>Топ 100</h3>
+                        <p>Лучшие аниме</p>
                     </div>
                 </div>
                 <div class="about-project-cta">
@@ -554,6 +781,7 @@ class KitsuneWatchApp {
                 this.clearAllResults();
                 this.displayAboutProject();
                 this.loadYearPremieres();
+                this.displayCollections();
                 this.updateUrlWithoutReload('/');
                 this.updateSEO();
                 this.currentSearchQuery = '';
@@ -628,6 +856,7 @@ class KitsuneWatchApp {
         this.paginationContainer.style.display = 'none';
         this.hideAboutProject();
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
+        if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
         if (this.videoContainer) this.videoContainer.style.display = 'none';
     }
 
@@ -706,43 +935,103 @@ class KitsuneWatchApp {
         
         this.historyContainer.appendChild(container);
         
-        const list = document.createElement('div');
-        list.className = 'history-list';
+        // Группировка по дням
+        const groupedHistory = this.groupHistoryByDate(this.searchHistory);
         
-        this.searchHistory.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'history-item';
+        Object.entries(groupedHistory).forEach(([date, items]) => {
+            const dateGroup = document.createElement('div');
+            dateGroup.className = 'history-date-group';
             
-            const span = document.createElement('span');
-            span.className = 'history-query';
-            span.textContent = item.query;
-            span.addEventListener('click', () => {
-                let query = item.query;
-                try {
-                    query = decodeURIComponent(query);
-                    if (query.includes('%25')) {
+            const dateTitle = document.createElement('div');
+            dateTitle.className = 'history-date-title';
+            dateTitle.textContent = date;
+            dateGroup.appendChild(dateTitle);
+            
+            const list = document.createElement('div');
+            list.className = 'history-list';
+            
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                
+                const span = document.createElement('span');
+                span.className = 'history-query';
+                span.textContent = item.query;
+                span.addEventListener('click', () => {
+                    let query = item.query;
+                    try {
                         query = decodeURIComponent(query);
-                    }
-                } catch (e) {}
-                this.searchInput.value = query;
-                this.currentSearchQuery = query;
-                this.performSearch();
+                        if (query.includes('%25')) {
+                            query = decodeURIComponent(query);
+                        }
+                    } catch (e) {}
+                    this.searchInput.value = query;
+                    this.currentSearchQuery = query;
+                    this.performSearch();
+                });
+                
+                const time = document.createElement('span');
+                time.className = 'history-time';
+                time.textContent = this.formatTime(item.timestamp);
+                
+                const remove = document.createElement('button');
+                remove.className = 'remove-history-button';
+                remove.innerHTML = '<i class="bi bi-x"></i>';
+                remove.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.removeFromHistory(item.query);
+                });
+                
+                div.appendChild(span);
+                div.appendChild(time);
+                div.appendChild(remove);
+                list.appendChild(div);
             });
             
-            const remove = document.createElement('button');
-            remove.className = 'remove-history-button';
-            remove.innerHTML = '<i class="bi bi-x"></i>';
-            remove.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.removeFromHistory(item.query);
-            });
+            dateGroup.appendChild(list);
+            this.historyContainer.appendChild(dateGroup);
+        });
+    }
+
+    groupHistoryByDate(history) {
+        const groups = {};
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        history.forEach(item => {
+            const date = new Date(item.timestamp);
+            const dateKey = new Date(date.getFullYear(), date.getMonth(), date.getDate());
             
-            div.appendChild(span);
-            div.appendChild(remove);
-            list.appendChild(div);
+            let groupName;
+            if (dateKey.getTime() === today.getTime()) {
+                groupName = 'Сегодня';
+            } else if (dateKey.getTime() === yesterday.getTime()) {
+                groupName = 'Вчера';
+            } else {
+                groupName = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+            
+            if (!groups[groupName]) {
+                groups[groupName] = [];
+            }
+            groups[groupName].push(item);
         });
         
-        this.historyContainer.appendChild(list);
+        return groups;
+    }
+
+    formatTime(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now.getTime() - timestamp;
+        
+        if (diff < 60000) return 'только что';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)} мин назад`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)} ч назад`;
+        
+        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     }
 
     // ============ ИЗБРАННОЕ ============
@@ -800,39 +1089,87 @@ class KitsuneWatchApp {
         title.innerHTML = '<i class="bi bi-heart-fill"></i> Избранное';
         this.favoritesContainer.appendChild(title);
         
-        const list = document.createElement('div');
-        list.className = 'favorites-list';
+        // Группировка по категориям
+        const categories = this.groupFavoritesByType(this.favorites);
         
-        this.favorites.forEach(fav => {
-            const card = document.createElement('div');
-            card.className = 'favorite-card';
+        Object.entries(categories).forEach(([type, items]) => {
+            const categoryBlock = document.createElement('div');
+            categoryBlock.className = 'favorites-category';
             
-            const t = document.createElement('span');
-            t.className = 'favorite-card-title';
-            t.textContent = `${fav.title} (${fav.year || '?'})`;
+            const categoryTitle = document.createElement('div');
+            categoryTitle.className = 'favorites-category-title';
+            categoryTitle.innerHTML = `
+                <i class="bi ${this.getTypeIcon(type)}"></i>
+                ${this.getTypeName(type)}
+                <span class="favorites-count">${items.length}</span>
+            `;
+            categoryBlock.appendChild(categoryTitle);
             
-            const type = document.createElement('span');
-            type.className = 'favorite-card-info';
-            type.textContent = this.getTypeName(fav.type);
+            const list = document.createElement('div');
+            list.className = 'favorites-list';
             
-            const play = document.createElement('button');
-            play.className = 'favorite-play-button';
-            play.innerHTML = '<i class="bi bi-play-fill"></i>';
-            play.addEventListener('click', () => this.playFavorite(fav));
+            items.forEach(fav => {
+                const card = document.createElement('div');
+                card.className = 'favorite-card';
+                
+                const t = document.createElement('span');
+                t.className = 'favorite-card-title';
+                t.textContent = `${fav.title} (${fav.year || '?'})`;
+                
+                const typeInfo = document.createElement('span');
+                typeInfo.className = 'favorite-card-info';
+                typeInfo.textContent = this.getTypeName(fav.type);
+                
+                const play = document.createElement('button');
+                play.className = 'favorite-play-button';
+                play.innerHTML = '<i class="bi bi-play-fill"></i>';
+                play.addEventListener('click', () => this.playFavorite(fav));
+                
+                const remove = document.createElement('button');
+                remove.className = 'favorite-remove-button';
+                remove.innerHTML = '<i class="bi bi-x"></i>';
+                remove.addEventListener('click', () => this.removeFromFavorites(fav.id));
+                
+                card.appendChild(t);
+                card.appendChild(typeInfo);
+                card.appendChild(play);
+                card.appendChild(remove);
+                list.appendChild(card);
+            });
             
-            const remove = document.createElement('button');
-            remove.className = 'favorite-remove-button';
-            remove.innerHTML = '<i class="bi bi-x"></i>';
-            remove.addEventListener('click', () => this.removeFromFavorites(fav.id));
-            
-            card.appendChild(t);
-            card.appendChild(type);
-            card.appendChild(play);
-            card.appendChild(remove);
-            list.appendChild(card);
+            categoryBlock.appendChild(list);
+            this.favoritesContainer.appendChild(categoryBlock);
+        });
+    }
+
+    groupFavoritesByType(favorites) {
+        const groups = {};
+        
+        favorites.forEach(fav => {
+            const type = fav.type || 'other';
+            if (!groups[type]) {
+                groups[type] = [];
+            }
+            groups[type].push(fav);
         });
         
-        this.favoritesContainer.appendChild(list);
+        return groups;
+    }
+
+    getTypeIcon(type) {
+        const icons = {
+            'anime': 'bi-stars',
+            'anime-serial': 'bi-collection-play',
+            'foreign-movie': 'bi-film',
+            'foreign-serial': 'bi-tv',
+            'cartoon-serial': 'bi-easel',
+            'russian-movie': 'bi-camera-reels',
+            'russian-serial': 'bi-broadcast',
+            'documentary-serial': 'bi-journal-text',
+            'multi-part-film': 'bi-layers',
+            'other': 'bi-question-circle'
+        };
+        return icons[type] || icons['other'];
     }
 
     playFavorite(favorite) {
@@ -881,12 +1218,13 @@ class KitsuneWatchApp {
         }, 100);
     }
 
-    // ============ ВИДЕО (С POSTER БЕЗ КОДИРОВАНИЯ) ============
+    // ============ ВИДЕО ============
     loadVideo(material) {
         this.currentVideo = material;
         this.isVideoLoading = true;
         this.hideAboutProject();
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
+        if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
         
         this.videoName.textContent = `${material.title || 'Без названия'} (${material.year || '?'})`;
         this.videoName.style.display = 'block';
