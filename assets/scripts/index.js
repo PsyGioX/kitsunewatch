@@ -37,6 +37,7 @@ class KitsuneWatchApp {
         this.aboutProjectContainer = null;
         this.premieresContainer = null;
         this.paginationContainer = null;
+        this.collectionsContainer = null;
         this.installButton = null;
         this.deferredPrompt = null;
         this.currentResults = [];
@@ -54,6 +55,19 @@ class KitsuneWatchApp {
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
         this.favorites = this.loadFromStorage('kitsunewatch_favorites', []);
+        
+        // Состояние плеера
+        this.playerState = {
+            isPlaying: false,
+            currentTime: 0,
+            duration: 0,
+            volume: 1,
+            isMuted: false,
+            playbackSpeed: 1,
+            currentEpisode: null,
+            currentSeason: null,
+            translation: null
+        };
         
         // Популярные аниме для рандомайзера
         this.popularAnime = [
@@ -381,15 +395,51 @@ class KitsuneWatchApp {
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
         if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
         
+        // Скрываем плеер и все его элементы
+        if (this.videoContainer) this.videoContainer.style.display = 'none';
+        if (this.videoPlaceholder) this.videoPlaceholder.style.display = 'none';
+        this.videoFrame.style.display = 'none';
+        this.videoFrame.src = '';
+        this.videoName.style.display = 'none';
+        this.videoName.textContent = '';
+        this.aboutBlock.style.display = 'none';
+        this.videoAbout.textContent = '';
+        
+        // Скрываем кнопки
+        if (this.shareButton) this.shareButton.style.display = 'none';
+        if (this.favoriteButton) this.favoriteButton.style.display = 'none';
+        if (this.shareLink) this.shareLink.href = '#';
+        
+        // Скрываем вкладки и пагинацию
+        if (this.tabsContainer) {
+            this.tabsContainer.style.display = 'none';
+            this.tabsContainer.innerHTML = '';
+        }
+        if (this.paginationContainer) {
+            this.paginationContainer.style.display = 'none';
+            this.paginationContainer.innerHTML = '';
+        }
+        
+        // Очищаем и показываем контейнер для списка
         this.resultsContainer.style.display = 'block';
-        this.videoListContainer.style.display = 'grid';
+        this.videoListContainer.style.display = 'block';
         this.videoListContainer.innerHTML = '';
+        this.videoListContainer.className = 'video-list top-100-list';
         
-        const title = document.createElement('h2');
-        title.className = 'top-100-title';
-        title.innerHTML = '<i class="bi bi-trophy"></i> Топ 100 аниме';
-        this.videoListContainer.appendChild(title);
+        // Создаем заголовок
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'top-100-header';
+        titleContainer.innerHTML = `
+            <h2 class="top-100-title">
+                <i class="bi bi-trophy"></i> Топ 100 аниме
+            </h2>
+            <button class="back-button" onclick="window.app.showMainPage()">
+                <i class="bi bi-arrow-left"></i> Назад
+            </button>
+        `;
+        this.videoListContainer.appendChild(titleContainer);
         
+        // Создаем сетку для карточек
         const grid = document.createElement('div');
         grid.className = 'top-100-grid';
         
@@ -445,6 +495,16 @@ class KitsuneWatchApp {
         });
         
         this.videoListContainer.appendChild(grid);
+    }
+
+    showMainPage() {
+        // Показываем главную страницу
+        this.clearAllResults();
+        this.displayAboutProject();
+        this.loadYearPremieres();
+        this.displayCollections();
+        this.updateUrlWithoutReload(window.location.origin);
+        this.updateSEO();
     }
 
     // ============ SEO ОПТИМИЗАЦИЯ ============
@@ -1746,7 +1806,11 @@ class KitsuneWatchApp {
         if (this.favoriteButton) this.favoriteButton.style.display = 'none';
         this.resultsContainer.style.display = 'none';
         if (this.tabsContainer) { this.tabsContainer.style.display = 'none'; this.tabsContainer.innerHTML = ''; }
-        if (this.videoListContainer) { this.videoListContainer.style.display = 'none'; this.videoListContainer.innerHTML = ''; }
+        if (this.videoListContainer) { 
+            this.videoListContainer.style.display = 'none'; 
+            this.videoListContainer.innerHTML = ''; 
+            this.videoListContainer.className = 'video-list';
+        }
         if (this.paginationContainer) { this.paginationContainer.style.display = 'none'; this.paginationContainer.innerHTML = ''; }
         this.currentResults = [];
         this.filteredResults = [];
