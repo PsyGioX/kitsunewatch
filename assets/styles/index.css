@@ -385,7 +385,6 @@ h3 .bi,
     color: #b44dff;
 }
 
-/* Контейнер видео */
 .video-container {
     position: relative;
     width: 100%;
@@ -424,7 +423,6 @@ h3 .bi,
     border: 1px solid rgba(85, 8, 153, 0.3);
 }
 
-/* Информация о видео */
 .about_video_details {
     margin-top: 14px;
     display: none;
@@ -458,7 +456,6 @@ h3 .bi,
     font-weight: 300;
 }
 
-/* Блок с кнопками */
 .shareToDirectLinkOnVideoBlock {
     display: flex;
     align-items: center;
@@ -509,7 +506,6 @@ h3 .bi,
     border-color: #e94560;
 }
 
-/* Вкладки */
 .video-tabs {
     display: flex;
     gap: 10px;
@@ -546,7 +542,6 @@ h3 .bi,
     font-weight: 500;
 }
 
-/* Список видео */
 .video-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -635,7 +630,6 @@ h3 .bi,
     background-color: rgba(85, 8, 153, 0.5);
 }
 
-/* Сообщение об ошибке */
 .error-message {
     display: flex;
     align-items: center;
@@ -1358,9 +1352,10 @@ h3 .bi,
     margin: 0;
 }
 
-.top-100-title i {
+.top-100-title .bi {
     color: #ffd700;
     font-size: 32px;
+    margin-right: 10px;
 }
 
 .back-button {
@@ -1504,21 +1499,11 @@ h3 .bi,
     font-family: 'Roboto', sans-serif;
 }
 
-.pagination-button .bi {
-    font-size: 1em;
-    margin-right: 0;
-}
-
 .pagination-button:hover:not(:disabled) {
     background: #7100b3;
     border-color: #7100b3;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(113, 0, 179, 0.3);
-}
-
-.pagination-button:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: none;
 }
 
 .pagination-button.active {
@@ -1572,12 +1557,6 @@ h3 .bi,
     animation: floatIn 0.5s ease-out, floatPulse 3s ease-in-out infinite 0.5s;
 }
 
-.install-button .bi {
-    font-size: 18px;
-    margin-right: 0;
-    transition: transform 0.3s ease;
-}
-
 .install-button:hover {
     background: linear-gradient(135deg, #8a00d4 0%, #7100b3 100%);
     border-color: #b44dff;
@@ -1585,19 +1564,9 @@ h3 .bi,
     transform: translateY(-3px) scale(1.05);
 }
 
-.install-button:hover .bi {
-    transform: translateY(2px);
-}
-
 .install-button:active {
     transform: translateY(0) scale(0.98);
     box-shadow: 0 2px 10px rgba(113, 0, 179, 0.3);
-    background: linear-gradient(135deg, #550899 0%, #7100b3 100%);
-}
-
-.install-button:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(180, 77, 255, 0.4), 0 4px 20px rgba(113, 0, 179, 0.4);
 }
 
 @keyframes floatIn {
@@ -1618,6 +1587,83 @@ h3 .bi,
     50% {
         box-shadow: 0 4px 30px rgba(180, 77, 255, 0.7);
     }
+}
+
+/* Футер */
+.site-footer {
+    margin-top: auto;
+    padding: 20px;
+    background: rgba(85, 8, 153, 0.15);
+    border-radius: 12px;
+    border: 1px solid rgba(85, 8, 153, 0.3);
+    width: 50%;
+    animation: fadeInUp 0.6s ease-out 0.5s both;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #b44dff;
+}
+
+.footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.footer-link:hover {
+    color: #b44dff;
+}
+
+.footer-copyright {
+    text-align: center;
+}
+
+.footer-copyright p {
+    font-size: 12px;
+    color: #6c7a89;
+    margin: 0;
+}
+
+.footer-copyright .footer-disclaimer {
+    font-size: 11px;
+    color: #555;
+    margin-top: 5px;
+}
+
+.footer-disclaimer a {
+    color: #b44dff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-disclaimer a:hover {
+    color: #d4a5ff;
+    text-decoration: underline;
 }
 
 /* Адаптивность */
@@ -1690,7 +1736,7 @@ h3 .bi,
         font-size: 22px;
     }
     
-    .top-100-title i {
+    .top-100-title .bi {
         font-size: 26px;
     }
     
@@ -1801,10 +1847,6 @@ h3 .bi,
         padding: 12px 20px;
         font-size: 13px;
     }
-    
-    .install-button .bi {
-        font-size: 16px;
-    }
 }
 
 @media (max-width: 480px) {
@@ -1861,6 +1903,14 @@ h3 .bi,
     
     .top-100-card-title {
         font-size: 13px;
+    }
+    
+    .top-100-title {
+        font-size: 20px;
+    }
+    
+    .top-100-title .bi {
+        font-size: 24px;
     }
     
     .premieres-container {
