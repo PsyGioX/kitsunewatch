@@ -2193,3 +2193,841 @@ h3 .bi,
         font-size: 18px;
     }
 }
+
+/* Адаптивные стили для квадратных мониторов */
+
+/* Квадратные мониторы с соотношением сторон 4:3 */
+@media (min-aspect-ratio: 4/3) and (max-aspect-ratio: 4/3) {
+    /* Основные контейнеры */
+    .header_menu,
+    .main_block,
+    .site-footer {
+        width: 70%;
+    }
+    
+    .app {
+        padding: 20px;
+        border-radius: 20px;
+    }
+    
+    /* Поиск */
+    .search_container {
+        gap: 8px;
+    }
+    
+    .search_input_query {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+    
+    .search_push {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+    
+    /* Видео контейнер */
+    .video-container,
+    .video-container .video_link {
+        min-height: 35vh;
+    }
+    
+    /* Сетка видео */
+    .video-list {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+    }
+    
+    .video-card {
+        padding: 12px;
+    }
+    
+    .video-card-title {
+        font-size: 14px;
+    }
+    
+    /* Премьеры */
+    .premieres-container {
+        padding: 20px;
+    }
+    
+    .premieres-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .premieres-stats {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .premieres-stat {
+        min-width: 100px;
+        padding: 12px 16px;
+    }
+    
+    .premieres-stat-number {
+        font-size: 28px;
+    }
+    
+    /* Коллекции */
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+    
+    .collection-card {
+        padding: 15px;
+    }
+    
+    .collection-card i {
+        font-size: 24px;
+    }
+    
+    /* Топ 100 */
+    .top-100-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+    }
+    
+    .top-100-card {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .top-100-rank {
+        font-size: 20px;
+        min-width: 40px;
+    }
+    
+    .top-100-card-title {
+        font-size: 13px;
+    }
+    
+    /* История */
+    .history-item {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+    
+    /* Избранное */
+    .favorite-card {
+        padding: 8px;
+    }
+    
+    .favorite-card-title {
+        font-size: 13px;
+    }
+    
+    /* О проекте */
+    .about-project {
+        padding: 20px;
+    }
+    
+    .about-project-features {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+    }
+    
+    .feature-card {
+        padding: 15px;
+    }
+    
+    /* Пагинация */
+    .pagination-button {
+        min-width: 35px;
+        height: 35px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    
+    /* Модальные окна */
+    .modal-content {
+        max-width: 450px;
+        padding: 20px;
+    }
+    
+    /* Кнопка установки */
+    .install-button {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+}
+
+/* Квадратные мониторы с соотношением сторон 1:1 */
+@media (min-aspect-ratio: 1/1) and (max-aspect-ratio: 1/1) {
+    /* Основные контейнеры */
+    .header_menu,
+    .main_block,
+    .site-footer {
+        width: 80%;
+    }
+    
+    .app {
+        padding: 16px;
+        border-radius: 16px;
+    }
+    
+    .bg_page {
+        padding: 15px;
+    }
+    
+    /* Логотип */
+    .logo_img {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .logo_text_header {
+        font-size: 22px;
+    }
+    
+    /* Поиск */
+    .search_container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .search_input_query {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .search_push {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    /* Кнопки рандомайзера и топ 100 */
+    .random-anime-button,
+    .top-100-button {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    /* Видео контейнер */
+    .video-container,
+    .video-container .video_link {
+        min-height: 30vh;
+    }
+    
+    .name_video {
+        font-size: 16px;
+    }
+    
+    /* Сетка видео */
+    .video-list {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+    }
+    
+    .video-card {
+        padding: 10px;
+    }
+    
+    .video-card-title {
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+    
+    .video-card-info {
+        gap: 5px;
+    }
+    
+    .video-card-year,
+    .video-card-type,
+    .video-card-translation,
+    .video-card-translations-count,
+    .video-card-quality {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+    
+    /* Вкладки видео */
+    .video-tabs {
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    .tab-button {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    /* Кнопки шаринга и избранного */
+    .share-button,
+    .favorite-button {
+        width: 100%;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    /* Премьеры */
+    .premieres-container {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .premieres-header {
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .premieres-header i {
+        font-size: 24px;
+    }
+    
+    .premieres-header h2 {
+        font-size: 20px;
+    }
+    
+    .premieres-stats {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .premieres-stat {
+        width: 100%;
+        min-width: auto;
+        padding: 10px;
+    }
+    
+    .premieres-stat-number {
+        font-size: 24px;
+    }
+    
+    .premieres-stat-label {
+        font-size: 12px;
+    }
+    
+    .premieres-description p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    
+    .premieres-search-button {
+        width: 100%;
+        padding: 10px;
+        font-size: 13px;
+    }
+    
+    /* Коллекции */
+    .collections-container {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .collections-header {
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .collections-header i {
+        font-size: 24px;
+    }
+    
+    .collections-header h2 {
+        font-size: 20px;
+    }
+    
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+    }
+    
+    .collection-card {
+        padding: 12px;
+    }
+    
+    .collection-card i {
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+    
+    .collection-card h3 {
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+    
+    .collection-card p {
+        font-size: 11px;
+    }
+    
+    /* Топ 100 */
+    .top-100-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+    
+    .top-100-title {
+        font-size: 22px;
+    }
+    
+    .top-100-title .bi {
+        font-size: 26px;
+    }
+    
+    .back-button {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    .top-100-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+    }
+    
+    .top-100-card {
+        padding: 10px;
+        gap: 8px;
+    }
+    
+    .top-100-rank {
+        font-size: 18px;
+        min-width: 35px;
+    }
+    
+    .top-100-card-title {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+    
+    .top-100-year {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    .top-100-rating {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    .top-100-rating i {
+        font-size: 12px;
+    }
+    
+    /* История */
+    .search-history {
+        padding: 12px;
+        margin: 15px 0;
+    }
+    
+    .history-title-container {
+        margin-bottom: 10px;
+    }
+    
+    .history-title {
+        font-size: 14px;
+    }
+    
+    .clear-history-button {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+    
+    .history-date-group {
+        margin-bottom: 10px;
+    }
+    
+    .history-date-title {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+    
+    .history-list {
+        gap: 5px;
+    }
+    
+    .history-item {
+        padding: 5px 8px;
+        gap: 5px;
+    }
+    
+    .history-query {
+        font-size: 12px;
+    }
+    
+    .history-time {
+        font-size: 10px;
+    }
+    
+    .remove-history-button {
+        font-size: 12px;
+    }
+    
+    /* Избранное */
+    .favorites-block {
+        padding: 12px;
+        margin: 15px 0;
+    }
+    
+    .favorites-title {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .favorites-category {
+        margin-bottom: 10px;
+    }
+    
+    .favorites-category-title {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+    
+    .favorites-list {
+        gap: 5px;
+    }
+    
+    .favorite-card {
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    .favorite-card-title {
+        font-size: 12px;
+    }
+    
+    .favorite-card-info {
+        font-size: 10px;
+    }
+    
+    .favorite-play-button,
+    .favorite-remove-button {
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+    }
+    
+    /* О проекте */
+    .about-project {
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 12px;
+    }
+    
+    .about-project-header {
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .about-project-header i {
+        font-size: 28px;
+    }
+    
+    .about-project-header h2 {
+        font-size: 22px;
+    }
+    
+    .about-project-description {
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+    
+    .about-project-features {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .feature-card {
+        padding: 12px;
+    }
+    
+    .feature-card i {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+    
+    .feature-card h3 {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .feature-card p {
+        font-size: 12px;
+    }
+    
+    .about-project-cta {
+        font-size: 12px;
+    }
+    
+    /* Пагинация */
+    .pagination-container {
+        gap: 5px;
+        padding: 8px;
+        margin: 15px 0;
+    }
+    
+    .pagination-button {
+        min-width: 30px;
+        height: 30px;
+        padding: 5px 8px;
+        font-size: 11px;
+        border-radius: 6px;
+    }
+    
+    .pagination-ellipsis {
+        min-width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+    
+    /* Модальные окна */
+    .modal-content {
+        max-width: 400px;
+        padding: 15px;
+        border-radius: 12px;
+    }
+    
+    .modal-header {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+    }
+    
+    .modal-body {
+        font-size: 13px;
+    }
+    
+    .modal-footer {
+        margin-top: 15px;
+        padding-top: 10px;
+    }
+    
+    /* Кнопка установки */
+    .install-button {
+        bottom: 15px;
+        right: 15px;
+        left: 15px;
+        width: calc(100% - 30px);
+        justify-content: center;
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+    
+    /* Футер */
+    .site-footer {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .footer-logo {
+        font-size: 16px;
+    }
+    
+    .footer-links {
+        gap: 15px;
+    }
+    
+    .footer-link {
+        font-size: 12px;
+    }
+    
+    .footer-copyright p {
+        font-size: 11px;
+    }
+    
+    .footer-copyright .footer-disclaimer {
+        font-size: 10px;
+    }
+}
+
+/* Квадратные мониторы с соотношением сторон 5:4 */
+@media (min-aspect-ratio: 5/4) and (max-aspect-ratio: 5/4) {
+    /* Основные контейнеры */
+    .header_menu,
+    .main_block,
+    .site-footer {
+        width: 75%;
+    }
+    
+    .app {
+        padding: 18px;
+        border-radius: 18px;
+    }
+    
+    /* Поиск */
+    .search_input_query {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+    
+    .search_push {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+    
+    /* Видео контейнер */
+    .video-container,
+    .video-container .video_link {
+        min-height: 32vh;
+    }
+    
+    /* Сетка видео */
+    .video-list {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    /* Премьеры */
+    .premieres-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .premieres-stats {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .premieres-stat {
+        min-width: 110px;
+        padding: 12px 16px;
+    }
+    
+    .premieres-stat-number {
+        font-size: 30px;
+    }
+    
+    /* Коллекции */
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    /* Топ 100 */
+    .top-100-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+    }
+    
+    /* Пагинация */
+    .pagination-button {
+        min-width: 32px;
+        height: 32px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+
+/* Квадратные мониторы с низким разрешением (например, 1024x768, 1280x1024) */
+@media (max-width: 1280px) and (min-aspect-ratio: 4/3) and (max-aspect-ratio: 5/4) {
+    .app {
+        padding: 15px;
+    }
+    
+    .logo_text_header {
+        font-size: 24px;
+    }
+    
+    .video-list {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+    }
+    
+    .premieres-stat-number {
+        font-size: 26px;
+    }
+    
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+    }
+    
+    .top-100-grid {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 8px;
+    }
+    
+    .modal-content {
+        max-width: 350px;
+        padding: 15px;
+    }
+}
+
+/* Квадратные мониторы с высоким разрешением (например, 1600x1200, 2048x1536) */
+@media (min-width: 1600px) and (min-aspect-ratio: 4/3) and (max-aspect-ratio: 5/4) {
+    .header_menu,
+    .main_block,
+    .site-footer {
+        width: 60%;
+    }
+    
+    .video-list {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+    
+    .top-100-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 15px;
+    }
+    
+    .premieres-stat-number {
+        font-size: 32px;
+    }
+}
+
+/* Дополнительные стили для квадратных мониторов в портретной ориентации */
+@media (orientation: portrait) and (min-aspect-ratio: 4/3) and (max-aspect-ratio: 5/4) {
+    .app {
+        height: auto;
+        min-height: calc(100vh - 30px);
+        overflow-y: auto;
+    }
+    
+    .main_block {
+        gap: 15px;
+    }
+    
+    .video-container,
+    .video-container .video_link {
+        min-height: 25vh;
+    }
+    
+    .premieres-stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .premieres-stat {
+        flex: 1;
+        min-width: calc(50% - 10px);
+    }
+}
+
+/* Дополнительные стили для квадратных мониторов в альбомной ориентации */
+@media (orientation: landscape) and (min-aspect-ratio: 4/3) and (max-aspect-ratio: 5/4) {
+    .premieres-content {
+        flex-direction: row;
+        gap: 20px;
+    }
+    
+    .premieres-stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .premieres-stat {
+        flex: 1;
+        min-width: 100px;
+    }
+}
