@@ -195,6 +195,10 @@ h3 .bi,
     transition: color 0.3s ease;
 }
 
+.link_logotext {
+    text-decoration: none;
+}
+
 .logo_text_header:hover {
     color: #b44dff;
 }
