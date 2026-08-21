@@ -13,7 +13,6 @@
 body {
     font-family: 'Roboto', sans-serif;
     line-height: 1.6;
-    transition: background-color 0.5s ease;
 }
 
 /* Иконки Bootstrap */
@@ -31,8 +30,7 @@ button .bi,
 .placeholder-retry-button .bi,
 .random-anime-button .bi,
 .top-100-button .bi,
-.back-button .bi,
-.mode-button .bi {
+.back-button .bi {
     margin-right: 8px;
     font-size: 0.95em;
 }
@@ -52,75 +50,6 @@ h3 .bi,
     font-size: 0.9em;
 }
 
-/* ============ ПЕРЕКЛЮЧАТЕЛЬ ВКЛАДОК ============ */
-.mode-switcher {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-    padding: 5px;
-    background: rgba(85, 8, 153, 0.2);
-    border-radius: 10px;
-    border: 1px solid rgba(85, 8, 153, 0.3);
-}
-
-.mode-button {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: rgba(85, 8, 153, 0.3);
-    border: 1px solid #550899;
-    border-radius: 8px;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'Roboto', sans-serif;
-    white-space: nowrap;
-}
-
-.mode-button:hover {
-    background: #7100b3;
-    border-color: #7100b3;
-}
-
-.mode-button.active {
-    background: #7100b3;
-    border-color: #7100b3;
-    font-weight: 700;
-    box-shadow: 0 0 20px rgba(113, 0, 179, 0.4);
-}
-
-.mode-button .bi {
-    font-size: 1.1em;
-    margin-right: 0;
-}
-
-/* Тема для фильмов */
-body.movies-mode .mode-switcher {
-    background: rgba(10, 40, 80, 0.3);
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
-body.movies-mode .mode-button {
-    background: rgba(10, 40, 80, 0.4);
-    border-color: #1e64b4;
-}
-
-body.movies-mode .mode-button:hover {
-    background: #1e64b4;
-    border-color: #1e64b4;
-}
-
-body.movies-mode .mode-button.active {
-    background: #1e64b4;
-    border-color: #1e64b4;
-    box-shadow: 0 0 20px rgba(30, 100, 180, 0.5);
-}
-
 .bg_page {
     position: relative;
     isolation: isolate;
@@ -134,7 +63,6 @@ body.movies-mode .mode-button.active {
             transparent 55%
         ),
         #151515;
-    transition: background 0.5s ease;
 }
 
 .bg_page::before {
@@ -160,7 +88,6 @@ body.movies-mode .mode-button.active {
             transparent 70%
         );
     animation: animeClouds 22s ease-in-out infinite alternate;
-    transition: background 0.5s ease;
 }
 
 .bg_page::after {
@@ -181,51 +108,6 @@ body.movies-mode .mode-button.active {
             transparent 25%
         );
     animation: animeGlow 10s ease-in-out infinite alternate;
-    transition: background 0.5s ease;
-}
-
-/* Тема для фильмов - синие тона */
-body.movies-mode .bg_page {
-    background:
-        radial-gradient(
-            ellipse at 50% 100%,
-            rgba(10, 40, 80, 0.3) 0%,
-            transparent 55%
-        ),
-        #0a0a15;
-}
-
-body.movies-mode .bg_page::before {
-    background:
-        radial-gradient(
-            ellipse 38% 32% at 15% 35%,
-            rgba(0, 80, 160, 0.3) 0%,
-            transparent 70%
-        ),
-        radial-gradient(
-            ellipse 32% 28% at 85% 20%,
-            rgba(20, 100, 200, 0.25) 0%,
-            transparent 70%
-        ),
-        radial-gradient(
-            ellipse 45% 35% at 55% 100%,
-            rgba(0, 50, 100, 0.35) 0%,
-            transparent 70%
-        );
-}
-
-body.movies-mode .bg_page::after {
-    background:
-        radial-gradient(
-            circle at 20% 45%,
-            rgba(30, 100, 180, 0.12) 0%,
-            transparent 25%
-        ),
-        radial-gradient(
-            circle at 80% 30%,
-            rgba(0, 70, 150, 0.1) 0%,
-            transparent 25%
-        );
 }
 
 @keyframes animeClouds {
@@ -264,13 +146,7 @@ body.movies-mode .bg_page::after {
     overflow-x: hidden;
     backdrop-filter: blur(20px);
     border: 1px solid rgba(85, 8, 153, 0.3);
-    transition: background 0.5s ease, border-color 0.5s ease;
-}
-
-/* Тема для фильмов */
-body.movies-mode .app {
-    background: rgba(5, 20, 45, 0.9);
-    border-color: rgba(30, 100, 180, 0.4);
+    transition: background 0.3s ease;
 }
 
 .app::-webkit-scrollbar {
@@ -280,7 +156,6 @@ body.movies-mode .app {
 .app::-webkit-scrollbar-track {
     background: rgba(85, 8, 153, 0.2);
     border-radius: 10px;
-    transition: background 0.3s ease;
 }
 
 .app::-webkit-scrollbar-thumb {
@@ -291,18 +166,6 @@ body.movies-mode .app {
 
 .app::-webkit-scrollbar-thumb:hover {
     background: rgba(113, 0, 179, 0.9);
-}
-
-body.movies-mode .app::-webkit-scrollbar-track {
-    background: rgba(30, 100, 180, 0.2);
-}
-
-body.movies-mode .app::-webkit-scrollbar-thumb {
-    background: rgba(30, 100, 180, 0.6);
-}
-
-body.movies-mode .app::-webkit-scrollbar-thumb:hover {
-    background: rgba(30, 100, 180, 0.9);
 }
 
 .header_menu {
@@ -322,11 +185,6 @@ body.movies-mode .app::-webkit-scrollbar-thumb:hover {
     height: 40px;
     border-radius: 50%;
     border: 2px solid rgba(85, 8, 153, 0.5);
-    transition: border-color 0.5s ease;
-}
-
-body.movies-mode .logo_img {
-    border-color: rgba(30, 100, 180, 0.6);
 }
 
 .logo_text_header {
@@ -343,10 +201,6 @@ body.movies-mode .logo_img {
 
 .logo_text_header:hover {
     color: #b44dff;
-}
-
-body.movies-mode .logo_text_header:hover {
-    color: #4a9eff;
 }
 
 .main_block {
@@ -411,23 +265,6 @@ body.movies-mode .logo_text_header:hover {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* Тема для фильмов */
-body.movies-mode .search_input_query {
-    border-color: #1e64b4;
-    background-color: rgba(10, 40, 80, 0.3);
-}
-
-body.movies-mode .search_input_query:hover {
-    border-color: #2a7ad4;
-    background-color: rgba(10, 40, 80, 0.45);
-}
-
-body.movies-mode .search_input_query:focus {
-    border-color: #2a7ad4;
-    box-shadow: 0 0 0 3px rgba(42, 122, 212, 0.3);
-    background-color: rgba(10, 40, 80, 0.55);
-}
-
 .search_push {
     display: inline-flex;
     align-items: center;
@@ -465,26 +302,6 @@ body.movies-mode .search_input_query:focus {
     border-color: #30024b;
     cursor: not-allowed;
     opacity: 0.6;
-}
-
-body.movies-mode .search_push {
-    background-color: rgba(10, 40, 80, 0.6);
-    border-color: #1e64b4;
-}
-
-body.movies-mode .search_push:hover {
-    background-color: #1e64b4;
-    border-color: #1e64b4;
-}
-
-body.movies-mode .search_push:active {
-    background-color: #0a2850;
-    border-color: #0a2850;
-}
-
-body.movies-mode .search_push:disabled {
-    background-color: #051428;
-    border-color: #051428;
 }
 
 /* Кнопки рандомайзера и топ 100 */
@@ -540,25 +357,6 @@ body.movies-mode .search_push:disabled {
     box-shadow: none;
 }
 
-body.movies-mode .random-anime-button,
-body.movies-mode .top-100-button {
-    background-color: rgba(10, 40, 80, 0.6);
-    border-color: #1e64b4;
-}
-
-body.movies-mode .random-anime-button:hover,
-body.movies-mode .top-100-button:hover {
-    background-color: #1e64b4;
-    border-color: #1e64b4;
-    box-shadow: 0 4px 15px rgba(30, 100, 180, 0.4);
-}
-
-body.movies-mode .random-anime-button:active,
-body.movies-mode .top-100-button:active {
-    background-color: #0a2850;
-    border-color: #0a2850;
-}
-
 .random-anime-button.spinning .bi {
     animation: spin 1s ease-in-out;
 }
@@ -591,10 +389,6 @@ body.movies-mode .top-100-button:active {
     color: #b44dff;
 }
 
-body.movies-mode .name_video:hover {
-    color: #4a9eff;
-}
-
 .video-container {
     position: relative;
     width: 100%;
@@ -618,14 +412,6 @@ body.movies-mode .name_video:hover {
     border-color: rgba(113, 0, 179, 0.6);
 }
 
-body.movies-mode .video-container .video_link {
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
-body.movies-mode .video-container .video_link:hover {
-    border-color: rgba(42, 122, 212, 0.7);
-}
-
 .video-container .video-placeholder {
     position: absolute;
     top: 0;
@@ -641,11 +427,6 @@ body.movies-mode .video-container .video_link:hover {
     border: 1px solid rgba(85, 8, 153, 0.3);
 }
 
-body.movies-mode .video-container .video-placeholder {
-    background: #0a1525;
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
 .about_video_details {
     margin-top: 14px;
     display: none;
@@ -654,10 +435,6 @@ body.movies-mode .video-container .video-placeholder {
     padding: 12px;
     transition: background-color 0.3s ease;
     animation: fadeInUp 0.5s ease-out 0.2s both;
-}
-
-body.movies-mode .about_video_details {
-    background: rgba(10, 40, 80, 0.3);
 }
 
 .about_video_details[open] {
@@ -675,11 +452,6 @@ body.movies-mode .about_video_details {
 .about_video_parse:hover {
     color: #b44dff;
     background-color: rgba(85, 8, 153, 0.3);
-}
-
-body.movies-mode .about_video_parse:hover {
-    color: #4a9eff;
-    background-color: rgba(10, 40, 80, 0.4);
 }
 
 .aboutVideoParse {
@@ -728,24 +500,6 @@ body.movies-mode .about_video_parse:hover {
     border-color: #550899;
 }
 
-body.movies-mode .share-button,
-body.movies-mode .favorite-button {
-    background-color: rgba(10, 40, 80, 0.6);
-    border-color: #1e64b4;
-}
-
-body.movies-mode .share-button:hover,
-body.movies-mode .favorite-button:hover {
-    background-color: #1e64b4;
-    border-color: #1e64b4;
-}
-
-body.movies-mode .share-button:active,
-body.movies-mode .favorite-button:active {
-    background-color: #0a2850;
-    border-color: #0a2850;
-}
-
 .favorite-button.active {
     background-color: rgba(233, 69, 96, 0.7);
     border-color: #e94560;
@@ -766,10 +520,6 @@ body.movies-mode .favorite-button:active {
     overflow-x: auto;
     flex-wrap: wrap;
     animation: fadeInUp 0.5s ease-out 0.3s both;
-}
-
-body.movies-mode .video-tabs {
-    background: rgba(10, 40, 80, 0.3);
 }
 
 .tab-button {
@@ -794,21 +544,6 @@ body.movies-mode .video-tabs {
     background: #7100b3;
     border-color: #7100b3;
     font-weight: 500;
-}
-
-body.movies-mode .tab-button {
-    background: rgba(10, 40, 80, 0.4);
-    border-color: #1e64b4;
-}
-
-body.movies-mode .tab-button:hover {
-    background: #1e64b4;
-    border-color: #1e64b4;
-}
-
-body.movies-mode .tab-button.active {
-    background: #1e64b4;
-    border-color: #1e64b4;
 }
 
 .video-list {
@@ -838,21 +573,6 @@ body.movies-mode .tab-button.active {
     border-color: #550899;
 }
 
-body.movies-mode .video-card {
-    background: rgba(10, 40, 80, 0.3);
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
-body.movies-mode .video-card:hover {
-    background-color: rgba(10, 40, 80, 0.5);
-    border-color: #1e64b4;
-}
-
-body.movies-mode .video-card:active {
-    background-color: rgba(10, 40, 80, 0.4);
-    border-color: #0a2850;
-}
-
 .video-card-title {
     font-size: 16px;
     font-weight: 500;
@@ -864,24 +584,6 @@ body.movies-mode .video-card:active {
 
 .video-card:hover .video-card-title {
     color: #b44dff;
-}
-
-body.movies-mode .video-card:hover .video-card-title {
-    color: #4a9eff;
-}
-
-/* Постер фильма */
-.movie-poster {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: rgba(85, 8, 153, 0.2);
-}
-
-body.movies-mode .movie-poster {
-    background: rgba(10, 40, 80, 0.3);
 }
 
 .video-card-info {
@@ -904,14 +606,6 @@ body.movies-mode .movie-poster {
     color: #ffffff;
     font-weight: 400;
     transition: background-color 0.3s ease;
-}
-
-body.movies-mode .video-card-year,
-body.movies-mode .video-card-type,
-body.movies-mode .video-card-translation,
-body.movies-mode .video-card-translations-count,
-body.movies-mode .video-card-quality {
-    background: rgba(10, 40, 80, 0.5);
 }
 
 .video-card-translations-count {
@@ -938,10 +632,6 @@ body.movies-mode .video-card-quality {
 
 .video-card:hover .video-card-info span {
     background-color: rgba(85, 8, 153, 0.5);
-}
-
-body.movies-mode .video-card:hover .video-card-info span {
-    background-color: rgba(10, 40, 80, 0.6);
 }
 
 .error-message {
@@ -979,11 +669,6 @@ body.movies-mode .video-card:hover .video-card-info span {
     border: 1px solid rgba(85, 8, 153, 0.3);
 }
 
-body.movies-mode .search-history {
-    background: rgba(10, 40, 80, 0.25);
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
 .history-title-container {
     display: flex;
     justify-content: space-between;
@@ -998,10 +683,6 @@ body.movies-mode .search-history {
     font-size: 16px;
     font-weight: 500;
     color: #b44dff;
-}
-
-body.movies-mode .history-title {
-    color: #4a9eff;
 }
 
 .clear-history-button {
@@ -1040,11 +721,6 @@ body.movies-mode .history-title {
     border-bottom: 1px solid rgba(85, 8, 153, 0.3);
 }
 
-body.movies-mode .history-date-title {
-    color: #4a9eff;
-    border-bottom-color: rgba(30, 100, 180, 0.4);
-}
-
 .history-list {
     display: flex;
     flex-wrap: wrap;
@@ -1062,16 +738,8 @@ body.movies-mode .history-date-title {
     transition: background-color 0.3s ease;
 }
 
-body.movies-mode .history-item {
-    background: rgba(10, 40, 80, 0.4);
-}
-
 .history-item:hover {
     background: rgba(85, 8, 153, 0.5);
-}
-
-body.movies-mode .history-item:hover {
-    background: rgba(10, 40, 80, 0.6);
 }
 
 .history-query {
@@ -1117,11 +785,6 @@ body.movies-mode .history-item:hover {
     border: 1px solid rgba(85, 8, 153, 0.3);
 }
 
-body.movies-mode .favorites-block {
-    background: rgba(10, 40, 80, 0.25);
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
 .favorites-title {
     display: flex;
     align-items: center;
@@ -1148,11 +811,6 @@ body.movies-mode .favorites-block {
     border-bottom: 1px solid rgba(85, 8, 153, 0.3);
 }
 
-body.movies-mode .favorites-category-title {
-    color: #4a9eff;
-    border-bottom-color: rgba(30, 100, 180, 0.4);
-}
-
 .favorites-category-title i {
     font-size: 16px;
 }
@@ -1171,10 +829,6 @@ body.movies-mode .favorites-category-title {
     margin-left: auto;
 }
 
-body.movies-mode .favorites-count {
-    background: rgba(10, 40, 80, 0.5);
-}
-
 .favorites-list {
     display: flex;
     flex-direction: column;
@@ -1191,16 +845,8 @@ body.movies-mode .favorites-count {
     transition: background-color 0.3s ease;
 }
 
-body.movies-mode .favorite-card {
-    background: rgba(10, 40, 80, 0.4);
-}
-
 .favorite-card:hover {
     background: rgba(85, 8, 153, 0.5);
-}
-
-body.movies-mode .favorite-card:hover {
-    background: rgba(10, 40, 80, 0.6);
 }
 
 .favorite-card-title {
@@ -1284,11 +930,6 @@ body.movies-mode .favorite-card:hover {
     margin-bottom: 20px;
 }
 
-body.movies-mode .loading-spinner {
-    border-color: rgba(10, 40, 80, 0.4);
-    border-top-color: #1e64b4;
-}
-
 .loading-text {
     font-size: 18px;
     font-weight: 500;
@@ -1339,11 +980,6 @@ body.movies-mode .loading-spinner {
     animation: spin 1s linear infinite;
 }
 
-body.movies-mode .placeholder-spinner {
-    border-color: rgba(10, 40, 80, 0.4);
-    border-top-color: #1e64b4;
-}
-
 .placeholder-text {
     font-size: 16px;
     color: #bdc3c7;
@@ -1371,17 +1007,8 @@ body.movies-mode .placeholder-spinner {
     transition: background-color 0.3s ease;
 }
 
-body.movies-mode .placeholder-retry-button {
-    background-color: rgba(10, 40, 80, 0.6);
-    border-color: #1e64b4;
-}
-
 .placeholder-retry-button:hover {
     background-color: #7100b3;
-}
-
-body.movies-mode .placeholder-retry-button:hover {
-    background-color: #1e64b4;
 }
 
 /* Блок описания проекта */
@@ -1392,11 +1019,6 @@ body.movies-mode .placeholder-retry-button:hover {
     border-radius: 16px;
     border: 1px solid rgba(85, 8, 153, 0.3);
     animation: fadeInUp 0.6s ease-out;
-}
-
-body.movies-mode .about-project {
-    background: rgba(10, 40, 80, 0.25);
-    border-color: rgba(30, 100, 180, 0.4);
 }
 
 .about-project-content {
@@ -1416,10 +1038,6 @@ body.movies-mode .about-project {
 .about-project-header i {
     font-size: 36px;
     color: #b44dff;
-}
-
-body.movies-mode .about-project-header i {
-    color: #4a9eff;
 }
 
 .about-project-header h2 {
@@ -1449,16 +1067,8 @@ body.movies-mode .about-project-header i {
     transition: background-color 0.3s ease;
 }
 
-body.movies-mode .feature-card {
-    background: rgba(10, 40, 80, 0.3);
-}
-
 .feature-card:hover {
     background: rgba(85, 8, 153, 0.35);
-}
-
-body.movies-mode .feature-card:hover {
-    background: rgba(10, 40, 80, 0.45);
 }
 
 .feature-card i {
@@ -1466,10 +1076,6 @@ body.movies-mode .feature-card:hover {
     color: #b44dff;
     margin-bottom: 10px;
     display: block;
-}
-
-body.movies-mode .feature-card i {
-    color: #4a9eff;
 }
 
 .feature-card h3 {
@@ -1493,10 +1099,6 @@ body.movies-mode .feature-card i {
     font-size: 14px;
     color: #b44dff;
     animation: pulse 2s ease-in-out infinite;
-}
-
-body.movies-mode .about-project-cta {
-    color: #4a9eff;
 }
 
 .about-project-cta i {
@@ -1662,11 +1264,6 @@ body.movies-mode .about-project-cta {
     animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
-body.movies-mode .collections-container {
-    background: rgba(10, 40, 80, 0.25);
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
 .collections-block {
     width: 100%;
 }
@@ -1681,10 +1278,6 @@ body.movies-mode .collections-container {
 .collections-header i {
     font-size: 28px;
     color: #b44dff;
-}
-
-body.movies-mode .collections-header i {
-    color: #4a9eff;
 }
 
 .collections-header h2 {
@@ -1710,11 +1303,6 @@ body.movies-mode .collections-header i {
     text-align: center;
 }
 
-body.movies-mode .collection-card {
-    background: rgba(10, 40, 80, 0.35);
-    border-color: rgba(30, 100, 180, 0.5);
-}
-
 .collection-card:hover {
     background: rgba(85, 8, 153, 0.4);
     border-color: #7100b3;
@@ -1722,21 +1310,11 @@ body.movies-mode .collection-card {
     box-shadow: 0 10px 25px rgba(113, 0, 179, 0.3);
 }
 
-body.movies-mode .collection-card:hover {
-    background: rgba(10, 40, 80, 0.5);
-    border-color: #1e64b4;
-    box-shadow: 0 10px 25px rgba(30, 100, 180, 0.4);
-}
-
 .collection-card i {
     font-size: 32px;
     color: #b44dff;
     margin-bottom: 12px;
     display: block;
-}
-
-body.movies-mode .collection-card i {
-    color: #4a9eff;
 }
 
 .collection-card h3 {
@@ -1801,20 +1379,10 @@ body.movies-mode .collection-card i {
     white-space: nowrap;
 }
 
-body.movies-mode .back-button {
-    background: rgba(10, 40, 80, 0.4);
-    border-color: #1e64b4;
-}
-
 .back-button:hover {
     background: #7100b3;
     border-color: #7100b3;
     transform: translateX(-3px);
-}
-
-body.movies-mode .back-button:hover {
-    background: #1e64b4;
-    border-color: #1e64b4;
 }
 
 .back-button .bi {
@@ -1935,22 +1503,11 @@ body.movies-mode .back-button:hover {
     font-family: 'Roboto', sans-serif;
 }
 
-body.movies-mode .pagination-button {
-    background: rgba(10, 40, 80, 0.4);
-    border-color: #1e64b4;
-}
-
 .pagination-button:hover:not(:disabled) {
     background: #7100b3;
     border-color: #7100b3;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(113, 0, 179, 0.3);
-}
-
-body.movies-mode .pagination-button:hover:not(:disabled) {
-    background: #1e64b4;
-    border-color: #1e64b4;
-    box-shadow: 0 4px 12px rgba(30, 100, 180, 0.4);
 }
 
 .pagination-button.active {
@@ -1960,22 +1517,11 @@ body.movies-mode .pagination-button:hover:not(:disabled) {
     box-shadow: 0 0 15px rgba(113, 0, 179, 0.4);
 }
 
-body.movies-mode .pagination-button.active {
-    background: #1e64b4;
-    border-color: #1e64b4;
-    box-shadow: 0 0 15px rgba(30, 100, 180, 0.5);
-}
-
 .pagination-button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     background: rgba(85, 8, 153, 0.15);
     border-color: rgba(85, 8, 153, 0.3);
-}
-
-body.movies-mode .pagination-button:disabled {
-    background: rgba(10, 40, 80, 0.2);
-    border-color: rgba(30, 100, 180, 0.3);
 }
 
 .pagination-ellipsis {
@@ -2015,12 +1561,6 @@ body.movies-mode .pagination-button:disabled {
     animation: floatIn 0.5s ease-out, floatPulse 3s ease-in-out infinite 0.5s;
 }
 
-body.movies-mode .install-button {
-    background: linear-gradient(135deg, #1e64b4 0%, #0a2850 100%);
-    border-color: rgba(30, 100, 180, 0.7);
-    box-shadow: 0 4px 20px rgba(30, 100, 180, 0.5);
-}
-
 .install-button:hover {
     background: linear-gradient(135deg, #8a00d4 0%, #7100b3 100%);
     border-color: #b44dff;
@@ -2028,19 +1568,9 @@ body.movies-mode .install-button {
     transform: translateY(-3px) scale(1.05);
 }
 
-body.movies-mode .install-button:hover {
-    background: linear-gradient(135deg, #2a7ad4 0%, #1e64b4 100%);
-    border-color: #4a9eff;
-    box-shadow: 0 8px 30px rgba(30, 100, 180, 0.7);
-}
-
 .install-button:active {
     transform: translateY(0) scale(0.98);
     box-shadow: 0 2px 10px rgba(113, 0, 179, 0.3);
-}
-
-body.movies-mode .install-button:active {
-    box-shadow: 0 2px 10px rgba(30, 100, 180, 0.4);
 }
 
 @keyframes floatIn {
@@ -2063,19 +1593,6 @@ body.movies-mode .install-button:active {
     }
 }
 
-body.movies-mode .install-button {
-    animation: floatIn 0.5s ease-out, floatPulseMovies 3s ease-in-out infinite 0.5s;
-}
-
-@keyframes floatPulseMovies {
-    0%, 100% {
-        box-shadow: 0 4px 20px rgba(30, 100, 180, 0.5);
-    }
-    50% {
-        box-shadow: 0 4px 30px rgba(74, 158, 255, 0.8);
-    }
-}
-
 /* Футер */
 .site-footer {
     margin-top: auto;
@@ -2085,11 +1602,6 @@ body.movies-mode .install-button {
     border: 1px solid rgba(85, 8, 153, 0.3);
     width: 50%;
     animation: fadeInUp 0.6s ease-out 0.5s both;
-}
-
-body.movies-mode .site-footer {
-    background: rgba(10, 40, 80, 0.25);
-    border-color: rgba(30, 100, 180, 0.4);
 }
 
 .footer-content {
@@ -2106,10 +1618,6 @@ body.movies-mode .site-footer {
     font-size: 18px;
     font-weight: 700;
     color: #b44dff;
-}
-
-body.movies-mode .footer-logo {
-    color: #4a9eff;
 }
 
 .footer-links {
@@ -2135,10 +1643,6 @@ body.movies-mode .footer-logo {
     color: #b44dff;
 }
 
-body.movies-mode .footer-link:hover {
-    color: #4a9eff;
-}
-
 .footer-copyright {
     text-align: center;
 }
@@ -2161,17 +1665,9 @@ body.movies-mode .footer-link:hover {
     transition: color 0.3s ease;
 }
 
-body.movies-mode .footer-disclaimer a {
-    color: #4a9eff;
-}
-
 .footer-disclaimer a:hover {
     color: #d4a5ff;
     text-decoration: underline;
-}
-
-body.movies-mode .footer-disclaimer a:hover {
-    color: #7ab8ff;
 }
 
 /* Модальные окна */
@@ -2221,11 +1717,6 @@ body.movies-mode .footer-disclaimer a:hover {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
-body.movies-mode .modal-content {
-    background: #0a1525;
-    border-color: rgba(30, 100, 180, 0.4);
-}
-
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -2235,19 +1726,11 @@ body.movies-mode .modal-content {
     border-bottom: 1px solid rgba(85, 8, 153, 0.3);
 }
 
-body.movies-mode .modal-header {
-    border-bottom-color: rgba(30, 100, 180, 0.4);
-}
-
 .modal-title {
     color: #b44dff;
     font-weight: 500;
     font-size: 20px;
     margin: 0;
-}
-
-body.movies-mode .modal-title {
-    color: #4a9eff;
 }
 
 .modal-close {
@@ -2292,10 +1775,6 @@ body.movies-mode .modal-title {
     gap: 10px;
 }
 
-body.movies-mode .modal-footer {
-    border-top-color: rgba(30, 100, 180, 0.4);
-}
-
 .btn-secondary {
     background-color: rgba(85, 8, 153, 0.56);
     border-color: #550899;
@@ -2307,19 +1786,9 @@ body.movies-mode .modal-footer {
     font-size: 14px;
 }
 
-body.movies-mode .btn-secondary {
-    background-color: rgba(10, 40, 80, 0.6);
-    border-color: #1e64b4;
-}
-
 .btn-secondary:hover {
     background-color: #7100b3;
     border-color: #7100b3;
-}
-
-body.movies-mode .btn-secondary:hover {
-    background-color: #1e64b4;
-    border-color: #1e64b4;
 }
 
 .btn-close {
@@ -2340,10 +1809,6 @@ body.movies-mode .btn-secondary:hover {
     text-align: center;
 }
 
-body.movies-mode .dmca-source {
-    background: rgba(10, 40, 80, 0.3);
-}
-
 .dmca-source a {
     display: inline-flex;
     align-items: center;
@@ -2354,17 +1819,9 @@ body.movies-mode .dmca-source {
     word-break: break-all;
 }
 
-body.movies-mode .dmca-source a {
-    color: #4a9eff;
-}
-
 .dmca-source a:hover {
     color: #d4a5ff;
     text-decoration: underline;
-}
-
-body.movies-mode .dmca-source a:hover {
-    color: #7ab8ff;
 }
 
 /* Благодарности */
@@ -2386,10 +1843,6 @@ body.movies-mode .dmca-source a:hover {
     margin: 15px 0;
 }
 
-body.movies-mode .thanks-source {
-    background: rgba(10, 40, 80, 0.3);
-}
-
 .thanks-source a {
     display: inline-flex;
     align-items: center;
@@ -2399,17 +1852,9 @@ body.movies-mode .thanks-source {
     font-weight: 500;
 }
 
-body.movies-mode .thanks-source a {
-    color: #4a9eff;
-}
-
 .thanks-source a:hover {
     color: #d4a5ff;
     text-decoration: underline;
-}
-
-body.movies-mode .thanks-source a:hover {
-    color: #7ab8ff;
 }
 
 .bootstrap-logo {
@@ -2438,16 +1883,6 @@ body.movies-mode .thanks-source a:hover {
         padding: 16px;
     }
     
-    .mode-switcher {
-        flex-direction: row;
-        gap: 5px;
-    }
-    
-    .mode-button {
-        padding: 8px 12px;
-        font-size: 12px;
-    }
-    
     .search_container {
         flex-direction: column;
     }
@@ -2469,10 +1904,6 @@ body.movies-mode .thanks-source a:hover {
     
     .video-list {
         grid-template-columns: 1fr;
-    }
-    
-    .movie-poster {
-        height: 180px;
     }
     
     .collections-grid {
@@ -2633,17 +2064,6 @@ body.movies-mode .thanks-source a:hover {
         padding-bottom: 80px;
     }
     
-    .mode-switcher {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .mode-button {
-        width: 100%;
-        padding: 10px;
-        font-size: 13px;
-    }
-    
     .name_video {
         font-size: 16px;
     }
@@ -2668,10 +2088,6 @@ body.movies-mode .thanks-source a:hover {
     
     .collections-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .movie-poster {
-        height: 160px;
     }
     
     .top-100-grid {
@@ -2783,7 +2199,10 @@ body.movies-mode .thanks-source a:hover {
 }
 
 /* Адаптивные стили для квадратных мониторов */
+
+/* Квадратные мониторы с соотношением сторон 4:3 */
 @media (min-aspect-ratio: 4/3) and (max-aspect-ratio: 4/3) {
+    /* Основные контейнеры */
     .header_menu,
     .main_block,
     .site-footer {
@@ -2795,6 +2214,7 @@ body.movies-mode .thanks-source a:hover {
         border-radius: 20px;
     }
     
+    /* Поиск */
     .search_container {
         gap: 8px;
     }
@@ -2809,11 +2229,13 @@ body.movies-mode .thanks-source a:hover {
         font-size: 14px;
     }
     
+    /* Видео контейнер */
     .video-container,
     .video-container .video_link {
         min-height: 35vh;
     }
     
+    /* Сетка видео */
     .video-list {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 12px;
@@ -2827,6 +2249,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 14px;
     }
     
+    /* Премьеры */
     .premieres-container {
         padding: 20px;
     }
@@ -2850,6 +2273,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 28px;
     }
     
+    /* Коллекции */
     .collections-grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 12px;
@@ -2863,6 +2287,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 24px;
     }
     
+    /* Топ 100 */
     .top-100-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 12px;
@@ -2882,11 +2307,13 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* История */
     .history-item {
         padding: 5px 8px;
         font-size: 12px;
     }
     
+    /* Избранное */
     .favorite-card {
         padding: 8px;
     }
@@ -2895,6 +2322,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* О проекте */
     .about-project {
         padding: 20px;
     }
@@ -2908,6 +2336,7 @@ body.movies-mode .thanks-source a:hover {
         padding: 15px;
     }
     
+    /* Пагинация */
     .pagination-button {
         min-width: 35px;
         height: 35px;
@@ -2915,11 +2344,13 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* Модальные окна */
     .modal-content {
         max-width: 450px;
         padding: 20px;
     }
     
+    /* Кнопка установки */
     .install-button {
         bottom: 20px;
         right: 20px;
@@ -2930,6 +2361,7 @@ body.movies-mode .thanks-source a:hover {
 
 /* Квадратные мониторы с соотношением сторон 1:1 */
 @media (min-aspect-ratio: 1/1) and (max-aspect-ratio: 1/1) {
+    /* Основные контейнеры */
     .header_menu,
     .main_block,
     .site-footer {
@@ -2945,6 +2377,7 @@ body.movies-mode .thanks-source a:hover {
         padding: 15px;
     }
     
+    /* Логотип */
     .logo_img {
         width: 32px;
         height: 32px;
@@ -2954,17 +2387,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 22px;
     }
     
-    .mode-switcher {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .mode-button {
-        width: 100%;
-        padding: 8px;
-        font-size: 12px;
-    }
-    
+    /* Поиск */
     .search_container {
         flex-direction: column;
         gap: 10px;
@@ -2982,6 +2405,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* Кнопки рандомайзера и топ 100 */
     .random-anime-button,
     .top-100-button {
         width: 100%;
@@ -2989,6 +2413,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* Видео контейнер */
     .video-container,
     .video-container .video_link {
         min-height: 30vh;
@@ -2998,6 +2423,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 16px;
     }
     
+    /* Сетка видео */
     .video-list {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 10px;
@@ -3025,10 +2451,7 @@ body.movies-mode .thanks-source a:hover {
         padding: 3px 6px;
     }
     
-    .movie-poster {
-        height: 140px;
-    }
-    
+    /* Вкладки видео */
     .video-tabs {
         padding: 8px;
         gap: 8px;
@@ -3039,6 +2462,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 12px;
     }
     
+    /* Кнопки шаринга и избранного */
     .share-button,
     .favorite-button {
         width: 100%;
@@ -3046,6 +2470,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* Премьеры */
     .premieres-container {
         padding: 15px;
         margin: 15px 0;
@@ -3095,6 +2520,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* Коллекции */
     .collections-container {
         padding: 15px;
         margin: 15px 0;
@@ -3136,6 +2562,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 11px;
     }
     
+    /* Топ 100 */
     .top-100-header {
         flex-direction: column;
         gap: 10px;
@@ -3192,6 +2619,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 12px;
     }
     
+    /* История */
     .search-history {
         padding: 12px;
         margin: 15px 0;
@@ -3240,6 +2668,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 12px;
     }
     
+    /* Избранное */
     .favorites-block {
         padding: 12px;
         margin: 15px 0;
@@ -3283,6 +2712,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 12px;
     }
     
+    /* О проекте */
     .about-project {
         padding: 15px;
         margin: 15px 0;
@@ -3335,6 +2765,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 12px;
     }
     
+    /* Пагинация */
     .pagination-container {
         gap: 5px;
         padding: 8px;
@@ -3355,6 +2786,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 14px;
     }
     
+    /* Модальные окна */
     .modal-content {
         max-width: 400px;
         padding: 15px;
@@ -3379,6 +2811,7 @@ body.movies-mode .thanks-source a:hover {
         padding-top: 10px;
     }
     
+    /* Кнопка установки */
     .install-button {
         bottom: 15px;
         right: 15px;
@@ -3389,6 +2822,7 @@ body.movies-mode .thanks-source a:hover {
         font-size: 13px;
     }
     
+    /* Футер */
     .site-footer {
         padding: 15px;
         border-radius: 10px;
@@ -3417,6 +2851,7 @@ body.movies-mode .thanks-source a:hover {
 
 /* Квадратные мониторы с соотношением сторон 5:4 */
 @media (min-aspect-ratio: 5/4) and (max-aspect-ratio: 5/4) {
+    /* Основные контейнеры */
     .header_menu,
     .main_block,
     .site-footer {
@@ -3428,6 +2863,7 @@ body.movies-mode .thanks-source a:hover {
         border-radius: 18px;
     }
     
+    /* Поиск */
     .search_input_query {
         padding: 10px 14px;
         font-size: 14px;
@@ -3438,16 +2874,19 @@ body.movies-mode .thanks-source a:hover {
         font-size: 14px;
     }
     
+    /* Видео контейнер */
     .video-container,
     .video-container .video_link {
         min-height: 32vh;
     }
     
+    /* Сетка видео */
     .video-list {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 12px;
     }
     
+    /* Премьеры */
     .premieres-content {
         flex-direction: column;
         gap: 15px;
@@ -3467,16 +2906,19 @@ body.movies-mode .thanks-source a:hover {
         font-size: 30px;
     }
     
+    /* Коллекции */
     .collections-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 10px;
     }
     
+    /* Топ 100 */
     .top-100-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 10px;
     }
     
+    /* Пагинация */
     .pagination-button {
         min-width: 32px;
         height: 32px;
@@ -3485,7 +2927,7 @@ body.movies-mode .thanks-source a:hover {
     }
 }
 
-/* Квадратные мониторы с низким разрешением */
+/* Квадратные мониторы с низким разрешением (например, 1024x768, 1280x1024) */
 @media (max-width: 1280px) and (min-aspect-ratio: 4/3) and (max-aspect-ratio: 5/4) {
     .app {
         padding: 15px;
@@ -3520,7 +2962,7 @@ body.movies-mode .thanks-source a:hover {
     }
 }
 
-/* Квадратные мониторы с высоким разрешением */
+/* Квадратные мониторы с высоким разрешением (например, 1600x1200, 2048x1536) */
 @media (min-width: 1600px) and (min-aspect-ratio: 4/3) and (max-aspect-ratio: 5/4) {
     .header_menu,
     .main_block,

@@ -2,19 +2,11 @@
 
 class KitsuneWatchApp {
     constructor() {
-        // API конфигурация для аниме
+        // API конфигурация
         this.API_TOKEN = 'a036c8a4c59b43e72e212e4d0388ef7d';
         this.API_URL = 'https://kodik-api.com/search';
         this.YEARS_API_URL = 'https://kodik-api.com/years';
         this.TOP_API_URL = 'https://kodik-api.com/list';
-
-        // API конфигурация для кино и сериалов
-        this.MOVIES_API_TOKEN = 'ebf49d1e93755307e9d6da0dae09afff';
-        this.MOVIES_API_URL = 'https://api.videoseed.tv/apiv2.php';
-
-        // Состояние вкладок
-        this.activeTab = 'anime';
-        this.currentMode = 'anime';
 
         // DOM элементы
         this.searchInput = document.querySelector('.search_input_query');
@@ -63,8 +55,6 @@ class KitsuneWatchApp {
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
         this.favorites = this.loadFromStorage('kitsunewatch_favorites', []);
-        this.moviesHistory = this.loadFromStorage('kitsunewatch_movies_history', []);
-        this.moviesFavorites = this.loadFromStorage('kitsunewatch_movies_favorites', []);
 
         // Состояние плеера
         this.playerState = {
@@ -81,47 +71,279 @@ class KitsuneWatchApp {
 
         // Популярные аниме для рандомайзера
         this.popularAnime = [
-            'Наруто', 'Блич', 'Ван Пис', 'Атака титанов', 'Тетрадь смерти',
-            'Клинок, рассекающий демонов', 'Моя геройская академия', 'Токийский гуль',
-            'Стальной алхимик: Братство', 'Код Гиас', 'Врата Штейна', 'Твоё имя',
-            'Ходячий замок', 'Унесённые призраками', 'Магическая битва',
-            'Человек-бензопила', 'Семья шпиона', 'Реинкарнация безработного',
-            'О моём перерождении в слизь', 'Восхождение героя щита', 'Ванпанчмен',
-            'Охотник х Охотник', 'Моб Психо 100', 'Нет игры — нет жизни',
-            'Re:Zero. Жизнь с нуля в альтернативном мире', 'Твоя апрельская ложь',
-            'Торадора!', 'Бездомный бог', 'Паразит: Учение о жизни',
-            'Доктор Стоун', 'Созданный в Бездне', 'Вайолет Эвергарден',
-            'Форма голоса', 'Сага о Винланде', 'Монстр', 'Ковбой Бибоп',
-            'Самурай Чамплу', 'Евангелион', 'Берсерк', 'Хеллсинг Ultimate',
-            'Эльфийская песнь', 'Ангельские ритмы!', 'Токийские мстители',
-            'Синяя тюрьма: Блю Лок', 'Волейбол!!', 'Баскетбол Куроко',
-            'Юри на льду', 'Инициал Ди', 'Мегалобокс', 'Слэм-данк',
-            'Этот замечательный мир!', 'Великий из бродячих псов',
-            'Чёрный клевер', 'Семь смертных грехов', 'Синяя экзорцистка',
-            'Пожиратель душ', 'Пожарная сила', 'Дороро', 'Дандадан',
-            'Адский рай', 'Кайдзю №8', 'Фрирен: Провожающая в последний путь',
-            'Подземелье вкусностей', 'Рубеж Шангри-Ла', 'Поднятие уровня в одиночку',
-            'Башня Бога', 'Бог старшей школы', 'Психопаспорт', 'Призрак в доспехах',
-            'Акира', 'Паприка', 'Токийские крестные', 'Парад смерти',
-            'Класс превосходства', 'Будни старшеклассников',
-            'Кагуя: в любви как на войне', 'Госпожа Кобаяши и её горничная-дракон',
-            'Хоримия', 'Дотянуться до тебя', 'Кланнад', 'Пластиковые воспоминания',
-            '5 сантиметров в секунду', 'Дитя погоды', 'Судзумэ, закрывающая двери',
-            'Волчьи дети Амэ и Юки', 'Девочка, покорившая время', 'Летние войны',
-            'Сад изящных слов', 'Могила светлячков', 'Принцесса Мононоке',
-            'Мой сосед Тоторо', 'Ведьмина служба доставки', 'Небесный замок Лапута',
-            'Навсикая из Долины ветров', 'Поньо на утёсе', 'Ветер крепчает',
-            'Воспоминания о Марни', 'Ариэтти из страны лилипутов',
-            'Мастера меча онлайн', 'Оверлорд', 'Лог Горизонт',
-            'Гримгар: Пепел и иллюзии', 'В другом мире со смартфоном',
-            'Да, я паук, и что?', 'Бофури', 'Невеста чародея',
-            'Судьба: Ночь схватки', 'Мадока: Девочка-волшебница',
-            'Волчица и пряности', 'Киберпанк: Бегущие по краю',
-            'Триган', 'Черная лагуна', 'Гуррен-Лаганн', 'Убийца Акаме!',
-            'Темнее чёрного', 'Эрго Прокси', 'Эксперименты Лэйн',
-            'Когда плачут цикады', 'Шики', 'Монолог фармацевта',
-            'Корзинка фруктов', 'Убийца гоблинов', 'Гинтама',
-            'Космические братья', 'Пинг-понг', 'Великий учитель Онидзука'
+            'Наруто',
+            'Блич',
+            'Ван Пис',
+            'Атака титанов',
+            'Тетрадь смерти',
+            'Клинок, рассекающий демонов',
+            'Моя геройская академия',
+            'Токийский гуль',
+            'Стальной алхимик: Братство',
+            'Код Гиас',
+            'Врата Штейна',
+            'Твоё имя',
+            'Ходячий замок',
+            'Унесённые призраками',
+            'Магическая битва',
+            'Человек-бензопила',
+            'Семья шпиона',
+            'Реинкарнация безработного',
+            'О моём перерождении в слизь',
+            'Восхождение героя щита',
+
+            'Ванпанчмен',
+            'Охотник х Охотник',
+            'Магическая битва 0',
+            'Моб Психо 100',
+            'Нет игры — нет жизни',
+            'Re:Zero. Жизнь с нуля в альтернативном мире',
+            'Твоя апрельская ложь',
+            'Торадора!',
+            'Бездомный бог',
+            'Паразит: Учение о жизни',
+            'Доктор Стоун',
+            'Созданный в Бездне',
+            'Вайолет Эвергарден',
+            'Форма голоса',
+            'Сага о Винланде',
+            'Монстр',
+            'Ковбой Бибоп',
+            'Самурай Чамплу',
+            'Евангелион',
+            'Берсерк',
+
+            'Хеллсинг Ultimate',
+            'Эльфийская песнь',
+            'Ангельские ритмы!',
+            'Ангел кровопролития',
+            'Токийские мстители',
+            'Синяя тюрьма: Блю Лок',
+            'Волейбол!!',
+            'Баскетбол Куроко',
+            'Первый шаг',
+            'Юри на льду',
+            'Инициал Ди',
+            'Ао Аси',
+            'Мегалобокс',
+            'Слэм-данк',
+            'Беги с ветром',
+            'О моём перерождении в отомэ-игре',
+            'Этот замечательный мир!',
+            'Великий из бродячих псов',
+            'Чёрный клевер',
+            'Семь смертных грехов',
+
+            'Синяя экзорцистка',
+            'Пожиратель душ',
+            'Пожарная сила',
+            'Дороро',
+            'Дандадан',
+            'Адский рай',
+            'Кайдзю №8',
+            'Фрирен: Провожающая в последний путь',
+            'Подземелье вкусностей',
+            'Рубеж Шангри-Ла',
+            'Нежеланный бессмертный авантюрист',
+            'Неправильный способ использования исцеляющей магии',
+            'Поднятие уровня в одиночку',
+            'Башня Бога',
+            'Бог старшей школы',
+            'Великий притворщик',
+            'Эхо террора',
+            'Психопаспорт',
+            'Призрак в доспехах',
+            'Акира',
+
+            'Идеальная грусть',
+            'Паприка',
+            'Агент паранойи',
+            'Токийские крестные',
+            'Парад смерти',
+            'Игра друзей',
+            'Класс превосходства',
+            'Добро пожаловать в класс для особо одарённых',
+            'Будни старшеклассников',
+            'Повседневная жизнь старшеклассников',
+            'Кагуя: в любви как на войне',
+            'Госпожа Кобаяши и её горничная-дракон',
+            'Моя история любви!',
+            'Президент студсовета — горничная!',
+            'Очень приятно, Бог',
+            'Хоримия',
+            'Дотянуться до тебя',
+            'Скажи: Я люблю тебя',
+            'Золотая пора',
+            'Кланнад',
+
+            'Кланнад: После истории',
+            'Пластиковые воспоминания',
+            'Твоя ложь в апреле',
+            'Ангельские ритмы',
+            'Укрась прощальное утро цветами обещания',
+            '5 сантиметров в секунду',
+            'Дитя погоды',
+            'Судзумэ, закрывающая двери',
+            'Дитя чудовища',
+            'Волчьи дети Амэ и Юки',
+            'Девочка, покорившая время',
+            'Летние войны',
+            'Красавица и дракон',
+            'Мирай из будущего',
+            'Сад изящных слов',
+            'Ловцы забытых голосов',
+            'Патэма наоборот',
+            'Укрась прощальное утро',
+            'Могила светлячков',
+            'Принцесса Мононоке',
+
+            'Мой сосед Тоторо',
+            'Ведьмина служба доставки',
+            'Небесный замок Лапута',
+            'Навсикая из Долины ветров',
+            'Поньо на утёсе',
+            'Ветер крепчает',
+            'Воспоминания о Марни',
+            'Ариэтти из страны лилипутов',
+            'Рыжая свинка',
+            'Шёпот сердца',
+            'Возвращение кота',
+            'Сказание о принцессе Кагуя',
+            'Мальчик и птица',
+            'Песнь моря',
+            'Красная черепаха',
+            'Мастера меча онлайн',
+            'Оверлорд',
+            'Повелитель',
+            'Лог Горизонт',
+            'Гримгар: Пепел и иллюзии',
+
+            'Конец света: Восхождение героя',
+            'Нет игры — нет жизни: Ноль',
+            'В другом мире со смартфоном',
+            'Арифурэта',
+            'Да, я паук, и что?',
+            'Лунное путешествие приведёт к новому миру',
+            'Реинкарнация в меч',
+            'Маг-целитель: Новый старт',
+            'Бофури',
+            'Жизнь в другом мире с нуля',
+            'Повесть о конце света',
+            'Записи о магии',
+            'Невеста чародея',
+            'Судьба: Ночь схватки',
+            'Судьба: Начало',
+            'Судьба: Апокриф',
+            'Судьба: Великий приказ',
+            'Кара но Кёкай',
+            'Граница пустоты',
+            'Мадока: Девочка-волшебница',
+
+            'Волчица и пряности',
+            'Убийца демонов: Поезд Бесконечности',
+            'Магическая битва: Скрытый инвентарь',
+            'Человек-дьявол: Плакса',
+            'Киберпанк: Бегущие по краю',
+            'Лазарус',
+            'Ниндзя Камуи',
+            'Триган',
+            'Триган: Ураган',
+            'Черная лагуна',
+            'Гангрейв',
+            'Гуррен-Лаганн',
+            'Убийца Акаме!',
+            'Мир отомэ-игр — это тяжёлый мир для мобов',
+            'Темнее чёрного',
+            'Эрго Прокси',
+            'Эксперименты Лэйн',
+            'Эрго Прокси',
+            'Бугипоп',
+            'Другой',
+
+            'Иная',
+            'Когда плачут цикады',
+            'Шики',
+            'Монолог фармацевта',
+            'Корзинка фруктов',
+            'Древняя магия',
+            'Розарио + Вампир',
+            'Убийца гоблинов',
+            'Герой-рационал перестраивает королевство',
+            'Рагна Багровый',
+            'Непризнанный школой король демонов',
+            'Внук мудреца',
+            'Магическая битва: Второй сезон',
+            'Золотое божество',
+            'Королевство',
+            'Легенда о героях Галактики',
+            'Бакуман',
+            'Синяя весна',
+            'Скейт: Бесконечность',
+            'Бек',
+
+            'Звуки жизни',
+            'Лагерь на свежем воздухе',
+            'Дневник будущего',
+            'Тетрадь дружбы Нацумэ',
+            'Мастер Муси',
+            'Баракамон',
+            'Девушки и танки',
+            'Меланхолия Харухи Судзумии',
+            'Исчезновение Харухи Судзумии',
+            'Ничидзё',
+            'Адзуманга Дайо',
+            'Кэйон!',
+            'Коми не может общаться',
+            'Не издевайся, Нагаторо',
+            'Этот глупый свин не понимает мечту девочки-зайки',
+            'Опасность в моём сердце',
+            'Семья шпиона: Код Белый',
+            'Любовь после мирового господства',
+            'Слишком много проигравших героинь!',
+            'Звёздное дитя',
+
+            'Идолмастер',
+            'Оши но Ко',
+            'Моя Dress-Up Darling',
+            'Старшая школа DxD',
+            'Удар крови',
+            'Пламенная бригада пожарных',
+            'Дети леса',
+            'Невеста титана',
+            'Девушка напрокат',
+            'Магия и мускулы',
+            'Нежить и неудача',
+            'Семьдесят семь',
+            'НиеР: Автомата',
+            'Аркейн: не аниме',
+            'Покемон',
+            'Дигимон',
+            'Ю-Ги-О!',
+            'Бейблэйд',
+            'Драконий жемчуг',
+            'Драконий жемчуг Z',
+
+            'Драконий жемчуг Супер',
+            'Сейлор Мун',
+            'Ранма 1/2',
+            'Инуяша',
+            'Руруни Кэнсин',
+            'Кулак Северной звезды',
+            'Капитан Цубаса',
+            'Невероятные приключения ДжоДжо',
+            'Магическая академия Атараксия',
+            'Песнь ночных сов',
+            'Провожающая в последний путь Фрирен',
+            'Девочка из Чужеземья',
+            'Земля самоцветов',
+            'Страна самоцветов',
+            'Би: Начало',
+            '91 день',
+            'Банановая рыба',
+            'Великий учитель Онидзука',
+            'Гинтама',
+            'Космические братья',
+            'Пинг-понг'
         ];
 
         // Подборки аниме
@@ -129,7 +351,7 @@ class KitsuneWatchApp {
             'popular': {
                 title: 'Популярное аниме',
                 icon: 'bi-fire',
-                description: 'Самые популярные аниме',
+                description: 'Самые популярные аниме последних лет',
                 query: 'популярное аниме'
             },
             'romance': {
@@ -153,13 +375,13 @@ class KitsuneWatchApp {
             'comedy': {
                 title: 'Комедия',
                 icon: 'bi-emoji-laughing',
-                description: 'Веселые аниме',
+                description: 'Веселые и смешные аниме',
                 query: 'комедия аниме'
             },
             'drama': {
                 title: 'Драма',
                 icon: 'bi-droplet',
-                description: 'Серьезные истории',
+                description: 'Серьезные и глубокие истории',
                 query: 'драма аниме'
             },
             'horror': {
@@ -241,13 +463,7 @@ class KitsuneWatchApp {
 
             const btn = document.getElementById('retryVideoButton');
             if (btn) btn.addEventListener('click', () => {
-                if (this.currentVideo) {
-                    if (this.activeTab === 'anime') {
-                        this.loadVideo(this.currentVideo);
-                    } else {
-                        this.loadMovie(this.currentVideo);
-                    }
-                }
+                if (this.currentVideo) this.loadVideo(this.currentVideo);
             });
         }
     }
@@ -257,20 +473,36 @@ class KitsuneWatchApp {
         const logoImg = document.querySelector('.logo_img');
         if (!logoImg) return;
 
-        logoImg.style.display = 'none';
-        const parent = logoImg.parentElement;
-        if (parent) {
-            const icon = document.createElement('i');
-            icon.className = 'bi bi-stars logo-fallback';
-            icon.style.cssText = 'font-size:24px;color:#b44dff;';
-            parent.insertBefore(icon, logoImg.nextSibling);
-        }
+        const paths = [
+            '/imgs/logo.svg',
+            '/imgs/logo.jpg',
+            '/favicon-32x32.png'
+        ];
+
+        let index = 0;
+
+        logoImg.onerror = () => {
+            index++;
+            if (index < paths.length) {
+                logoImg.src = paths[index];
+            } else {
+                logoImg.style.display = 'none';
+                const parent = logoImg.parentElement;
+                if (parent) {
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-stars logo-fallback';
+                    icon.style.cssText = 'font-size:24px;color:#b44dff;';
+                    parent.insertBefore(icon, logoImg.nextSibling);
+                }
+            }
+        };
+
+        logoImg.src = paths[0];
     }
 
     // ============ ИНИЦИАЛИЗАЦИЯ ============
     init() {
         this.createUIElements();
-        this.createTabSwitcher();
         this.setupLogo();
         this.setupEventListeners();
         this.setupProtection();
@@ -288,87 +520,12 @@ class KitsuneWatchApp {
         }, 500);
     }
 
-    // ============ ПЕРЕКЛЮЧАТЕЛЬ ВКЛАДОК ============
-    createTabSwitcher() {
-        const headerMenu = document.querySelector('.header_menu');
-        if (!headerMenu) return;
-
-        const tabSwitcher = document.createElement('div');
-        tabSwitcher.className = 'mode-switcher';
-        tabSwitcher.innerHTML = `
-            <button class="mode-button active" data-mode="anime">
-                <i class="bi bi-stars"></i> Аниме
-            </button>
-            <button class="mode-button" data-mode="movies">
-                <i class="bi bi-film"></i> Кино и сериалы
-            </button>
-        `;
-
-        headerMenu.appendChild(tabSwitcher);
-
-        tabSwitcher.querySelectorAll('.mode-button').forEach(button => {
-            button.addEventListener('click', () => {
-                const mode = button.dataset.mode;
-                this.switchMode(mode);
-            });
-        });
-    }
-
-    switchMode(mode) {
-        if (this.activeTab === mode) return;
-
-        this.activeTab = mode;
-        this.currentMode = mode;
-
-        document.querySelectorAll('.mode-button').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.mode === mode);
-        });
-
-        document.body.classList.toggle('movies-mode', mode === 'movies');
-
-        this.clearAllResults();
-
-        // Скрываем/показываем кнопки рандом и топ-100
-        const randomButton = document.getElementById('randomAnimeButton');
-        const topButton = document.querySelector('.top-100-button');
-        
-        if (randomButton) {
-            randomButton.style.display = mode === 'anime' ? 'inline-flex' : 'none';
-        }
-        if (topButton) {
-            topButton.style.display = mode === 'anime' ? 'inline-flex' : 'none';
-        }
-
-        if (mode === 'anime') {
-            this.searchInput.placeholder = 'Поиск аниме...';
-            this.displayAboutProject();
-            this.loadYearPremieres();
-            this.displayCollections();
-        } else {
-            this.searchInput.placeholder = 'Поиск по названию или ID Кинопоиска...';
-            this.displayMoviesAbout();
-            if (this.premieresContainer) {
-                this.premieresContainer.style.display = 'none';
-                this.premieresContainer.innerHTML = '';
-            }
-            if (this.collectionsContainer) {
-                this.collectionsContainer.style.display = 'none';
-                this.collectionsContainer.innerHTML = '';
-            }
-        }
-
-        this.updateSEO();
-        this.displayHistory();
-        this.displayFavorites();
-    }
-
     // ============ ЗАГРУЗКА ПРЕМЬЕР ГОДА ============
     async loadYearPremieres() {
-        if (this.activeTab !== 'anime') return;
-
         try {
             const currentYear = new Date().getFullYear();
-            const response = await fetch(`${this.YEARS_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial&sort=year`);
+
+            const response = await fetch(`${this.YEARS_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial,foreign-movie,foreign-serial&sort=year`);
             const data = await response.json();
 
             if (data.results && data.results.length > 0) {
@@ -388,14 +545,14 @@ class KitsuneWatchApp {
             }
         } catch (error) {
             console.error('Error loading year premieres:', error);
+            const currentYear = new Date().getFullYear();
+            this.displayPremieres(currentYear, 0);
         }
     }
 
     displayPremieres(year, count) {
         if (!this.premieresContainer) return;
-        if (this.activeTab !== 'anime') return;
 
-        this.premieresContainer.style.display = 'block';
         this.premieresContainer.innerHTML = `
             <div class="premieres-block">
                 <div class="premieres-header">
@@ -409,7 +566,7 @@ class KitsuneWatchApp {
                             <span class="premieres-stat-label">${count > 0 ? 'новых материалов' : 'загружаем данные'}</span>
                         </div>
                         <div class="premieres-description">
-                            <p>Лучшие новинки аниме ${year} года уже доступны на KitsuneWatch!</p>
+                            <p>Лучшие новинки аниме и фильмов ${year} года уже доступны на KitsuneWatch!</p>
                             <button class="premieres-search-button" onclick="window.app.searchYearPremieres(${year})">
                                 <i class="bi bi-search"></i> Показать премьеры
                             </button>
@@ -429,9 +586,7 @@ class KitsuneWatchApp {
     // ============ ПОДБОРКИ АНИМЕ ============
     displayCollections() {
         if (!this.collectionsContainer) return;
-        if (this.activeTab !== 'anime') return;
 
-        this.collectionsContainer.style.display = 'block';
         this.collectionsContainer.innerHTML = `
             <div class="collections-block">
                 <div class="collections-header">
@@ -460,157 +615,339 @@ class KitsuneWatchApp {
         await this.performSearch();
     }
 
-    // ============ ОПИСАНИЕ ДЛЯ ФИЛЬМОВ ============
-    displayMoviesAbout() {
-        if (!this.aboutProjectContainer) return;
+    // ============ РАНДОМАЙЗЕР ============
+    randomAnime() {
+        const randomIndex = Math.floor(Math.random() * this.popularAnime.length);
+        const randomTitle = this.popularAnime[randomIndex];
 
-        if (this.premieresContainer) {
-            this.premieresContainer.style.display = 'none';
-            this.premieresContainer.innerHTML = '';
+        this.searchInput.value = randomTitle;
+        this.currentSearchQuery = randomTitle;
+        this.performSearch();
+
+        // Анимация кнопки
+        const randomButton = document.getElementById('randomAnimeButton');
+        if (randomButton) {
+            randomButton.classList.add('spinning');
+            setTimeout(() => {
+                randomButton.classList.remove('spinning');
+            }, 1000);
         }
-        if (this.collectionsContainer) {
-            this.collectionsContainer.style.display = 'none';
-            this.collectionsContainer.innerHTML = '';
-        }
-
-        this.aboutProjectContainer.style.display = 'block';
-        this.aboutProjectContainer.innerHTML = `
-            <div class="about-project-content">
-                <div class="about-project-header">
-                    <i class="bi bi-film"></i>
-                    <h2>Кино и сериалы</h2>
-                </div>
-                <p class="about-project-description">
-                    Поиск по названию или ID Кинопоиска
-                </p>
-                <div class="about-project-features">
-                    <div class="feature-card">
-                        <i class="bi bi-search"></i>
-                        <h3>По названию</h3>
-                        <p>Введите название фильма</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="bi bi-hash"></i>
-                        <h3>По ID</h3>
-                        <p>Введите ID Кинопоиска</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="bi bi-film"></i>
-                        <h3>Фильмы</h3>
-                        <p>Любые фильмы</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="bi bi-tv"></i>
-                        <h3>Сериалы</h3>
-                        <p>Любые сериалы</p>
-                    </div>
-                </div>
-                <div class="about-project-cta">
-                    <p>Пример: "Побег" или ID: 326</p>
-                    <i class="bi bi-arrow-up"></i>
-                </div>
-            </div>
-        `;
     }
 
-    displayAboutProject() {
-        if (!this.aboutProjectContainer) return;
-        if (this.activeTab !== 'anime') return;
+    // ============ ТОП 100 АНИМЕ ============
+    async loadTop100() {
+        this.showLoading();
 
-        this.aboutProjectContainer.style.display = 'block';
-        this.aboutProjectContainer.innerHTML = `
-            <div class="about-project-content">
-                <div class="about-project-header">
-                    <i class="bi bi-stars"></i>
-                    <h2>KitsuneWatch</h2>
-                </div>
-                <p class="about-project-description">
-                    Ваш персональный портал в мир аниме!
-                </p>
-                <div class="about-project-features">
-                    <div class="feature-card">
-                        <i class="bi bi-search"></i>
-                        <h3>Поиск</h3>
-                        <p>Находите аниме по названию</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="bi bi-shuffle"></i>
-                        <h3>Рандомайзер</h3>
-                        <p>Случайное аниме</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="bi bi-collection-play"></i>
-                        <h3>Подборки</h3>
-                        <p>Тематические коллекции</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="bi bi-trophy"></i>
-                        <h3>Топ 100</h3>
-                        <p>Лучшие аниме</p>
-                    </div>
-                </div>
-                <div class="about-project-cta">
-                    <p>Начните поиск</p>
-                    <i class="bi bi-arrow-up"></i>
-                </div>
-            </div>
-        `;
-    }
+        try {
+            const response = await fetch(`${this.TOP_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial&sort=rating&limit=100`);
+            const data = await response.json();
 
-    hideAboutProject() {
-        if (this.aboutProjectContainer) this.aboutProjectContainer.style.display = 'none';
-    }
-
-    // ============ СОБЫТИЯ ============
-    setupEventListeners() {
-        this.searchButton.addEventListener('click', () => {
-            if (this.activeTab === 'anime') {
-                this.performSearch();
+            if (data.results && data.results.length > 0) {
+                this.displayTop100(data.results);
             } else {
-                this.performMoviesSearch();
+                this.showError('Не удалось загрузить топ 100');
             }
-        });
-
-        this.searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                if (this.activeTab === 'anime') {
-                    this.performSearch();
-                } else {
-                    this.performMoviesSearch();
-                }
-            }
-        });
-
-        this.searchInput.addEventListener('input', () => {
-            if (!this.searchInput.value.trim()) {
-                this.clearAllResults();
-                if (this.activeTab === 'anime') {
-                    this.displayAboutProject();
-                    this.loadYearPremieres();
-                    this.displayCollections();
-                } else {
-                    this.displayMoviesAbout();
-                }
-                this.updateUrlWithoutReload('/');
-                this.updateSEO();
-                this.currentSearchQuery = '';
-            }
-        });
-
-        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
-
-        window.addEventListener('popstate', () => {
-            this.handleURLParams();
-            this.updateSEO();
-        });
+        } catch (error) {
+            console.error('Error loading top 100:', error);
+            this.showError('Ошибка при загрузке топ 100');
+        } finally {
+            this.hideLoading();
+        }
     }
 
-    setupProtection() {
-        if (window.top !== window.self) window.top.location = window.self.location;
+    displayTop100(results) {
+        if (!this.videoListContainer) return;
 
-        if (this.videoFrame) {
-            this.videoFrame.addEventListener('contextmenu', (e) => e.preventDefault());
-            this.videoFrame.addEventListener('dragstart', (e) => e.preventDefault());
+        this.hideAboutProject();
+        if (this.premieresContainer) this.premieresContainer.style.display = 'none';
+        if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
+
+        // Скрываем плеер и все его элементы
+        if (this.videoContainer) this.videoContainer.style.display = 'none';
+        if (this.videoPlaceholder) this.videoPlaceholder.style.display = 'none';
+        this.videoFrame.style.display = 'none';
+        this.videoFrame.src = '';
+        this.videoName.style.display = 'none';
+        this.videoName.textContent = '';
+        this.aboutBlock.style.display = 'none';
+        this.videoAbout.textContent = '';
+
+        // Скрываем кнопки
+        if (this.shareButton) this.shareButton.style.display = 'none';
+        if (this.favoriteButton) this.favoriteButton.style.display = 'none';
+        if (this.shareLink) this.shareLink.href = '#';
+
+        // Скрываем вкладки и пагинацию
+        if (this.tabsContainer) {
+            this.tabsContainer.style.display = 'none';
+            this.tabsContainer.innerHTML = '';
+        }
+        if (this.paginationContainer) {
+            this.paginationContainer.style.display = 'none';
+            this.paginationContainer.innerHTML = '';
+        }
+
+        // Очищаем и показываем контейнер для списка
+        this.resultsContainer.style.display = 'block';
+        this.videoListContainer.style.display = 'block';
+        this.videoListContainer.innerHTML = '';
+        this.videoListContainer.className = 'video-list top-100-list';
+
+        // Создаем заголовок
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'top-100-header';
+        titleContainer.innerHTML = `
+            <h2 class="top-100-title">
+                <i class="bi bi-trophy"></i> Топ 100 аниме
+            </h2>
+            <button class="back-button" onclick="window.app.showMainPage()">
+                <i class="bi bi-arrow-left"></i> Назад
+            </button>
+        `;
+        this.videoListContainer.appendChild(titleContainer);
+
+        // Создаем сетку для карточек
+        const grid = document.createElement('div');
+        grid.className = 'top-100-grid';
+
+        results.forEach((result, index) => {
+            const card = document.createElement('div');
+            card.className = 'top-100-card';
+
+            const rank = document.createElement('div');
+            rank.className = 'top-100-rank';
+            rank.textContent = `#${index + 1}`;
+
+            const info = document.createElement('div');
+            info.className = 'top-100-info';
+
+            const titleEl = document.createElement('h3');
+            titleEl.className = 'top-100-card-title';
+            titleEl.textContent = result.title || 'Без названия';
+
+            const details = document.createElement('div');
+            details.className = 'top-100-details';
+
+            if (result.year) {
+                const year = document.createElement('span');
+                year.className = 'top-100-year';
+                year.textContent = result.year;
+                details.appendChild(year);
+            }
+
+            if (result.material_data?.kinopoisk_rating) {
+                const rating = document.createElement('span');
+                rating.className = 'top-100-rating';
+                rating.innerHTML = `<i class="bi bi-star-fill"></i> ${result.material_data.kinopoisk_rating}`;
+                details.appendChild(rating);
+            }
+
+            info.appendChild(titleEl);
+            info.appendChild(details);
+
+            card.appendChild(rank);
+            card.appendChild(info);
+
+            card.addEventListener('click', () => {
+                if (result.link) {
+                    this.loadVideo(result);
+                } else {
+                    this.searchInput.value = result.title;
+                    this.currentSearchQuery = result.title;
+                    this.performSearch();
+                }
+            });
+
+            grid.appendChild(card);
+        });
+
+        this.videoListContainer.appendChild(grid);
+    }
+
+    showMainPage() {
+        // Показываем главную страницу
+        this.clearAllResults();
+        this.displayAboutProject();
+        this.loadYearPremieres();
+        this.displayCollections();
+        this.updateUrlWithoutReload(window.location.origin);
+        this.updateSEO();
+    }
+
+    // ============ SEO ОПТИМИЗАЦИЯ ============
+    updateSEO() {
+        const params = new URLSearchParams(window.location.search);
+        const searchQuery = params.get('search');
+        const title = document.querySelector('title');
+        const metaDescription = document.querySelector('meta[name="description"]');
+        const metaKeywords = document.querySelector('meta[name="keywords"]');
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDescription = document.querySelector('meta[property="og:description"]');
+        const ogUrl = document.querySelector('meta[property="og:url"]');
+
+        const baseTitle = 'KitsuneWatch - Смотри аниме онлайн';
+        const baseDescription = 'KitsuneWatch - бесплатный онлайн-кинотеатр аниме. Смотрите любимые аниме сериалы и фильмы в высоком качестве.';
+        const baseKeywords = 'аниме, смотреть аниме, аниме онлайн, KitsuneWatch, аниме сериалы, японская анимация';
+
+        if (searchQuery && searchQuery.trim()) {
+            let query = searchQuery.trim();
+            try {
+                query = decodeURIComponent(query);
+                if (query.includes('%25')) {
+                    query = decodeURIComponent(query);
+                }
+            } catch (e) { }
+
+            if (title) title.textContent = `${query} - смотреть аниме онлайн | KitsuneWatch`;
+            if (metaDescription) metaDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch. Бесплатно, без регистрации.`;
+            if (metaKeywords) metaKeywords.content = `${query}, смотреть ${query}, ${query} аниме, ${query} онлайн, аниме ${query}`;
+            if (ogTitle) ogTitle.content = `${query} - смотреть онлайн | KitsuneWatch`;
+            if (ogDescription) ogDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch.`;
+            if (ogUrl) ogUrl.content = window.location.href;
+            this.updateCanonicalLink(window.location.href);
+
+        } else if (params.get('favorites') === 'true') {
+            if (title) title.textContent = 'Избранное | KitsuneWatch';
+            if (metaDescription) metaDescription.content = 'Ваши любимые аниме в избранном на KitsuneWatch. Быстрый доступ к сохраненным тайтлам.';
+            if (ogTitle) ogTitle.content = 'Избранное | KitsuneWatch';
+            this.updateCanonicalLink(window.location.origin + '/?favorites=true');
+
+        } else if (params.get('history') === 'true') {
+            if (title) title.textContent = 'История просмотров | KitsuneWatch';
+            if (metaDescription) metaDescription.content = 'История просмотров аниме на KitsuneWatch. Продолжайте смотреть с того места, где остановились.';
+            if (ogTitle) ogTitle.content = 'История просмотров | KitsuneWatch';
+            this.updateCanonicalLink(window.location.origin + '/?history=true');
+
+        } else {
+            if (title) title.textContent = baseTitle;
+            if (metaDescription) metaDescription.content = baseDescription;
+            if (metaKeywords) metaKeywords.content = baseKeywords;
+            if (ogTitle) ogTitle.content = baseTitle;
+            if (ogDescription) ogDescription.content = baseDescription;
+            if (ogUrl) ogUrl.content = window.location.origin;
+            this.updateCanonicalLink(window.location.origin);
+        }
+    }
+
+    updateCanonicalLink(href) {
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.rel = 'canonical';
+            document.head.appendChild(canonical);
+        }
+        canonical.href = href;
+    }
+
+    // ============ PWA ============
+    setupPWA() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            this.deferredPrompt = e;
+            this.showInstallButton();
+        });
+
+        window.addEventListener('appinstalled', () => this.hideInstallButton());
+        window.addEventListener('online', () => this.showNetworkStatus(true));
+        window.addEventListener('offline', () => this.showNetworkStatus(false));
+
+        this.registerServiceWorker();
+    }
+
+    async registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                await navigator.serviceWorker.register('/sw.js');
+                console.log('SW зарегистрирован');
+            } catch (e) {
+                console.error('SW ошибка:', e);
+            }
+        }
+    }
+
+    showInstallButton() {
+        if (!this.installButton) {
+            this.installButton = document.createElement('button');
+            this.installButton.className = 'install-button';
+            this.installButton.innerHTML = '<i class="bi bi-download"></i> Установить';
+            this.installButton.addEventListener('click', () => this.installApp());
+
+            document.body.appendChild(this.installButton);
+        }
+        this.installButton.style.display = 'inline-flex';
+    }
+
+    hideInstallButton() {
+        if (this.installButton) this.installButton.style.display = 'none';
+    }
+
+    async installApp() {
+        if (this.deferredPrompt) {
+            this.deferredPrompt.prompt();
+            const result = await this.deferredPrompt.userChoice;
+            if (result.outcome === 'accepted') this.hideInstallButton();
+            this.deferredPrompt = null;
+        }
+    }
+
+    showNetworkStatus(isOnline) {
+        const status = document.createElement('div');
+        status.className = `network-status ${isOnline ? 'online' : 'offline'}`;
+        status.innerHTML = isOnline
+            ? '<i class="bi bi-wifi"></i> Онлайн'
+            : '<i class="bi bi-wifi-off"></i> Офлайн';
+        document.body.appendChild(status);
+        setTimeout(() => status.remove(), 3000);
+    }
+
+    // ============ ОБРАБОТКА ПАРАМЕТРОВ URL ============
+    handleURLParams() {
+        const params = new URLSearchParams(window.location.search);
+
+        const searchQuery = params.get('search');
+        if (searchQuery && searchQuery.trim()) {
+            let decodedQuery = searchQuery.trim();
+
+            try {
+                decodedQuery = decodeURIComponent(decodedQuery);
+            } catch (e) {
+                console.warn('Failed to decode URI:', e);
+            }
+
+            if (decodedQuery.includes('%25')) {
+                try {
+                    decodedQuery = decodeURIComponent(decodedQuery);
+                } catch (e) {
+                    console.warn('Failed second decode URI:', e);
+                }
+            }
+
+            this.searchInput.value = decodedQuery;
+            this.currentSearchQuery = decodedQuery;
+
+            setTimeout(() => {
+                this.performSearch();
+            }, 500);
+            return;
+        }
+
+        const videoId = params.get('video');
+        if (videoId && videoId.trim()) {
+            const fav = this.favorites.find(f => f.id === videoId || f.link.includes(videoId));
+            if (fav) {
+                setTimeout(() => {
+                    this.loadVideo(fav);
+                }, 500);
+            }
+            return;
+        }
+
+        if (params.get('favorites') === 'true') {
+            this.displayFavorites();
+        }
+
+        if (params.get('history') === 'true') {
+            this.displayHistory();
         }
     }
 
@@ -685,6 +1022,7 @@ class KitsuneWatchApp {
             shareBlock.appendChild(this.shareButton);
         }
 
+        // Добавляем кнопку рандомайзера
         this.addRandomButton();
     }
 
@@ -698,263 +1036,101 @@ class KitsuneWatchApp {
         randomButton.innerHTML = '<i class="bi bi-shuffle"></i>';
         randomButton.title = 'Случайное аниме';
         randomButton.addEventListener('click', () => this.randomAnime());
+
         searchContainer.appendChild(randomButton);
 
+        // Добавляем кнопку топ 100
         const topButton = document.createElement('button');
         topButton.className = 'top-100-button';
         topButton.innerHTML = '<i class="bi bi-trophy"></i> Топ 100';
         topButton.title = 'Топ 100 аниме';
         topButton.addEventListener('click', () => this.loadTop100());
+
         searchContainer.appendChild(topButton);
     }
 
-    // ============ РАНДОМАЙЗЕР ============
-    randomAnime() {
-        if (this.activeTab !== 'anime') return;
+    displayAboutProject() {
+        if (!this.aboutProjectContainer) return;
 
-        const randomIndex = Math.floor(Math.random() * this.popularAnime.length);
-        const randomTitle = this.popularAnime[randomIndex];
-
-        this.searchInput.value = randomTitle;
-        this.currentSearchQuery = randomTitle;
-        this.performSearch();
-
-        const randomButton = document.getElementById('randomAnimeButton');
-        if (randomButton) {
-            randomButton.classList.add('spinning');
-            setTimeout(() => randomButton.classList.remove('spinning'), 1000);
-        }
-    }
-
-    // ============ ТОП 100 ============
-    async loadTop100() {
-        if (this.activeTab !== 'anime') return;
-
-        this.showLoading();
-
-        try {
-            const response = await fetch(`${this.TOP_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial&sort=rating&limit=100`);
-            const data = await response.json();
-
-            if (data.results && data.results.length > 0) {
-                this.displayTop100(data.results);
-            } else {
-                this.showError('Не удалось загрузить топ 100');
-            }
-        } catch (error) {
-            console.error('Error loading top 100:', error);
-            this.showError('Ошибка при загрузке топ 100');
-        } finally {
-            this.hideLoading();
-        }
-    }
-
-    displayTop100(results) {
-        if (!this.videoListContainer) return;
-
-        this.hideAboutProject();
-        if (this.premieresContainer) this.premieresContainer.style.display = 'none';
-        if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
-        if (this.videoContainer) this.videoContainer.style.display = 'none';
-        this.videoFrame.style.display = 'none';
-        this.videoFrame.src = '';
-        this.videoName.style.display = 'none';
-        this.aboutBlock.style.display = 'none';
-        if (this.shareButton) this.shareButton.style.display = 'none';
-        if (this.favoriteButton) this.favoriteButton.style.display = 'none';
-        if (this.tabsContainer) { this.tabsContainer.style.display = 'none'; this.tabsContainer.innerHTML = ''; }
-        if (this.paginationContainer) { this.paginationContainer.style.display = 'none'; this.paginationContainer.innerHTML = ''; }
-
-        this.resultsContainer.style.display = 'block';
-        this.videoListContainer.style.display = 'block';
-        this.videoListContainer.innerHTML = '';
-        this.videoListContainer.className = 'video-list top-100-list';
-
-        const titleContainer = document.createElement('div');
-        titleContainer.className = 'top-100-header';
-        titleContainer.innerHTML = `
-            <h2 class="top-100-title">
-                <i class="bi bi-trophy"></i> Топ 100 аниме
-            </h2>
-            <button class="back-button" onclick="window.app.showMainPage()">
-                <i class="bi bi-arrow-left"></i> Назад
-            </button>
+        this.aboutProjectContainer.innerHTML = `
+            <div class="about-project-content">
+                <div class="about-project-header">
+                    <i class="bi bi-stars"></i>
+                    <h2>KitsuneWatch</h2>
+                </div>
+                <p class="about-project-description">
+                    Ваш персональный портал в мир аниме!
+                </p>
+                <div class="about-project-features">
+                    <div class="feature-card">
+                        <i class="bi bi-search"></i>
+                        <h3>Поиск</h3>
+                        <p>Находите аниме по названию</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="bi bi-shuffle"></i>
+                        <h3>Рандомайзер</h3>
+                        <p>Случайное аниме</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="bi bi-collection-play"></i>
+                        <h3>Подборки</h3>
+                        <p>Тематические коллекции</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="bi bi-trophy"></i>
+                        <h3>Топ 100</h3>
+                        <p>Лучшие аниме</p>
+                    </div>
+                </div>
+                <div class="about-project-cta">
+                    <p>Начните поиск</p>
+                    <i class="bi bi-arrow-up"></i>
+                </div>
+            </div>
         `;
-        this.videoListContainer.appendChild(titleContainer);
+    }
 
-        const grid = document.createElement('div');
-        grid.className = 'top-100-grid';
+    hideAboutProject() {
+        if (this.aboutProjectContainer) this.aboutProjectContainer.style.display = 'none';
+    }
 
-        results.forEach((result, index) => {
-            const card = document.createElement('div');
-            card.className = 'top-100-card';
+    // ============ СОБЫТИЯ ============
+    setupEventListeners() {
+        this.searchButton.addEventListener('click', () => this.performSearch());
 
-            const rank = document.createElement('div');
-            rank.className = 'top-100-rank';
-            rank.textContent = `#${index + 1}`;
-
-            const info = document.createElement('div');
-            info.className = 'top-100-info';
-
-            const titleEl = document.createElement('h3');
-            titleEl.className = 'top-100-card-title';
-            titleEl.textContent = result.title || 'Без названия';
-
-            const details = document.createElement('div');
-            details.className = 'top-100-details';
-
-            if (result.year) {
-                const year = document.createElement('span');
-                year.className = 'top-100-year';
-                year.textContent = result.year;
-                details.appendChild(year);
-            }
-
-            info.appendChild(titleEl);
-            info.appendChild(details);
-            card.appendChild(rank);
-            card.appendChild(info);
-
-            card.addEventListener('click', () => {
-                if (result.link) {
-                    this.loadVideo(result);
-                } else {
-                    this.searchInput.value = result.title;
-                    this.currentSearchQuery = result.title;
-                    this.performSearch();
-                }
-            });
-
-            grid.appendChild(card);
+        this.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.performSearch();
         });
 
-        this.videoListContainer.appendChild(grid);
-    }
-
-    showMainPage() {
-        this.clearAllResults();
-        if (this.activeTab === 'anime') {
-            this.displayAboutProject();
-            this.loadYearPremieres();
-            this.displayCollections();
-        } else {
-            this.displayMoviesAbout();
-        }
-        this.updateUrlWithoutReload(window.location.origin);
-        this.updateSEO();
-    }
-
-    // ============ SEO ============
-    updateSEO() {
-        const params = new URLSearchParams(window.location.search);
-        const searchQuery = params.get('search') || params.get('kp');
-        const isMovies = params.get('movies') === 'true';
-        const title = document.querySelector('title');
-        const metaDescription = document.querySelector('meta[name="description"]');
-
-        const isMovieMode = isMovies || this.activeTab === 'movies';
-
-        if (searchQuery && searchQuery.trim()) {
-            const contentType = isMovieMode ? 'фильмы и сериалы' : 'аниме';
-            if (title) title.textContent = `${searchQuery} - смотреть ${contentType} онлайн | KitsuneWatch`;
-            if (metaDescription) metaDescription.content = `Смотреть ${searchQuery} онлайн в хорошем качестве на KitsuneWatch.`;
-        } else {
-            if (title) title.textContent = isMovieMode ? 'KitsuneWatch - Фильмы и сериалы' : 'KitsuneWatch - Смотри аниме онлайн';
-            if (metaDescription) metaDescription.content = isMovieMode 
-                ? 'KitsuneWatch - фильмы и сериалы онлайн. Поиск по названию или ID Кинопоиска.'
-                : 'KitsuneWatch - бесплатный онлайн-кинотеатр аниме.';
-        }
-    }
-
-    // ============ PWA ============
-    setupPWA() {
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            this.deferredPrompt = e;
-            this.showInstallButton();
+        this.searchInput.addEventListener('input', () => {
+            if (!this.searchInput.value.trim()) {
+                this.clearAllResults();
+                this.displayAboutProject();
+                this.loadYearPremieres();
+                this.displayCollections();
+                this.updateUrlWithoutReload('/');
+                this.updateSEO();
+                this.currentSearchQuery = '';
+            }
         });
 
-        window.addEventListener('appinstalled', () => this.hideInstallButton());
-        window.addEventListener('online', () => this.showNetworkStatus(true));
-        window.addEventListener('offline', () => this.showNetworkStatus(false));
+        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
 
-        this.registerServiceWorker();
+        window.addEventListener('popstate', () => {
+            this.handleURLParams();
+            this.updateSEO();
+        });
     }
 
-    async registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            try {
-                await navigator.serviceWorker.register('/sw.js');
-            } catch (e) {
-                console.error('SW ошибка:', e);
-            }
-        }
-    }
+    setupProtection() {
+        if (window.top !== window.self) window.top.location = window.self.location;
 
-    showInstallButton() {
-        if (!this.installButton) {
-            this.installButton = document.createElement('button');
-            this.installButton.className = 'install-button';
-            this.installButton.innerHTML = '<i class="bi bi-download"></i> Установить';
-            this.installButton.addEventListener('click', () => this.installApp());
-            document.body.appendChild(this.installButton);
-        }
-        this.installButton.style.display = 'inline-flex';
-    }
-
-    hideInstallButton() {
-        if (this.installButton) this.installButton.style.display = 'none';
-    }
-
-    async installApp() {
-        if (this.deferredPrompt) {
-            this.deferredPrompt.prompt();
-            const result = await this.deferredPrompt.userChoice;
-            if (result.outcome === 'accepted') this.hideInstallButton();
-            this.deferredPrompt = null;
-        }
-    }
-
-    showNetworkStatus(isOnline) {
-        const status = document.createElement('div');
-        status.className = `network-status ${isOnline ? 'online' : 'offline'}`;
-        status.innerHTML = isOnline ? '<i class="bi bi-wifi"></i> Онлайн' : '<i class="bi bi-wifi-off"></i> Офлайн';
-        document.body.appendChild(status);
-        setTimeout(() => status.remove(), 3000);
-    }
-
-    // ============ ОБРАБОТКА URL ============
-    handleURLParams() {
-        const params = new URLSearchParams(window.location.search);
-
-        const isMovies = params.get('movies') === 'true';
-        if (isMovies) {
-            this.switchMode('movies');
-        }
-
-        const kpId = params.get('kp');
-        if (kpId && kpId.trim()) {
-            this.searchInput.value = kpId.trim();
-            this.currentSearchQuery = kpId.trim();
-            setTimeout(() => this.performMoviesSearch(), 500);
-            return;
-        }
-
-        const searchQuery = params.get('search');
-        if (searchQuery && searchQuery.trim()) {
-            let decodedQuery = searchQuery.trim();
-            try { decodedQuery = decodeURIComponent(decodedQuery); } catch (e) {}
-
-            this.searchInput.value = decodedQuery;
-            this.currentSearchQuery = decodedQuery;
-
-            setTimeout(() => {
-                if (isMovies) {
-                    this.performMoviesSearch();
-                } else {
-                    this.performSearch();
-                }
-            }, 500);
+        if (this.videoFrame) {
+            this.videoFrame.addEventListener('contextmenu', (e) => e.preventDefault());
+            this.videoFrame.addEventListener('dragstart', (e) => e.preventDefault());
+            this.videoFrame.addEventListener('copy', (e) => e.preventDefault());
+            this.videoFrame.addEventListener('selectstart', (e) => e.preventDefault());
         }
     }
 
@@ -1047,37 +1223,15 @@ class KitsuneWatchApp {
         this.displayHistory();
     }
 
-    addToMoviesHistory(query) {
-        const clean = query.trim();
-        if (!clean) return;
-
-        this.moviesHistory = this.moviesHistory.filter(i => i.query.toLowerCase() !== clean.toLowerCase());
-        this.moviesHistory.unshift({ query: clean, timestamp: Date.now() });
-        this.moviesHistory = this.moviesHistory.slice(0, 10);
-
-        this.saveToStorage('kitsunewatch_movies_history', this.moviesHistory);
-        this.displayHistory();
-    }
-
     removeFromHistory(query) {
-        if (this.activeTab === 'anime') {
-            this.searchHistory = this.searchHistory.filter(i => i.query !== query);
-            this.saveToStorage('kitsunewatch_history', this.searchHistory);
-        } else {
-            this.moviesHistory = this.moviesHistory.filter(i => i.query !== query);
-            this.saveToStorage('kitsunewatch_movies_history', this.moviesHistory);
-        }
+        this.searchHistory = this.searchHistory.filter(i => i.query !== query);
+        this.saveToStorage('kitsunewatch_history', this.searchHistory);
         this.displayHistory();
     }
 
     clearHistory() {
-        if (this.activeTab === 'anime') {
-            this.searchHistory = [];
-            this.saveToStorage('kitsunewatch_history', []);
-        } else {
-            this.moviesHistory = [];
-            this.saveToStorage('kitsunewatch_movies_history', []);
-        }
+        this.searchHistory = [];
+        this.saveToStorage('kitsunewatch_history', []);
         this.displayHistory();
     }
 
@@ -1085,9 +1239,7 @@ class KitsuneWatchApp {
         if (!this.historyContainer) return;
         this.historyContainer.innerHTML = '';
 
-        const currentHistory = this.activeTab === 'anime' ? this.searchHistory : this.moviesHistory;
-
-        if (currentHistory.length === 0) {
+        if (this.searchHistory.length === 0) {
             this.historyContainer.style.display = 'none';
             return;
         }
@@ -1096,7 +1248,7 @@ class KitsuneWatchApp {
 
         const title = document.createElement('h3');
         title.className = 'history-title';
-        title.innerHTML = `<i class="bi bi-clock-history"></i> История ${this.activeTab === 'anime' ? 'поиска аниме' : 'поиска кино'}`;
+        title.innerHTML = '<i class="bi bi-clock-history"></i> История';
 
         const clearBtn = document.createElement('button');
         clearBtn.className = 'clear-history-button';
@@ -1107,9 +1259,11 @@ class KitsuneWatchApp {
         container.className = 'history-title-container';
         container.appendChild(title);
         container.appendChild(clearBtn);
+
         this.historyContainer.appendChild(container);
 
-        const groupedHistory = this.groupHistoryByDate(currentHistory);
+        // Группировка по дням
+        const groupedHistory = this.groupHistoryByDate(this.searchHistory);
 
         Object.entries(groupedHistory).forEach(([date, items]) => {
             const dateGroup = document.createElement('div');
@@ -1131,13 +1285,16 @@ class KitsuneWatchApp {
                 span.className = 'history-query';
                 span.textContent = item.query;
                 span.addEventListener('click', () => {
-                    this.searchInput.value = item.query;
-                    this.currentSearchQuery = item.query;
-                    if (this.activeTab === 'anime') {
-                        this.performSearch();
-                    } else {
-                        this.performMoviesSearch();
-                    }
+                    let query = item.query;
+                    try {
+                        query = decodeURIComponent(query);
+                        if (query.includes('%25')) {
+                            query = decodeURIComponent(query);
+                        }
+                    } catch (e) { }
+                    this.searchInput.value = query;
+                    this.currentSearchQuery = query;
+                    this.performSearch();
                 });
 
                 const time = document.createElement('span');
@@ -1183,7 +1340,9 @@ class KitsuneWatchApp {
                 groupName = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
             }
 
-            if (!groups[groupName]) groups[groupName] = [];
+            if (!groups[groupName]) {
+                groups[groupName] = [];
+            }
             groups[groupName].push(item);
         });
 
@@ -1206,74 +1365,46 @@ class KitsuneWatchApp {
     toggleFavorite() {
         if (!this.currentVideo) return;
 
-        if (this.activeTab === 'anime') {
-            const videoId = this.currentVideo.id || this.currentVideo.link;
-            const isFav = this.favorites.some(f => f.id === videoId);
+        const videoId = this.currentVideo.id || this.currentVideo.link;
+        const isFav = this.favorites.some(f => f.id === videoId);
 
-            if (isFav) {
-                this.favorites = this.favorites.filter(f => f.id !== videoId);
-                this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
-                this.favoriteButton.classList.remove('active');
-            } else {
-                this.favorites.unshift({
-                    id: videoId,
-                    title: this.currentVideo.title,
-                    year: this.currentVideo.year,
-                    type: this.currentVideo.type,
-                    link: this.currentVideo.link,
-                    addedAt: Date.now()
-                });
-                this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
-                this.favoriteButton.classList.add('active');
-            }
-
-            this.saveToStorage('kitsunewatch_favorites', this.favorites);
+        if (isFav) {
+            this.favorites = this.favorites.filter(f => f.id !== videoId);
+            this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
+            this.favoriteButton.classList.remove('active');
         } else {
-            const videoId = this.currentVideo.id || this.currentVideo.id_kp;
-            const isFav = this.moviesFavorites.some(f => f.id === videoId);
-
-            if (isFav) {
-                this.moviesFavorites = this.moviesFavorites.filter(f => f.id !== videoId);
-                this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
-                this.favoriteButton.classList.remove('active');
-            } else {
-                this.moviesFavorites.unshift({
-                    id: videoId,
-                    title: this.currentVideo.name || this.currentVideo.original_name,
-                    year: this.currentVideo.year,
-                    type: this.currentVideo.type,
-                    iframe: this.currentVideo.iframe,
-                    poster: this.currentVideo.poster,
-                    addedAt: Date.now()
-                });
-                this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
-                this.favoriteButton.classList.add('active');
-            }
-
-            this.saveToStorage('kitsunewatch_movies_favorites', this.moviesFavorites);
+            this.favorites.unshift({
+                id: videoId,
+                title: this.currentVideo.title,
+                year: this.currentVideo.year,
+                type: this.currentVideo.type,
+                link: this.currentVideo.link,
+                addedAt: Date.now()
+            });
+            this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
+            this.favoriteButton.classList.add('active');
         }
 
+        this.saveToStorage('kitsunewatch_favorites', this.favorites);
         this.displayFavorites();
     }
 
     removeFromFavorites(videoId) {
-        if (this.activeTab === 'anime') {
-            this.favorites = this.favorites.filter(f => f.id !== videoId);
-            this.saveToStorage('kitsunewatch_favorites', this.favorites);
-        } else {
-            this.moviesFavorites = this.moviesFavorites.filter(f => f.id !== videoId);
-            this.saveToStorage('kitsunewatch_movies_favorites', this.moviesFavorites);
-        }
+        this.favorites = this.favorites.filter(f => f.id !== videoId);
+        this.saveToStorage('kitsunewatch_favorites', this.favorites);
         this.displayFavorites();
+
+        if (this.currentVideo && (this.currentVideo.id === videoId || this.currentVideo.link === videoId)) {
+            this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
+            this.favoriteButton.classList.remove('active');
+        }
     }
 
     displayFavorites() {
         if (!this.favoritesContainer) return;
         this.favoritesContainer.innerHTML = '';
 
-        const currentFavorites = this.activeTab === 'anime' ? this.favorites : this.moviesFavorites;
-
-        if (currentFavorites.length === 0) {
+        if (this.favorites.length === 0) {
             this.favoritesContainer.style.display = 'none';
             return;
         }
@@ -1282,49 +1413,98 @@ class KitsuneWatchApp {
 
         const title = document.createElement('h3');
         title.className = 'favorites-title';
-        title.innerHTML = `<i class="bi bi-heart-fill"></i> Избранное ${this.activeTab === 'anime' ? 'аниме' : 'кино'}`;
+        title.innerHTML = '<i class="bi bi-heart-fill"></i> Избранное';
         this.favoritesContainer.appendChild(title);
 
-        const list = document.createElement('div');
-        list.className = 'favorites-list';
+        // Группировка по категориям
+        const categories = this.groupFavoritesByType(this.favorites);
 
-        currentFavorites.forEach(fav => {
-            const card = document.createElement('div');
-            card.className = 'favorite-card';
+        Object.entries(categories).forEach(([type, items]) => {
+            const categoryBlock = document.createElement('div');
+            categoryBlock.className = 'favorites-category';
 
-            const t = document.createElement('span');
-            t.className = 'favorite-card-title';
-            t.textContent = `${fav.title} (${fav.year || '?'})`;
-            card.appendChild(t);
+            const categoryTitle = document.createElement('div');
+            categoryTitle.className = 'favorites-category-title';
+            categoryTitle.innerHTML = `
+                <i class="bi ${this.getTypeIcon(type)}"></i>
+                ${this.getTypeName(type)}
+                <span class="favorites-count">${items.length}</span>
+            `;
+            categoryBlock.appendChild(categoryTitle);
 
-            const play = document.createElement('button');
-            play.className = 'favorite-play-button';
-            play.innerHTML = '<i class="bi bi-play-fill"></i>';
-            play.addEventListener('click', () => this.playFavorite(fav));
-            card.appendChild(play);
+            const list = document.createElement('div');
+            list.className = 'favorites-list';
 
-            const remove = document.createElement('button');
-            remove.className = 'favorite-remove-button';
-            remove.innerHTML = '<i class="bi bi-x"></i>';
-            remove.addEventListener('click', () => this.removeFromFavorites(fav.id));
-            card.appendChild(remove);
+            items.forEach(fav => {
+                const card = document.createElement('div');
+                card.className = 'favorite-card';
 
-            list.appendChild(card);
+                const t = document.createElement('span');
+                t.className = 'favorite-card-title';
+                t.textContent = `${fav.title} (${fav.year || '?'})`;
+
+                const typeInfo = document.createElement('span');
+                typeInfo.className = 'favorite-card-info';
+                typeInfo.textContent = this.getTypeName(fav.type);
+
+                const play = document.createElement('button');
+                play.className = 'favorite-play-button';
+                play.innerHTML = '<i class="bi bi-play-fill"></i>';
+                play.addEventListener('click', () => this.playFavorite(fav));
+
+                const remove = document.createElement('button');
+                remove.className = 'favorite-remove-button';
+                remove.innerHTML = '<i class="bi bi-x"></i>';
+                remove.addEventListener('click', () => this.removeFromFavorites(fav.id));
+
+                card.appendChild(t);
+                card.appendChild(typeInfo);
+                card.appendChild(play);
+                card.appendChild(remove);
+                list.appendChild(card);
+            });
+
+            categoryBlock.appendChild(list);
+            this.favoritesContainer.appendChild(categoryBlock);
+        });
+    }
+
+    groupFavoritesByType(favorites) {
+        const groups = {};
+
+        favorites.forEach(fav => {
+            const type = fav.type || 'other';
+            if (!groups[type]) {
+                groups[type] = [];
+            }
+            groups[type].push(fav);
         });
 
-        this.favoritesContainer.appendChild(list);
+        return groups;
+    }
+
+    getTypeIcon(type) {
+        const icons = {
+            'anime': 'bi-stars',
+            'anime-serial': 'bi-collection-play',
+            'foreign-movie': 'bi-film',
+            'foreign-serial': 'bi-tv',
+            'cartoon-serial': 'bi-easel',
+            'russian-movie': 'bi-camera-reels',
+            'russian-serial': 'bi-broadcast',
+            'documentary-serial': 'bi-journal-text',
+            'multi-part-film': 'bi-layers',
+            'other': 'bi-question-circle'
+        };
+        return icons[type] || icons['other'];
     }
 
     playFavorite(favorite) {
-        if (this.activeTab === 'anime') {
-            this.loadVideo(favorite);
-        } else {
-            this.loadMovie(favorite);
-        }
+        this.loadVideo(favorite);
         this.scrollToVideoPlayer();
     }
 
-    // ============ ПРОКРУТКА ============
+    // ============ ПРОКРУТКА К ПЛЕЕРУ ============
     scrollToVideoPlayer() {
         setTimeout(() => {
             const videoContainer = document.querySelector('.video-container');
@@ -1332,15 +1512,35 @@ class KitsuneWatchApp {
 
             if (!videoContainer || !appContainer) return;
 
-            if (appContainer.scrollHeight > appContainer.clientHeight) {
+            // Проверяем, может ли .app прокручиваться
+            const appHasScroll = appContainer.scrollHeight > appContainer.clientHeight;
+
+            if (appHasScroll) {
+                // Если .app имеет внутреннюю прокрутку, прокручиваем внутри него
                 const appRect = appContainer.getBoundingClientRect();
                 const videoRect = videoContainer.getBoundingClientRect();
-                const targetScroll = appContainer.scrollTop + (videoRect.top - appRect.top) - 20;
 
-                appContainer.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+                // Вычисляем позицию видео относительно .app
+                const relativePosition = videoRect.top - appRect.top;
+
+                // Целевая позиция скролла
+                const targetScroll = appContainer.scrollTop + relativePosition - 20;
+
+                // Плавная прокрутка внутри .app
+                appContainer.scrollTo({
+                    top: Math.max(0, targetScroll),
+                    behavior: 'smooth'
+                });
             } else {
+                // Если .app не имеет внутренней прокрутки, используем window
                 const videoRect = videoContainer.getBoundingClientRect();
-                window.scrollTo({ top: videoRect.top + window.pageYOffset - 20, behavior: 'smooth' });
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const targetPosition = videoRect.top + scrollTop - 20;
+
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
             }
         }, 100);
     }
@@ -1407,82 +1607,7 @@ class KitsuneWatchApp {
         }
     }
 
-    // ============ ЗАГРУЗКА ФИЛЬМА ============
-    loadMovie(material) {
-        this.currentVideo = material;
-        this.isVideoLoading = true;
-        this.hideAboutProject();
-        if (this.premieresContainer) this.premieresContainer.style.display = 'none';
-        if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
-
-        const title = material.name || material.original_name || 'Без названия';
-        this.videoName.textContent = `${title} (${material.year || '?'})`;
-        this.videoName.style.display = 'block';
-
-        if (this.videoContainer) this.videoContainer.style.display = 'block';
-        this.showVideoPlaceholder();
-
-        if (material.iframe) {
-            const url = this.sanitizeUrl(material.iframe);
-            let fullUrl = url.startsWith('//') ? 'https:' + url : url;
-
-            this.videoFrame.src = fullUrl;
-            this.videoFrame.setAttribute('allow', 'autoplay *; fullscreen *; picture-in-picture *');
-            this.videoFrame.setAttribute('allowfullscreen', 'true');
-        }
-
-        this.displayMovieInfo(material);
-
-        const shareUrl = this.generateShareUrl(material);
-        this.shareLink.href = shareUrl;
-
-        if (this.shareButton) {
-            this.shareButton.style.display = 'inline-flex';
-            this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
-            this.shareButton.classList.remove('copied');
-        }
-
-        if (this.favoriteButton) {
-            this.favoriteButton.style.display = 'inline-flex';
-            const videoId = material.id || material.id_kp;
-            const isFav = this.moviesFavorites.some(f => f.id === videoId);
-
-            if (isFav) {
-                this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
-                this.favoriteButton.classList.add('active');
-            } else {
-                this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
-                this.favoriteButton.classList.remove('active');
-            }
-        }
-
-        this.resultsContainer.style.display = 'block';
-
-        if (material.id_kp) {
-            const newUrl = `${window.location.origin}/?movies=true&kp=${material.id_kp}`;
-            this.updateUrlWithoutReload(newUrl);
-            this.updateSEO();
-            this.currentSearchQuery = material.id_kp;
-        }
-    }
-
-    displayMovieInfo(material) {
-        let info = [];
-
-        if (material.original_name) info.push(`Оригинальное: ${this.sanitizeInput(material.original_name)}`);
-        if (material.country) info.push(`Страна: ${this.sanitizeInput(material.country)}`);
-        if (material.genre) info.push(`Жанры: ${this.sanitizeInput(material.genre)}`);
-        if (material.actor) info.push(`Актеры: ${this.sanitizeInput(material.actor)}`);
-        if (material.director) info.push(`Режиссер: ${this.sanitizeInput(material.director)}`);
-        if (material.time) info.push(`Длительность: ${this.sanitizeInput(material.time)}`);
-        if (material.translation) info.push(`Озвучка: ${this.sanitizeInput(material.translation)}`);
-        if (material.description) info.push(`\n${this.sanitizeInput(material.description)}`);
-
-        this.videoAbout.textContent = info.join('\n');
-        this.aboutBlock.style.display = info.length > 0 ? 'block' : 'none';
-    }
-
-    // ============ ГРУППИРОВКА ============
+    // ============ ГРУППИРОВКА РЕЗУЛЬТАТОВ ============
     groupResultsByTitle(results) {
         const grouped = new Map();
 
@@ -1555,7 +1680,9 @@ class KitsuneWatchApp {
         }
 
         if (startPage > 1) {
-            this.paginationContainer.appendChild(this.createPageButton(1));
+            const firstPageButton = this.createPageButton(1);
+            this.paginationContainer.appendChild(firstPageButton);
+
             if (startPage > 2) {
                 const ellipsis = document.createElement('span');
                 ellipsis.className = 'pagination-ellipsis';
@@ -1565,7 +1692,8 @@ class KitsuneWatchApp {
         }
 
         for (let i = startPage; i <= endPage; i++) {
-            this.paginationContainer.appendChild(this.createPageButton(i));
+            const pageButton = this.createPageButton(i);
+            this.paginationContainer.appendChild(pageButton);
         }
 
         if (endPage < this.totalPages) {
@@ -1575,7 +1703,9 @@ class KitsuneWatchApp {
                 ellipsis.textContent = '...';
                 this.paginationContainer.appendChild(ellipsis);
             }
-            this.paginationContainer.appendChild(this.createPageButton(this.totalPages));
+
+            const lastPageButton = this.createPageButton(this.totalPages);
+            this.paginationContainer.appendChild(lastPageButton);
         }
 
         const nextButton = document.createElement('button');
@@ -1597,7 +1727,9 @@ class KitsuneWatchApp {
         pageButton.className = 'pagination-button page-number';
         pageButton.textContent = pageNumber;
         pageButton.disabled = pageNumber === this.currentPage;
-        if (pageNumber === this.currentPage) pageButton.classList.add('active');
+        if (pageNumber === this.currentPage) {
+            pageButton.classList.add('active');
+        }
         pageButton.addEventListener('click', () => {
             this.currentPage = pageNumber;
             this.updatePagination();
@@ -1613,8 +1745,28 @@ class KitsuneWatchApp {
             this.createPagination(this.filteredResults.length);
         }
 
+        // Прокрутка к началу списка
         if (this.videoListContainer) {
-            this.videoListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const appContainer = document.querySelector('.app');
+
+            if (appContainer && appContainer.scrollHeight > appContainer.clientHeight) {
+                // Прокручиваем внутри .app
+                const appRect = appContainer.getBoundingClientRect();
+                const listRect = this.videoListContainer.getBoundingClientRect();
+                const relativePosition = listRect.top - appRect.top;
+                const targetScroll = appContainer.scrollTop + relativePosition - 20;
+
+                appContainer.scrollTo({
+                    top: Math.max(0, targetScroll),
+                    behavior: 'smooth'
+                });
+            } else {
+                // Прокручиваем окно
+                this.videoListContainer.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         }
     }
 
@@ -1636,35 +1788,37 @@ class KitsuneWatchApp {
         this.createVideoList(pageResults);
     }
 
-    // ============ ГЕНЕРАЦИЯ ССЫЛОК ============
+    // ============ ГЕНЕРАЦИЯ ССЫЛОК ДЛЯ ШЕРИНГА ============
     generateShareUrl(material) {
         const baseUrl = window.location.origin;
         const params = new URLSearchParams();
 
-        if (this.activeTab === 'movies') {
-            params.set('movies', 'true');
-            if (material?.id_kp) {
-                params.set('kp', material.id_kp);
-            } else if (material?.name) {
-                params.set('search', encodeURIComponent(material.name));
-            }
-        } else {
-            if (material?.title) {
-                params.set('search', encodeURIComponent(material.title));
-            }
+        if (material && material.title) {
+            params.set('search', encodeURIComponent(material.title));
+            return `${baseUrl}/?${params.toString()}`;
         }
 
-        return `${baseUrl}/?${params.toString()}`;
+        if (material && material.id) {
+            params.set('video', material.id);
+            return `${baseUrl}/?${params.toString()}`;
+        }
+
+        if (this.currentSearchQuery) {
+            params.set('search', encodeURIComponent(this.currentSearchQuery));
+            return `${baseUrl}/?${params.toString()}`;
+        }
+
+        return baseUrl;
     }
 
-    // ============ ОБНОВЛЕНИЕ URL ============
+    // ============ ОБНОВЛЕНИЕ URL БЕЗ ПЕРЕЗАГРУЗКИ ============
     updateUrlWithoutReload(url) {
         if (window.history && window.history.pushState) {
             window.history.pushState({}, '', url);
         }
     }
 
-    // ============ ПОИСК АНИМЕ ============
+    // ============ ПОИСК ============
     async performSearch() {
         const query = this.searchInput.value.trim();
         if (!query) {
@@ -1686,6 +1840,7 @@ class KitsuneWatchApp {
 
         try {
             const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
+
             const data = await this.fetchWithTimeout(searchUrl, 15000);
 
             if (data.results?.length > 0) {
@@ -1695,75 +1850,23 @@ class KitsuneWatchApp {
                 this.filteredResults = grouped;
                 this.clearErrorMessages();
                 this.displayAllResults(grouped);
+
+                setTimeout(() => {
+                    this.displayHistory();
+                    this.displayFavorites();
+                }, 300);
             } else {
                 this.showError('Ничего не найдено');
             }
         } catch (error) {
             console.error('Search error:', error);
+
             if (error.name === 'AbortError') {
                 this.showError('Превышено время ожидания');
+            } else if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                this.showError('Ошибка CORS. Попробуйте через VPN или прокси.');
             } else {
                 this.showError('Ошибка при поиске');
-            }
-        } finally {
-            this.hideLoading();
-        }
-    }
-
-    // ============ ПОИСК ФИЛЬМОВ ============
-    async performMoviesSearch() {
-        const query = this.searchInput.value.trim();
-        if (!query) {
-            this.showError('Введите название или ID Кинопоиска');
-            return;
-        }
-        if (this.isSearching) return;
-
-        this.currentSearchQuery = query;
-        this.currentPage = 1;
-        this.activeFilter = 'all';
-
-        const isNumeric = /^\d+$/.test(query);
-        const newUrl = isNumeric 
-            ? `${window.location.origin}/?movies=true&kp=${encodeURIComponent(query)}`
-            : `${window.location.origin}/?movies=true&search=${encodeURIComponent(query)}`;
-        this.updateUrlWithoutReload(newUrl);
-        this.updateSEO();
-
-        this.showLoading();
-        this.addToMoviesHistory(query);
-
-        try {
-            // Используем серверный прокси
-            let apiUrl;
-            if (isNumeric) {
-                apiUrl = `/api/movies?token=${this.MOVIES_API_TOKEN}&kp=${encodeURIComponent(query)}`;
-            } else {
-                apiUrl = `/api/movies?token=${this.MOVIES_API_TOKEN}&q=${encodeURIComponent(query)}`;
-            }
-
-            const data = await this.fetchWithTimeout(apiUrl, 15000);
-
-            if (data.status === 'error') {
-                this.showError(data.message || 'Ошибка API');
-                return;
-            }
-
-            if (data.data && data.data.length > 0) {
-                this.hasSearched = true;
-                this.currentResults = data.data;
-                this.filteredResults = data.data;
-                this.clearErrorMessages();
-                this.displayMoviesResults(data.data);
-            } else {
-                this.showError('Ничего не найдено');
-            }
-        } catch (error) {
-            console.error('Search error:', error);
-            if (error.name === 'AbortError') {
-                this.showError('Превышено время ожидания');
-            } else {
-                this.showError('Ошибка при поиске. Попробуйте позже.');
             }
         } finally {
             this.hideLoading();
@@ -1782,7 +1885,10 @@ class KitsuneWatchApp {
             const videoWithLink = {
                 ...firstResult,
                 link: firstResult.translations[0].link,
-                translation: { id: firstResult.translations[0].id, title: firstResult.translations[0].title },
+                translation: {
+                    id: firstResult.translations[0].id,
+                    title: firstResult.translations[0].title
+                },
                 quality: firstResult.translations[0].quality
             };
             this.loadVideo(videoWithLink);
@@ -1794,23 +1900,10 @@ class KitsuneWatchApp {
         this.displayCurrentPage();
         this.createPagination(results.length);
 
-        setTimeout(() => this.scrollToVideoPlayer(), 300);
-    }
-
-    displayMoviesResults(results) {
-        if (results.length === 0) {
-            this.showError('Ничего не найдено');
-            return;
-        }
-
-        const firstResult = results[0];
-        this.loadMovie(firstResult);
-
-        this.createMoviesTabs(results);
-        this.displayCurrentMoviesPage();
-        this.createPagination(results.length);
-
-        setTimeout(() => this.scrollToVideoPlayer(), 300);
+        // Прокручиваем к плееру после отображения результатов
+        setTimeout(() => {
+            this.scrollToVideoPlayer();
+        }, 300);
     }
 
     createTabs(results) {
@@ -1836,33 +1929,9 @@ class KitsuneWatchApp {
         });
     }
 
-    createMoviesTabs(results) {
-        this.tabsContainer.innerHTML = '';
-        this.tabsContainer.style.display = 'flex';
-
-        const types = new Map();
-        types.set('all', 'Все');
-        results.forEach(r => {
-            if (r.type && !types.has(r.type)) {
-                types.set(r.type, this.getMovieTypeName(r.type));
-            }
-        });
-
-        types.forEach((name, type) => {
-            const tab = document.createElement('button');
-            tab.className = 'tab-button';
-            tab.dataset.type = type;
-            tab.textContent = name;
-            if (type === 'all') tab.classList.add('active');
-            tab.addEventListener('click', () => this.filterMoviesResults(type));
-            this.tabsContainer.appendChild(tab);
-        });
-    }
-
     createVideoList(results) {
         this.videoListContainer.innerHTML = '';
         this.videoListContainer.style.display = 'grid';
-        this.videoListContainer.className = 'video-list';
 
         results.forEach(result => {
             const card = document.createElement('div');
@@ -1873,24 +1942,23 @@ class KitsuneWatchApp {
             title.className = 'video-card-title';
             title.textContent = result.title || 'Без названия';
 
-            const info = document.createElement('div');
-            info.className = 'video-card-info';
-
-            if (result.year) {
-                const year = document.createElement('span');
-                year.className = 'video-card-year';
-                year.textContent = result.year;
-                info.appendChild(year);
-            }
+            const year = document.createElement('span');
+            year.className = 'video-card-year';
+            year.textContent = result.year || '';
 
             const type = document.createElement('span');
             type.className = 'video-card-type';
             type.textContent = this.getTypeName(result.type);
-            info.appendChild(type);
 
             const transCount = document.createElement('span');
             transCount.className = 'video-card-translations-count';
-            transCount.innerHTML = `<i class="bi bi-mic"></i> ${result.translations?.length || 0}`;
+            const count = result.translations?.length || 0;
+            transCount.innerHTML = `<i class="bi bi-mic"></i> ${count}`;
+
+            const info = document.createElement('div');
+            info.className = 'video-card-info';
+            info.appendChild(year);
+            info.appendChild(type);
             info.appendChild(transCount);
 
             card.appendChild(title);
@@ -1900,68 +1968,22 @@ class KitsuneWatchApp {
                     const videoWithLink = {
                         ...result,
                         link: result.translations[0].link,
-                        translation: { id: result.translations[0].id, title: result.translations[0].title },
+                        translation: {
+                            id: result.translations[0].id,
+                            title: result.translations[0].title
+                        },
                         quality: result.translations[0].quality
                     };
                     this.loadVideo(videoWithLink);
                 } else {
                     this.loadVideo(result);
                 }
+
+                // Прокрутка к плееру с задержкой
+                setTimeout(() => {
+                    this.scrollToVideoPlayer();
+                }, 200);
             });
-
-            this.videoListContainer.appendChild(card);
-        });
-    }
-
-    createMoviesList(results) {
-        this.videoListContainer.innerHTML = '';
-        this.videoListContainer.style.display = 'grid';
-        this.videoListContainer.className = 'video-list';
-
-        results.forEach(result => {
-            const card = document.createElement('div');
-            card.className = 'video-card movie-card';
-            card.dataset.type = result.type || 'unknown';
-
-            if (result.poster) {
-                const poster = document.createElement('img');
-                poster.className = 'movie-poster';
-                poster.src = result.poster;
-                poster.alt = result.name || '';
-                poster.loading = 'lazy';
-                poster.onerror = () => { poster.style.display = 'none'; };
-                card.appendChild(poster);
-            }
-
-            const title = document.createElement('h3');
-            title.className = 'video-card-title';
-            title.textContent = result.name || result.original_name || 'Без названия';
-
-            const info = document.createElement('div');
-            info.className = 'video-card-info';
-
-            if (result.year) {
-                const year = document.createElement('span');
-                year.className = 'video-card-year';
-                year.textContent = result.year;
-                info.appendChild(year);
-            }
-
-            const type = document.createElement('span');
-            type.className = 'video-card-type';
-            type.textContent = this.getMovieTypeName(result.type);
-            info.appendChild(type);
-
-            if (result.id_kp) {
-                const kpId = document.createElement('span');
-                kpId.className = 'video-card-quality';
-                kpId.textContent = `KP: ${result.id_kp}`;
-                info.appendChild(kpId);
-            }
-
-            card.appendChild(title);
-            card.appendChild(info);
-            card.addEventListener('click', () => this.loadMovie(result));
 
             this.videoListContainer.appendChild(card);
         });
@@ -1975,9 +1997,11 @@ class KitsuneWatchApp {
             tab.classList.toggle('active', tab.dataset.type === type);
         });
 
-        this.filteredResults = type === 'all' 
-            ? this.currentResults 
-            : this.currentResults.filter(r => r.type === type);
+        if (type === 'all') {
+            this.filteredResults = this.currentResults;
+        } else {
+            this.filteredResults = this.currentResults.filter(r => r.type === type);
+        }
 
         if (this.filteredResults.length > 0) {
             this.displayCurrentPage();
@@ -1989,47 +2013,7 @@ class KitsuneWatchApp {
         }
     }
 
-    filterMoviesResults(type) {
-        this.activeFilter = type;
-        this.currentPage = 1;
-
-        this.tabsContainer.querySelectorAll('.tab-button').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.type === type);
-        });
-
-        this.filteredResults = type === 'all' 
-            ? this.currentResults 
-            : this.currentResults.filter(r => r.type === type);
-
-        if (this.filteredResults.length > 0) {
-            this.displayCurrentMoviesPage();
-            this.createPagination(this.filteredResults.length);
-        } else {
-            this.videoListContainer.innerHTML = '';
-            this.videoListContainer.style.display = 'none';
-            this.paginationContainer.style.display = 'none';
-        }
-    }
-
-    displayCurrentMoviesPage() {
-        if (this.activeFilter === 'all') {
-            this.displayCurrentMoviesPageFromResults(this.currentResults);
-        } else {
-            this.displayCurrentMoviesPageFromResults(this.filteredResults);
-        }
-    }
-
-    displayCurrentMoviesPageFromResults(results) {
-        if (!results.length) return;
-
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = Math.min(startIndex + this.itemsPerPage, results.length);
-        const pageResults = results.slice(startIndex, endIndex);
-
-        this.createMoviesList(pageResults);
-    }
-
-    // ============ ИНФОРМАЦИЯ ============
+    // ============ ИНФОРМАЦИЯ О ВИДЕО ============
     displayVideoInfo(material) {
         let info = [];
 
@@ -2056,32 +2040,6 @@ class KitsuneWatchApp {
 
         this.videoAbout.textContent = info.join('\n');
         this.aboutBlock.style.display = info.length > 0 ? 'block' : 'none';
-    }
-
-    // ============ ТИПЫ ============
-    getTypeName(type) {
-        const map = {
-            'foreign-movie': 'Фильм',
-            'anime': 'Аниме',
-            'russian-movie': 'Русский фильм',
-            'cartoon-serial': 'Мультсериал',
-            'foreign-serial': 'Сериал',
-            'anime-serial': 'Аниме сериал',
-            'russian-serial': 'Русский сериал',
-            'documentary-serial': 'Документальный',
-            'multi-part-film': 'Многосерийный',
-            'tv-series': 'TV Сериал',
-            'movie': 'Фильм'
-        };
-        return map[type] || type || 'Другое';
-    }
-
-    getMovieTypeName(type) {
-        const map = {
-            'movie': 'Фильм',
-            'serial': 'Сериал'
-        };
-        return map[type] || type || 'Другое';
     }
 
     // ============ ОШИБКИ ============
@@ -2127,7 +2085,28 @@ class KitsuneWatchApp {
         this.currentVideo = null;
         this.currentPage = 1;
         this.activeFilter = 'all';
+
+        this.updateUrlWithoutReload(window.location.origin);
+        this.updateSEO();
         this.currentSearchQuery = '';
+    }
+
+    // ============ ТИПЫ ============
+    getTypeName(type) {
+        const map = {
+            'foreign-movie': 'Фильм',
+            'anime': 'Аниме',
+            'russian-movie': 'Русский фильм',
+            'cartoon-serial': 'Мультсериал',
+            'foreign-serial': 'Сериал',
+            'anime-serial': 'Аниме сериал',
+            'russian-serial': 'Русский сериал',
+            'documentary-serial': 'Документальный',
+            'multi-part-film': 'Многосерийный',
+            'tv-series': 'TV Сериал',
+            'movie': 'Фильм'
+        };
+        return map[type] || type || 'Другое';
     }
 
     // ============ ПОДЕЛИТЬСЯ ============
@@ -2142,14 +2121,15 @@ class KitsuneWatchApp {
         try {
             if (navigator.share) {
                 await navigator.share({
-                    title: this.currentVideo?.title || this.currentVideo?.name || 'KitsuneWatch',
-                    text: `Смотрите на KitsuneWatch!`,
+                    title: this.currentVideo?.title || 'KitsuneWatch - Смотри аниме онлайн',
+                    text: `Смотрите "${this.currentVideo?.title || 'аниме'}" на KitsuneWatch!`,
                     url: shareUrl
                 });
                 return;
             }
 
             await navigator.clipboard.writeText(shareUrl);
+
             this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
             this.shareButton.classList.add('copied');
 
