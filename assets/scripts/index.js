@@ -866,16 +866,6 @@ class KitsuneWatchApp {
         }
     }
 
-    updateCanonicalLink(href) {
-        let canonical = document.querySelector('link[rel="canonical"]');
-        if (!canonical) {
-            canonical = document.createElement('link');
-            canonical.rel = 'canonical';
-            document.head.appendChild(canonical);
-        }
-        canonical.href = href;
-    }
-
     // ============ PWA ============
     setupPWA() {
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -984,15 +974,14 @@ class KitsuneWatchApp {
     }
 
     // ============ FETCH ============
-    async fetchWithTimeout(url, timeout = 20000) {
+    async fetchWithTimeout(url, timeout = 15000) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
         try {
             const response = await fetch(url, {
                 signal: controller.signal,
-                headers: { 'Accept': 'application/json' },
-                mode: 'cors'
+                headers: { 'Accept': 'application/json' }
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
@@ -1745,34 +1734,15 @@ class KitsuneWatchApp {
         this.addToMoviesHistory(query);
 
         try {
+            // Используем серверный прокси
             let apiUrl;
             if (isNumeric) {
-                apiUrl = `https://api.videoseed.tv/apiv2.php?item=search&token=${this.MOVIES_API_TOKEN}&kp=${encodeURIComponent(query)}`;
+                apiUrl = `/api/movies?token=${this.MOVIES_API_TOKEN}&kp=${encodeURIComponent(query)}`;
             } else {
-                apiUrl = `https://api.videoseed.tv/apiv2.php?item=search&token=${this.MOVIES_API_TOKEN}&q=${encodeURIComponent(query)}&sort_by=kp%20desc&items=50`;
+                apiUrl = `/api/movies?token=${this.MOVIES_API_TOKEN}&q=${encodeURIComponent(query)}`;
             }
 
-            // Пробуем несколько прокси
-            const proxies = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`
-            ];
-
-            let data = null;
-            let lastError = null;
-
-            for (const proxyUrl of proxies) {
-                try {
-                    data = await this.fetchWithTimeout(proxyUrl, 20000);
-                    if (data && (data.data || data.status === 'error')) break;
-                } catch (error) {
-                    lastError = error;
-                    console.warn('Proxy failed:', proxyUrl);
-                }
-            }
-
-            if (!data) throw lastError || new Error('All proxies failed');
+            const data = await this.fetchWithTimeout(apiUrl, 15000);
 
             if (data.status === 'error') {
                 this.showError(data.message || 'Ошибка API');
@@ -1793,7 +1763,7 @@ class KitsuneWatchApp {
             if (error.name === 'AbortError') {
                 this.showError('Превышено время ожидания');
             } else {
-                this.showError('Ошибка при поиске. Проверьте подключение.');
+                this.showError('Ошибка при поиске. Попробуйте позже.');
             }
         } finally {
             this.hideLoading();
