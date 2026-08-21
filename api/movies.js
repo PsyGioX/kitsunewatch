@@ -59,7 +59,8 @@ export default async function handler(req, res) {
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'User-Agent': 'KitsuneWatch/1.0'
             }
         });
 
