@@ -1822,7 +1822,7 @@ h3 .bi,
     position: fixed;
     bottom: 30px;
     right: 30px;
-    z-index: 9999;
+    z-index: 1040;
     animation: floatIn 0.5s ease-out;
 }
 
@@ -1956,30 +1956,6 @@ h3 .bi,
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
-    z-index: 9998;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    animation: fadeIn 0.3s ease forwards;
-}
-
-.modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
-    animation: modalIn 0.3s ease forwards;
-}
-
-@keyframes modalIn {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
 }
 
 .modal-content {
@@ -1987,8 +1963,6 @@ h3 .bi,
     border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 16px;
     padding: 25px;
-    max-width: 500px;
-    width: 90vw;
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -2323,7 +2297,6 @@ h3 .bi,
     }
     
     .modal-content {
-        width: 95vw;
         padding: 20px;
     }
 }
@@ -2465,7 +2438,6 @@ h3 .bi,
     }
     
     .modal-content {
-        width: 95vw;
         padding: 15px;
         max-height: 90vh;
     }
