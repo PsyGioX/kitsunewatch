@@ -3,7 +3,9 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "build": "echo 'Static build - no build step required'",
-        "start": "vercel dev"
+        "build": "npm run minify:css && npm run minify:js",
+        "start": "vercel dev",
+        "minify:css": "npx clean-css-cli -o assets/styles/index.min.css assets/styles/index.css",
+        "minify:js": "npx terser assets/scripts/index.js -c -m -o assets/scripts/index.min.js && npx terser assets/scripts/theme-manager.js -c -m -o assets/scripts/theme-manager.min.js"
     }
 }

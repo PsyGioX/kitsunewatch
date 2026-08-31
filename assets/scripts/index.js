@@ -2,11 +2,13 @@
 
 class KitsuneWatchApp {
     constructor() {
-        // API конфигурация
-        this.API_TOKEN = 'a036c8a4c59b43e72e212e4d0388ef7d';
-        this.API_URL = 'https://kodik-api.com/search';
-        this.YEARS_API_URL = 'https://kodik-api.com/years';
-        this.TOP_API_URL = 'https://kodik-api.com/list';
+        // API конфигурация — запросы теперь идут через собственные serverless-
+        // функции (/api/search, /api/years, /api/top), которые проксируют
+        // Kodik API и хранят токен только на сервере. На клиенте токена
+        // больше нет — раньше он был виден в исходниках любому посетителю.
+        this.API_URL = '/api/search';
+        this.YEARS_API_URL = '/api/years';
+        this.TOP_API_URL = '/api/top';
 
         // DOM элементы
         this.searchInput = document.querySelector('.search_input_query');
@@ -525,7 +527,7 @@ class KitsuneWatchApp {
         try {
             const currentYear = new Date().getFullYear();
 
-            const response = await fetch(`${this.YEARS_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial,foreign-movie,foreign-serial&sort=year`);
+            const response = await fetch(this.YEARS_API_URL);
             const data = await response.json();
 
             if (data.results && data.results.length > 0) {
@@ -639,7 +641,7 @@ class KitsuneWatchApp {
         this.showLoading();
 
         try {
-            const response = await fetch(`${this.TOP_API_URL}?token=${this.API_TOKEN}&types=anime,anime-serial&sort=rating&limit=100`);
+            const response = await fetch(this.TOP_API_URL);
             const data = await response.json();
 
             if (data.results && data.results.length > 0) {
@@ -1839,7 +1841,7 @@ class KitsuneWatchApp {
         this.addToHistory(query);
 
         try {
-            const searchUrl = `${this.API_URL}?token=${this.API_TOKEN}&title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
+            const searchUrl = `${this.API_URL}?title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
 
             const data = await this.fetchWithTimeout(searchUrl, 15000);
 

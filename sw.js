@@ -1,12 +1,16 @@
-const CACHE_NAME = 'kitsunewatch-v1';
-const DYNAMIC_CACHE = 'kitsunewatch-dynamic-v1';
-const API_CACHE = 'kitsunewatch-api-v1';
+// v2: static assets теперь обновляются по stale-while-revalidate —
+// раньше кэш отдавался "навечно" при первом попадании, и апдейты
+// index.css/index.js не доходили до пользователей без ручной чистки кэша.
+const CACHE_NAME = 'kitsunewatch-v2';
+const DYNAMIC_CACHE = 'kitsunewatch-dynamic-v2';
+const API_CACHE = 'kitsunewatch-api-v2';
 
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/assets/styles/index.css',
-    '/assets/scripts/index.js',
+    '/assets/styles/index.min.css',
+    '/assets/scripts/index.min.js',
+    '/assets/scripts/theme-manager.min.js',
     '/site.webmanifest'
 ];
 
@@ -37,28 +41,35 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
-    
+
     if (['chrome-extension:', 'chrome:', 'moz-extension:', 'safari-extension:'].includes(url.protocol)) {
         return;
     }
-    
+
     if (request.method !== 'GET') return;
-    
-    if (url.pathname === '/api/config.js') {
-        event.respondWith(fetch(request));
-        return;
-    }
-    
-    if (url.hostname.includes('kodik-api.com')) {
+
+    // Свои serverless-прокси /api/search, /api/years, /api/top заменили
+    // прямые обращения к kodik-api.com с клиента — тот же network-first
+    // с офлайн-фолбэком из кэша, что раньше применялся к kodik-api.com
+    if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
         event.respondWith(handleApiRequest(request));
         return;
     }
-    
+
     if (url.hostname.includes('kodikplayer.com')) {
         event.respondWith(fetch(request));
         return;
     }
-    
+
+    // Собственные CSS/JS — stale-while-revalidate: мгновенный ответ из
+    // кэша + фоновое обновление, так что правки доходят до пользователя
+    // уже на следующей загрузке, а не "никогда"
+    if (url.origin === self.location.origin &&
+        (url.pathname.startsWith('/assets/') || url.pathname === '/site.webmanifest')) {
+        event.respondWith(handleStaleWhileRevalidate(request));
+        return;
+    }
+
     event.respondWith(handleStaticRequest(request));
 });
 
@@ -73,7 +84,7 @@ async function handleApiRequest(request) {
     } catch (error) {
         const cached = await caches.match(request);
         if (cached) return cached;
-        
+
         return new Response(JSON.stringify({ error: 'Offline' }), {
             status: 503,
             headers: { 'Content-Type': 'application/json' }
@@ -81,17 +92,29 @@ async function handleApiRequest(request) {
     }
 }
 
+async function handleStaleWhileRevalidate(request) {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+
+    const networkFetch = fetch(request).then((response) => {
+        if (response.ok) cache.put(request, response.clone());
+        return response;
+    }).catch(() => null);
+
+    return cached || (await networkFetch) || new Response('', { status: 503 });
+}
+
 async function handleStaticRequest(request) {
     const url = new URL(request.url);
-    
+
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
         return fetch(request).catch(() => new Response('', { status: 503 }));
     }
-    
+
     try {
         const cached = await caches.match(request);
         if (cached) return cached;
-        
+
         const response = await fetch(request);
         if (response.ok && response.type === 'basic') {
             const cache = await caches.open(DYNAMIC_CACHE);

@@ -150,18 +150,25 @@ kitsunewatch/
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `KODIK_API_TOKEN` | Kodik API authentication token | Yes | — |
-| `KODIK_API_URL` | Kodik API endpoint | No | `https://kodik-api.com/search` |
-| `APP_NAME` | Application name | No | `KitsuneWatch` |
-| `APP_URL` | Application URL | No | `http://localhost:3000` |
-| `APP_ENV` | Environment (`development`/`production`) | No | `development` |
+| `KODIK_API_TOKEN` | Kodik API token — used **only** server-side in `/api/search.js`, `/api/years.js`, `/api/top.js`. Never exposed to the client. | Yes | — |
+
+The frontend (`assets/scripts/index.js`) calls its own `/api/search`, `/api/years`, `/api/top` endpoints, which proxy to Kodik with the token attached server-side. No token is present in any client-shipped file.
+
+### Building for production
+
+`assets/styles/index.min.css` and `assets/scripts/*.min.js` are the files actually loaded by `index.html`. They are pre-generated and committed, but **Vercel's static builder (`@vercel/static`, configured in `vercel.json`) does not run `npm run build` automatically** — after editing `index.css` / `index.js` / `theme-manager.js`, regenerate them yourself before deploying:
+
+```bash
+npm run build   # runs minify:css + minify:js
+```
 
 ### Vercel Deployment
 
 1. Push your repository to GitHub.
 2. Import the project into [Vercel](https://vercel.com).
-3. Add environment variables in **Settings → Environment Variables**.
-4. Deploy the project.
+3. Add `KODIK_API_TOKEN` in **Settings → Environment Variables**.
+4. Run `npm run build` locally and commit the updated `.min.css`/`.min.js` files (see above).
+5. Deploy the project.
 
 ```bash
 # Using Vercel CLI
