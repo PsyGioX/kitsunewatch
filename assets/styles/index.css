@@ -379,6 +379,14 @@ h3 .bi,
     transform: rotate(20deg);
 }
 
+/* Кнопка содержит только иконку без текста — сбрасываем правый отступ
+   и вертикальное смещение из общего правила "button .bi", иначе иконка
+   визуально уезжает влево от центра круглой кнопки */
+.theme-switcher-toggle .bi {
+    margin-right: 0;
+    vertical-align: 0;
+}
+
 .theme-switcher-menu {
     position: absolute;
     top: calc(100% + 10px);

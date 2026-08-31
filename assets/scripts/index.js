@@ -476,9 +476,8 @@ class KitsuneWatchApp {
         if (!logoImg) return;
 
         const paths = [
-            '/imgs/logo.svg',
             '/imgs/logo.jpg',
-            '/favicon-32x32.png'
+            '/imgs/favicon-32x32.png'
         ];
 
         let index = 0;
