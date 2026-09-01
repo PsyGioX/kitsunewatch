@@ -19,6 +19,8 @@
 
     <meta name="description"
         content="KitsuneWatch — смотреть аниме онлайн бесплатно. Новинки аниме, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.">
+    <meta name="keywords"
+        content="аниме, смотреть аниме, аниме онлайн, KitsuneWatch, аниме сериалы, японская анимация, аниме бесплатно">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="author" content="KitsuneWatch">
     <meta name="application-name" content="KitsuneWatch">
@@ -32,13 +34,15 @@
         content="Смотрите аниме онлайн бесплатно: новинки, популярные сериалы, полнометражные фильмы, озвучка и субтитры в HD качестве.">
     <meta property="og:url" content="https://kitsunewatch.vercel.app/">
     <meta property="og:locale" content="ru_RU">
-    <meta property="og:image" content="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg">
+    <meta property="og:image" content="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg"
+        data-default="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg">
     <meta property="og:image:alt" content="KitsuneWatch — аниме онлайн">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="KitsuneWatch — аниме смотреть онлайн бесплатно">
     <meta name="twitter:description"
         content="Новинки аниме, популярные сериалы, фильмы, озвучка и субтитры на KitsuneWatch.">
-    <meta name="twitter:image" content="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg">
+    <meta name="twitter:image" content="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg"
+        data-default="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg">
     <link rel="apple-touch-icon" sizes="180x180" href="/imgs/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/imgs/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/imgs/favicon-16x16.png">
@@ -94,6 +98,34 @@
          чтобы переопределения темы (.modal-content, .btn и т.д.) выигрывали
          каскад у правил Bootstrap с той же специфичностью. -->
     <link rel="stylesheet" href="/assets/styles/index.min.css">
+
+    <!-- Базовая структурированная разметка сайта (Schema.org). Разметка под
+         конкретное аниме (Movie/TVSeries, BreadcrumbList) добавляется/убирается
+         динамически в index.js при открытии/закрытии страницы тайтула,
+         см. updateAnimeStructuredData() -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "KitsuneWatch",
+        "url": "https://kitsunewatch.vercel.app/",
+        "inLanguage": "ru",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://kitsunewatch.vercel.app/?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "KitsuneWatch",
+        "url": "https://kitsunewatch.vercel.app/",
+        "logo": "https://kitsunewatch.vercel.app/imgs/apple-touch-icon.png"
+    }
+    </script>
 </head>
 
 <body>

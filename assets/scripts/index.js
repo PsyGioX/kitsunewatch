@@ -9,6 +9,7 @@ class KitsuneWatchApp {
         this.API_URL = '/api/search';
         this.YEARS_API_URL = '/api/years';
         this.TOP_API_URL = '/api/top';
+        this.CALENDAR_API_URL = '/api/calendar';
 
         // DOM элементы
         this.searchInput = document.querySelector('.search_input_query');
@@ -53,10 +54,34 @@ class KitsuneWatchApp {
         this.itemsPerPage = 20;
         this.totalPages = 1;
         this.filteredResults = [];
+        this.viewMode = 'home'; // 'home' | 'search' | 'top100'
+
+        // ============ КЭШИРОВАНИЕ ДАННЫХ API ============
+        // Клиентский кэш поверх серверного Cache-Control (/api/*) и Service
+        // Worker (см. sw.js): избегаем повторных сетевых запросов для одного
+        // и того же поиска/топа/премьер в рамках TTL. Кнопка "Обновить"
+        // принудительно обходит кэш и обновляет данные с сервера.
+        this.CACHE_PREFIX = 'kw_cache_v1_';
+        this.CACHE_TTL = {
+            search: 5 * 60 * 1000,      // 5 минут — как s-maxage в /api/search
+            top100: 30 * 60 * 1000,     // 30 минут — как s-maxage в /api/top
+            years: 60 * 60 * 1000,      // 1 час — как s-maxage в /api/years
+            calendar: 3 * 60 * 60 * 1000 // 3 часа — как s-maxage в /api/calendar
+        };
+        this.refreshButton = null;
+        this.cacheStatusBadge = null;
+        this.calendarData = null;
+        this.calendarActiveDate = null;
 
         // Данные из localStorage
         this.searchHistory = this.loadFromStorage('kitsunewatch_history', []);
         this.favorites = this.loadFromStorage('kitsunewatch_favorites', []);
+
+        // Фильтры поиска и категорий внутри истории и избранного
+        this.historyFilterQuery = '';
+        this.historyFilterType = 'all';
+        this.favoritesFilterQuery = '';
+        this.favoritesFilterType = 'all';
 
         // Состояние плеера
         this.playerState = {
@@ -522,12 +547,13 @@ class KitsuneWatchApp {
     }
 
     // ============ ЗАГРУЗКА ПРЕМЬЕР ГОДА ============
-    async loadYearPremieres() {
+    async loadYearPremieres(forceRefresh = false) {
         try {
             const currentYear = new Date().getFullYear();
 
-            const response = await fetch(this.YEARS_API_URL);
-            const data = await response.json();
+            const { data } = await this.fetchJSONCached(
+                this.YEARS_API_URL, 'years', this.CACHE_TTL.years, { forceRefresh }
+            );
 
             if (data.results && data.results.length > 0) {
                 let targetYear = currentYear;
@@ -584,6 +610,124 @@ class KitsuneWatchApp {
         await this.performSearch();
     }
 
+    // ============ ГРАФИК ПРЕМЬЕР (Shikimori) ============
+    // Kodik не отдаёт даты выхода серий, поэтому даты берём через свой
+    // прокси /api/calendar (см. api/calendar.js), который сам объединяет
+    // расписание ближайших серий и анонсированные премьеры с Shikimori.
+    // Ссылка "Смотреть" на каждой карточке — это обычный поиск по названию
+    // среди того, что уже проиндексировано у Kodik.
+    async loadCalendar(forceRefresh = false) {
+        if (!this.calendarContainer) return;
+
+        try {
+            const { data } = await this.fetchJSONCached(
+                this.CALENDAR_API_URL, 'calendar', this.CACHE_TTL.calendar, { forceRefresh }
+            );
+
+            if (data?.days?.length > 0) {
+                this.calendarData = data.days;
+                const todayKey = new Date().toISOString().slice(0, 10);
+                this.calendarActiveDate = data.days.find(d => d.date >= todayKey)?.date || data.days[0].date;
+                this.displayCalendar();
+            } else {
+                this.calendarContainer.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error loading calendar:', error);
+            // Второстепенная фича — молча скрываем блок, не мешаем остальной странице
+            this.calendarContainer.style.display = 'none';
+        }
+    }
+
+    displayCalendar() {
+        if (!this.calendarContainer || !this.calendarData?.length) return;
+
+        this.calendarContainer.style.display = 'block';
+
+        const tabs = this.calendarData.map(day => `
+            <button type="button"
+                class="calendar-day-tab${day.date === this.calendarActiveDate ? ' active' : ''}"
+                data-date="${day.date}">
+                <span class="calendar-day-tab-weekday">${this.formatCalendarWeekday(day.date)}</span>
+                <span class="calendar-day-tab-date">${this.formatCalendarShortDate(day.date)}</span>
+                ${day.items.length ? `<span class="calendar-day-tab-count">${day.items.length}</span>` : ''}
+            </button>
+        `).join('');
+
+        const activeDay = this.calendarData.find(d => d.date === this.calendarActiveDate) || this.calendarData[0];
+        const items = activeDay.items.map(item => this.renderCalendarItem(item)).join('');
+
+        this.calendarContainer.innerHTML = `
+            <div class="calendar-block">
+                <div class="calendar-header">
+                    <i class="bi bi-calendar-week"></i>
+                    <h2>График премьер</h2>
+                    <span class="calendar-subtitle">Новые серии и премьеры на ближайший месяц</span>
+                </div>
+                <div class="calendar-day-tabs">${tabs}</div>
+                <div class="calendar-items">
+                    ${items || '<div class="calendar-empty">В этот день премьер не запланировано</div>'}
+                </div>
+            </div>
+        `;
+    }
+
+    renderCalendarItem(item) {
+        const typeLabels = {
+            'episode': { label: item.episode ? `${item.episode} серия` : 'Новая серия', cls: 'episode' },
+            'episode-projected': { label: item.episode ? `${item.episode} серия (план)` : 'Серия (план)', cls: 'projected' },
+            'premiere': { label: 'Премьера', cls: 'premiere' }
+        };
+        const badge = typeLabels[item.type] || { label: '', cls: '' };
+        const time = new Date(item.time);
+        const timeStr = isNaN(time.getTime()) ? '' : time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        const safeTitle = this.sanitizeInput(item.title);
+        const safePoster = this.sanitizeUrl(item.poster || '');
+        const poster = safePoster
+            ? `<img src="${safePoster}" alt="${safeTitle}" loading="lazy">`
+            : '<i class="bi bi-image calendar-item-noposter"></i>';
+
+        return `
+            <div class="calendar-item" data-anime-title="${this.escapeHtmlAttr(item.title)}">
+                <div class="calendar-item-poster">${poster}</div>
+                <div class="calendar-item-info">
+                    <span class="calendar-item-title">${safeTitle}</span>
+                    <span class="calendar-item-meta">
+                        <span class="calendar-item-badge ${badge.cls}">${badge.label}</span>
+                        ${timeStr ? `<span class="calendar-item-time">${timeStr}</span>` : ''}
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+
+    selectCalendarDate(date) {
+        this.calendarActiveDate = date;
+        this.displayCalendar();
+    }
+
+    async searchFromCalendar(title) {
+        if (!title) return;
+        this.searchInput.value = title;
+        this.currentSearchQuery = title;
+        await this.performSearch();
+    }
+
+    formatCalendarWeekday(dateKey) {
+        const weekdays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        const d = new Date(`${dateKey}T00:00:00`);
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const tomorrowKey = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+        if (dateKey === todayKey) return 'Сегодня';
+        if (dateKey === tomorrowKey) return 'Завтра';
+        return weekdays[d.getDay()];
+    }
+
+    formatCalendarShortDate(dateKey) {
+        const d = new Date(`${dateKey}T00:00:00`);
+        return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    }
+
     // ============ ПОДБОРКИ АНИМЕ ============
     displayCollections() {
         if (!this.collectionsContainer) return;
@@ -636,15 +780,18 @@ class KitsuneWatchApp {
     }
 
     // ============ ТОП 100 АНИМЕ ============
-    async loadTop100() {
+    async loadTop100(forceRefresh = false) {
         this.showLoading();
+        this.viewMode = 'top100';
 
         try {
-            const response = await fetch(this.TOP_API_URL);
-            const data = await response.json();
+            const { data, fromCache, stale, cachedAt } = await this.fetchJSONCached(
+                this.TOP_API_URL, 'top100', this.CACHE_TTL.top100, { forceRefresh }
+            );
 
             if (data.results && data.results.length > 0) {
                 this.displayTop100(data.results);
+                this.showCacheStatus(fromCache, stale, cachedAt);
             } else {
                 this.showError('Не удалось загрузить топ 100');
             }
@@ -661,6 +808,7 @@ class KitsuneWatchApp {
 
         this.hideAboutProject();
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
+        if (this.calendarContainer) this.calendarContainer.style.display = 'none';
         if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
 
         // Скрываем плеер и все его элементы
@@ -767,16 +915,23 @@ class KitsuneWatchApp {
 
     showMainPage() {
         // Показываем главную страницу
+        this.viewMode = 'home';
         this.clearAllResults();
         this.displayAboutProject();
         this.loadYearPremieres();
+        this.loadCalendar();
         this.displayCollections();
         this.updateUrlWithoutReload(window.location.origin);
         this.updateSEO();
     }
 
     // ============ SEO ОПТИМИЗАЦИЯ ============
-    updateSEO() {
+    // material — необязательный объект с полными данными тайтула
+    // (title_orig, material_data{genres, description, rating...}), доступен
+    // при просмотре видео. Когда он передан, строим расширенные метатеги и
+    // структурированные данные (JSON-LD) под конкретное аниме — это то, что
+    // видят поисковики и мессенджеры (Open Graph) при попадании на страницу.
+    updateSEO(material = null) {
         const params = new URLSearchParams(window.location.search);
         const searchQuery = params.get('search');
         const title = document.querySelector('title');
@@ -785,12 +940,50 @@ class KitsuneWatchApp {
         const ogTitle = document.querySelector('meta[property="og:title"]');
         const ogDescription = document.querySelector('meta[property="og:description"]');
         const ogUrl = document.querySelector('meta[property="og:url"]');
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        const ogType = document.querySelector('meta[property="og:type"]');
+        const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+        const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+        const twitterImage = document.querySelector('meta[name="twitter:image"]');
+        const defaultOgImage = ogImage ? ogImage.getAttribute('data-default') || ogImage.content : '';
 
         const baseTitle = 'KitsuneWatch - Смотри аниме онлайн';
         const baseDescription = 'KitsuneWatch - бесплатный онлайн-кинотеатр аниме. Смотрите любимые аниме сериалы и фильмы в высоком качестве.';
         const baseKeywords = 'аниме, смотреть аниме, аниме онлайн, KitsuneWatch, аниме сериалы, японская анимация';
 
-        if (searchQuery && searchQuery.trim()) {
+        if (material && material.title) {
+            // ---- Расширенное SEO под конкретное аниме ----
+            const md = material.material_data || {};
+            const q = material.title;
+            const genres = Array.isArray(md.genres) ? md.genres : [];
+            const rating = md.shikimori_rating || md.kinopoisk_rating || md.imdb_rating || null;
+            const year = material.year || md.year || '';
+            const typeName = material.type ? this.getTypeName(material.type) : '';
+
+            const genresPart = genres.length ? ` Жанры: ${genres.slice(0, 5).join(', ')}.` : '';
+            const ratingPart = rating ? ` Рейтинг: ${rating}.` : '';
+            const yearPart = year ? ` ${year} года.` : '';
+
+            const richTitle = `${q}${year ? ' (' + year + ')' : ''} - смотреть ${typeName ? typeName.toLowerCase() + ' ' : ''}онлайн бесплатно | KitsuneWatch`;
+            const richDescription = `Смотреть ${q} онлайн в хорошем качестве бесплатно, без регистрации.${yearPart}${genresPart}${ratingPart} Все серии и озвучки на KitsuneWatch.`;
+            const richKeywords = [`${q}`, `смотреть ${q}`, `${q} онлайн`, `${q} все серии`, `аниме ${q}`, ...genres.map(g => `аниме ${g.toLowerCase()}`)].join(', ');
+            const image = md.poster_url || defaultOgImage;
+
+            if (title) title.textContent = richTitle;
+            if (metaDescription) metaDescription.content = richDescription;
+            if (metaKeywords) metaKeywords.content = richKeywords;
+            if (ogTitle) ogTitle.content = richTitle;
+            if (ogDescription) ogDescription.content = richDescription;
+            if (ogUrl) ogUrl.content = window.location.href;
+            if (ogType) ogType.content = 'video.other';
+            if (ogImage && image) ogImage.content = image;
+            if (twitterTitle) twitterTitle.content = richTitle;
+            if (twitterDescription) twitterDescription.content = richDescription;
+            if (twitterImage && image) twitterImage.content = image;
+            this.updateCanonicalLink(window.location.href);
+            this.updateAnimeStructuredData(material);
+
+        } else if (searchQuery && searchQuery.trim()) {
             let query = searchQuery.trim();
             try {
                 query = decodeURIComponent(query);
@@ -805,19 +998,31 @@ class KitsuneWatchApp {
             if (ogTitle) ogTitle.content = `${query} - смотреть онлайн | KitsuneWatch`;
             if (ogDescription) ogDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch.`;
             if (ogUrl) ogUrl.content = window.location.href;
+            if (ogType) ogType.content = 'website';
+            if (ogImage && defaultOgImage) ogImage.content = defaultOgImage;
+            if (twitterTitle) twitterTitle.content = `${query} - смотреть онлайн | KitsuneWatch`;
+            if (twitterDescription) twitterDescription.content = `Смотреть ${query} онлайн в хорошем качестве. Все серии ${query} на KitsuneWatch.`;
             this.updateCanonicalLink(window.location.href);
+            this.removeStructuredData('anime-structured-data');
+            this.removeStructuredData('anime-breadcrumb-data');
 
         } else if (params.get('favorites') === 'true') {
             if (title) title.textContent = 'Избранное | KitsuneWatch';
             if (metaDescription) metaDescription.content = 'Ваши любимые аниме в избранном на KitsuneWatch. Быстрый доступ к сохраненным тайтлам.';
             if (ogTitle) ogTitle.content = 'Избранное | KitsuneWatch';
+            if (ogType) ogType.content = 'website';
             this.updateCanonicalLink(window.location.origin + '/?favorites=true');
+            this.removeStructuredData('anime-structured-data');
+            this.removeStructuredData('anime-breadcrumb-data');
 
         } else if (params.get('history') === 'true') {
             if (title) title.textContent = 'История просмотров | KitsuneWatch';
             if (metaDescription) metaDescription.content = 'История просмотров аниме на KitsuneWatch. Продолжайте смотреть с того места, где остановились.';
             if (ogTitle) ogTitle.content = 'История просмотров | KitsuneWatch';
+            if (ogType) ogType.content = 'website';
             this.updateCanonicalLink(window.location.origin + '/?history=true');
+            this.removeStructuredData('anime-structured-data');
+            this.removeStructuredData('anime-breadcrumb-data');
 
         } else {
             if (title) title.textContent = baseTitle;
@@ -826,7 +1031,13 @@ class KitsuneWatchApp {
             if (ogTitle) ogTitle.content = baseTitle;
             if (ogDescription) ogDescription.content = baseDescription;
             if (ogUrl) ogUrl.content = window.location.origin;
+            if (ogType) ogType.content = 'website';
+            if (ogImage && defaultOgImage) ogImage.content = defaultOgImage;
+            if (twitterTitle) twitterTitle.content = baseTitle;
+            if (twitterDescription) twitterDescription.content = baseDescription;
             this.updateCanonicalLink(window.location.origin);
+            this.removeStructuredData('anime-structured-data');
+            this.removeStructuredData('anime-breadcrumb-data');
         }
     }
 
@@ -838,6 +1049,72 @@ class KitsuneWatchApp {
             document.head.appendChild(canonical);
         }
         canonical.href = href;
+    }
+
+    // ============ СТРУКТУРИРОВАННЫЕ ДАННЫЕ (JSON-LD) ============
+    injectStructuredData(id, obj) {
+        this.removeStructuredData(id);
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = id;
+        script.textContent = JSON.stringify(obj);
+        document.head.appendChild(script);
+    }
+
+    removeStructuredData(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    // Собирает Schema.org разметку (Movie/TVSeries + BreadcrumbList) под
+    // конкретное аниме — помогает поисковикам показывать расширенные сниппеты
+    // (рейтинг, жанр, постер) в выдаче по названию тайтула.
+    updateAnimeStructuredData(material) {
+        const md = material.material_data || {};
+        const isSeries = /serial/.test(material.type || '');
+        const image = md.poster_url || undefined;
+        const genres = Array.isArray(md.genres) ? md.genres : undefined;
+        const rating = parseFloat(md.shikimori_rating || md.kinopoisk_rating || md.imdb_rating);
+
+        const schema = {
+            '@context': 'https://schema.org',
+            '@type': isSeries ? 'TVSeries' : 'Movie',
+            name: material.title,
+            alternateName: material.title_orig || undefined,
+            description: md.description ? md.description.slice(0, 500) : undefined,
+            genre: genres,
+            image,
+            url: window.location.href,
+            inLanguage: 'ru',
+            datePublished: (material.year || md.year) ? String(material.year || md.year) : undefined,
+            countryOfOrigin: md.countries?.[0] || undefined,
+            aggregateRating: (!isNaN(rating) && rating > 0) ? {
+                '@type': 'AggregateRating',
+                ratingValue: rating,
+                bestRating: 10,
+                worstRating: 1,
+                ratingCount: 1
+            } : undefined,
+            potentialAction: {
+                '@type': 'WatchAction',
+                target: window.location.href
+            }
+        };
+
+        // Убираем пустые поля, чтобы не отдавать "undefined" в JSON-LD
+        Object.keys(schema).forEach(key => schema[key] === undefined && delete schema[key]);
+
+        const breadcrumb = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Главная', item: window.location.origin },
+                { '@type': 'ListItem', position: 2, name: material.title, item: window.location.href }
+            ]
+        };
+
+        this.injectStructuredData('anime-structured-data', schema);
+        this.injectStructuredData('anime-breadcrumb-data', breadcrumb);
     }
 
     // ============ PWA ============
@@ -982,6 +1259,21 @@ class KitsuneWatchApp {
         this.premieresContainer.className = 'premieres-container';
         this.premieresContainer.style.display = 'block';
 
+        this.calendarContainer = document.createElement('div');
+        this.calendarContainer.className = 'calendar-container';
+        this.calendarContainer.style.display = 'block';
+        this.calendarContainer.addEventListener('click', (e) => {
+            const tab = e.target.closest('.calendar-day-tab');
+            if (tab?.dataset.date) {
+                this.selectCalendarDate(tab.dataset.date);
+                return;
+            }
+            const item = e.target.closest('.calendar-item');
+            if (item?.dataset.animeTitle) {
+                this.searchFromCalendar(item.dataset.animeTitle);
+            }
+        });
+
         this.collectionsContainer = document.createElement('div');
         this.collectionsContainer.className = 'collections-container';
         this.collectionsContainer.style.display = 'block';
@@ -1007,8 +1299,11 @@ class KitsuneWatchApp {
         this.favoriteButton.addEventListener('click', () => this.toggleFavorite());
 
         const mainBlock = document.querySelector('.main_block');
+        mainBlock.appendChild(this.cacheStatusBadgeWrapper || (this.cacheStatusBadgeWrapper = document.createElement('div')));
+        this.cacheStatusBadgeWrapper.className = 'cache-status-badge-wrapper';
         mainBlock.appendChild(this.aboutProjectContainer);
         mainBlock.appendChild(this.premieresContainer);
+        mainBlock.appendChild(this.calendarContainer);
         mainBlock.appendChild(this.collectionsContainer);
         mainBlock.appendChild(this.loadingOverlay);
         mainBlock.appendChild(this.tabsContainer);
@@ -1048,6 +1343,25 @@ class KitsuneWatchApp {
         topButton.addEventListener('click', () => this.loadTop100());
 
         searchContainer.appendChild(topButton);
+
+        // Кнопка принудительного обновления данных (обход клиентского кэша)
+        const refreshButton = document.createElement('button');
+        refreshButton.id = 'refreshDataButton';
+        refreshButton.className = 'refresh-data-button';
+        refreshButton.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
+        refreshButton.title = 'Обновить данные (обойти кэш)';
+        refreshButton.addEventListener('click', () => this.refreshCurrentView());
+
+        searchContainer.appendChild(refreshButton);
+        this.refreshButton = refreshButton;
+
+        // Индикатор состояния кэша ("данные из кэша" / "обновлено")
+        if (this.cacheStatusBadgeWrapper) {
+            const badge = document.createElement('span');
+            badge.className = 'cache-status-badge';
+            this.cacheStatusBadgeWrapper.appendChild(badge);
+            this.cacheStatusBadge = badge;
+        }
     }
 
     displayAboutProject() {
@@ -1150,6 +1464,18 @@ class KitsuneWatchApp {
         return url;
     }
 
+    // Экранирование под HTML-атрибут (в отличие от sanitizeInput, которое
+    // безопасно только для текстовых узлов) — нужно там, где значение
+    // подставляется в data-* атрибут внутри строкового шаблона innerHTML
+    escapeHtmlAttr(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // ============ FETCH ============
     async fetchWithTimeout(url, timeout = 15000) {
         const controller = new AbortController();
@@ -1184,6 +1510,7 @@ class KitsuneWatchApp {
         this.paginationContainer.style.display = 'none';
         this.hideAboutProject();
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
+        if (this.calendarContainer) this.calendarContainer.style.display = 'none';
         if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
         if (this.videoContainer) this.videoContainer.style.display = 'none';
     }
@@ -1211,17 +1538,138 @@ class KitsuneWatchApp {
         } catch (e) { return defaultValue; }
     }
 
+    // ============ КЭШ API-ДАННЫХ ============
+    getCacheEntry(key) {
+        try {
+            const raw = localStorage.getItem(this.CACHE_PREFIX + key);
+            if (!raw) return null;
+            const entry = JSON.parse(raw);
+            if (!entry || typeof entry.timestamp !== 'number') return null;
+            return entry;
+        } catch (e) { return null; }
+    }
+
+    setCacheEntry(key, data) {
+        try {
+            localStorage.setItem(this.CACHE_PREFIX + key, JSON.stringify({ data, timestamp: Date.now() }));
+        } catch (e) {
+            // localStorage переполнен или недоступен — работаем без кэша
+        }
+    }
+
+    isCacheFresh(entry, ttl) {
+        return !!entry && (Date.now() - entry.timestamp) < ttl;
+    }
+
+    clearCacheEntry(key) {
+        try { localStorage.removeItem(this.CACHE_PREFIX + key); } catch (e) { }
+    }
+
+    clearAllApiCache() {
+        try {
+            Object.keys(localStorage)
+                .filter(k => k.startsWith(this.CACHE_PREFIX))
+                .forEach(k => localStorage.removeItem(k));
+        } catch (e) { }
+    }
+
+    // Запрашивает JSON с TTL-кэшем в localStorage. При forceRefresh кэш
+    // игнорируется и данные забираются заново с сервера. Если сеть недоступна,
+    // но в кэше есть хоть устаревшие данные — отдаём их, чтобы не показывать
+    // пустой экран (аналогично офлайн-фолбэку в sw.js).
+    async fetchJSONCached(url, cacheKey, ttl, options = {}) {
+        const { forceRefresh = false, timeout = 15000 } = options;
+        const entry = this.getCacheEntry(cacheKey);
+
+        if (!forceRefresh && this.isCacheFresh(entry, ttl)) {
+            return { data: entry.data, fromCache: true, stale: false, cachedAt: entry.timestamp };
+        }
+
+        try {
+            const data = await this.fetchWithTimeout(url, timeout);
+            this.setCacheEntry(cacheKey, data);
+            return { data, fromCache: false, stale: false, cachedAt: Date.now() };
+        } catch (error) {
+            if (entry) {
+                return { data: entry.data, fromCache: true, stale: true, cachedAt: entry.timestamp };
+            }
+            throw error;
+        }
+    }
+
+    // ============ КНОПКА "ОБНОВИТЬ" И ИНДИКАТОР КЭША ============
+    showCacheStatus(fromCache, stale, cachedAt) {
+        if (!this.cacheStatusBadge) return;
+
+        if (!fromCache && !stale) {
+            this.cacheStatusBadge.className = 'cache-status-badge visible';
+            this.cacheStatusBadge.innerHTML = '<i class="bi bi-check-circle"></i> Данные обновлены';
+        } else if (stale) {
+            this.cacheStatusBadge.className = 'cache-status-badge visible stale';
+            this.cacheStatusBadge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Нет сети — показаны сохранённые данные';
+        } else {
+            this.cacheStatusBadge.className = 'cache-status-badge visible';
+            this.cacheStatusBadge.innerHTML = `<i class="bi bi-clock-history"></i> Из кэша (${this.formatTime(cachedAt)})`;
+        }
+
+        clearTimeout(this._cacheStatusTimeout);
+        this._cacheStatusTimeout = setTimeout(() => {
+            if (this.cacheStatusBadge) this.cacheStatusBadge.classList.remove('visible');
+        }, 4000);
+    }
+
+    // Обновляет данные того, что сейчас показано на экране, принудительно
+    // обходя клиентский кэш (серверный edge-кэш /api/* при этом всё ещё
+    // может отдать закэшированный ответ в пределах своего s-maxage).
+    async refreshCurrentView() {
+        if (!this.refreshButton || this.refreshButton.disabled) return;
+
+        this.refreshButton.disabled = true;
+        this.refreshButton.classList.add('spinning');
+
+        try {
+            if (this.viewMode === 'top100') {
+                await this.loadTop100(true);
+            } else if (this.viewMode === 'search' && this.currentSearchQuery) {
+                await this.performSearch(true);
+            } else {
+                this.clearCacheEntry('years');
+                this.clearCacheEntry('calendar');
+                await Promise.all([this.loadYearPremieres(true), this.loadCalendar(true)]);
+            }
+        } finally {
+            this.refreshButton.disabled = false;
+            this.refreshButton.classList.remove('spinning');
+        }
+    }
+
     // ============ ИСТОРИЯ ============
     addToHistory(query) {
         const clean = query.trim();
         if (!clean) return;
 
+        const existing = this.searchHistory.find(i => i.query.toLowerCase() === clean.toLowerCase());
+        const previousType = existing ? existing.type : undefined;
+
         this.searchHistory = this.searchHistory.filter(i => i.query.toLowerCase() !== clean.toLowerCase());
-        this.searchHistory.unshift({ query: clean, timestamp: Date.now() });
-        this.searchHistory = this.searchHistory.slice(0, 10);
+        this.searchHistory.unshift({ query: clean, timestamp: Date.now(), type: previousType });
+        this.searchHistory = this.searchHistory.slice(0, 30);
 
         this.saveToStorage('kitsunewatch_history', this.searchHistory);
         this.displayHistory();
+    }
+
+    // Дописывает категорию (тип контента) к уже сохранённой записи истории,
+    // когда становится известен результат поиска — так историю можно
+    // фильтровать по категориям, как и избранное.
+    updateHistoryType(query, type) {
+        if (!type) return;
+        const clean = query.trim().toLowerCase();
+        const item = this.searchHistory.find(i => i.query.toLowerCase() === clean);
+        if (item && item.type !== type) {
+            item.type = type;
+            this.saveToStorage('kitsunewatch_history', this.searchHistory);
+        }
     }
 
     removeFromHistory(query) {
@@ -1242,6 +1690,8 @@ class KitsuneWatchApp {
 
         if (this.searchHistory.length === 0) {
             this.historyContainer.style.display = 'none';
+            this.historyFilterQuery = '';
+            this.historyFilterType = 'all';
             return;
         }
 
@@ -1263,10 +1713,67 @@ class KitsuneWatchApp {
 
         this.historyContainer.appendChild(container);
 
-        // Группировка по дням
-        const groupedHistory = this.groupHistoryByDate(this.searchHistory);
+        // Поиск по истории — фильтрует список без перерисовки поля ввода,
+        // чтобы не терять фокус при вводе
+        const filterBar = this.createFilterBar({
+            placeholder: 'Поиск по истории...',
+            value: this.historyFilterQuery,
+            onInput: (value) => {
+                this.historyFilterQuery = value;
+                this.renderHistoryList();
+            }
+        });
+        this.historyContainer.appendChild(filterBar);
 
-        Object.entries(groupedHistory).forEach(([date, items]) => {
+        // Категории — доступны, если хотя бы у части записей известен тип
+        // (проставляется после успешного поиска, см. updateHistoryType)
+        const types = [...new Set(this.searchHistory.filter(i => i.type).map(i => i.type))];
+        if (types.length > 0) {
+            const chips = this.createCategoryChips(types, this.historyFilterType, (type) => {
+                this.historyFilterType = type;
+                this.renderHistoryList();
+            });
+            this.historyContainer.appendChild(chips);
+        } else {
+            this.historyFilterType = 'all';
+        }
+
+        this.historyListWrapper = document.createElement('div');
+        this.historyListWrapper.className = 'history-list-wrapper';
+        this.historyContainer.appendChild(this.historyListWrapper);
+
+        this.renderHistoryList();
+    }
+
+    // Перерисовывает только список записей истории (группировка по дням) —
+    // вызывается при вводе в поиск/переключении категории, без пересоздания
+    // заголовка и поля ввода
+    renderHistoryList() {
+        if (!this.historyListWrapper) return;
+        this.historyListWrapper.innerHTML = '';
+
+        const q = this.historyFilterQuery.trim().toLowerCase();
+        let items = this.searchHistory;
+
+        if (this.historyFilterType !== 'all') {
+            items = items.filter(i => i.type === this.historyFilterType);
+        }
+        if (q) {
+            items = items.filter(i => i.query.toLowerCase().includes(q));
+        }
+
+        if (items.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'inline-filter-empty';
+            empty.textContent = 'Ничего не найдено';
+            this.historyListWrapper.appendChild(empty);
+            return;
+        }
+
+        // Группировка по дням
+        const groupedHistory = this.groupHistoryByDate(items);
+
+        Object.entries(groupedHistory).forEach(([date, dateItems]) => {
             const dateGroup = document.createElement('div');
             dateGroup.className = 'history-date-group';
 
@@ -1278,9 +1785,16 @@ class KitsuneWatchApp {
             const list = document.createElement('div');
             list.className = 'history-list';
 
-            items.forEach(item => {
+            dateItems.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
+
+                if (item.type) {
+                    const badge = document.createElement('i');
+                    badge.className = `bi ${this.getTypeIcon(item.type)} history-item-type`;
+                    badge.title = this.getTypeName(item.type);
+                    div.appendChild(badge);
+                }
 
                 const span = document.createElement('span');
                 span.className = 'history-query';
@@ -1317,7 +1831,7 @@ class KitsuneWatchApp {
             });
 
             dateGroup.appendChild(list);
-            this.historyContainer.appendChild(dateGroup);
+            this.historyListWrapper.appendChild(dateGroup);
         });
     }
 
@@ -1407,6 +1921,8 @@ class KitsuneWatchApp {
 
         if (this.favorites.length === 0) {
             this.favoritesContainer.style.display = 'none';
+            this.favoritesFilterQuery = '';
+            this.favoritesFilterType = 'all';
             return;
         }
 
@@ -1417,10 +1933,64 @@ class KitsuneWatchApp {
         title.innerHTML = '<i class="bi bi-heart-fill"></i> Избранное';
         this.favoritesContainer.appendChild(title);
 
-        // Группировка по категориям
-        const categories = this.groupFavoritesByType(this.favorites);
+        // Поиск по избранному
+        const filterBar = this.createFilterBar({
+            placeholder: 'Поиск по избранному...',
+            value: this.favoritesFilterQuery,
+            onInput: (value) => {
+                this.favoritesFilterQuery = value;
+                this.renderFavoritesList();
+            }
+        });
+        this.favoritesContainer.appendChild(filterBar);
 
-        Object.entries(categories).forEach(([type, items]) => {
+        // Категории — показываем чипы, только если есть больше одного типа
+        const types = [...new Set(this.favorites.map(f => f.type || 'other'))];
+        if (types.length > 1) {
+            const chips = this.createCategoryChips(types, this.favoritesFilterType, (type) => {
+                this.favoritesFilterType = type;
+                this.renderFavoritesList();
+            });
+            this.favoritesContainer.appendChild(chips);
+        } else {
+            this.favoritesFilterType = 'all';
+        }
+
+        this.favoritesListWrapper = document.createElement('div');
+        this.favoritesListWrapper.className = 'favorites-list-wrapper';
+        this.favoritesContainer.appendChild(this.favoritesListWrapper);
+
+        this.renderFavoritesList();
+    }
+
+    // Перерисовывает только список избранного (группировка по категориям) —
+    // вызывается при вводе в поиск/переключении категории
+    renderFavoritesList() {
+        if (!this.favoritesListWrapper) return;
+        this.favoritesListWrapper.innerHTML = '';
+
+        const q = this.favoritesFilterQuery.trim().toLowerCase();
+        let items = this.favorites;
+
+        if (this.favoritesFilterType !== 'all') {
+            items = items.filter(f => (f.type || 'other') === this.favoritesFilterType);
+        }
+        if (q) {
+            items = items.filter(f => (f.title || '').toLowerCase().includes(q));
+        }
+
+        if (items.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'inline-filter-empty';
+            empty.textContent = 'Ничего не найдено';
+            this.favoritesListWrapper.appendChild(empty);
+            return;
+        }
+
+        // Группировка по категориям
+        const categories = this.groupFavoritesByType(items);
+
+        Object.entries(categories).forEach(([type, catItems]) => {
             const categoryBlock = document.createElement('div');
             categoryBlock.className = 'favorites-category';
 
@@ -1429,14 +1999,14 @@ class KitsuneWatchApp {
             categoryTitle.innerHTML = `
                 <i class="bi ${this.getTypeIcon(type)}"></i>
                 ${this.getTypeName(type)}
-                <span class="favorites-count">${items.length}</span>
+                <span class="favorites-count">${catItems.length}</span>
             `;
             categoryBlock.appendChild(categoryTitle);
 
             const list = document.createElement('div');
             list.className = 'favorites-list';
 
-            items.forEach(fav => {
+            catItems.forEach(fav => {
                 const card = document.createElement('div');
                 card.className = 'favorite-card';
 
@@ -1466,8 +2036,65 @@ class KitsuneWatchApp {
             });
 
             categoryBlock.appendChild(list);
-            this.favoritesContainer.appendChild(categoryBlock);
+            this.favoritesListWrapper.appendChild(categoryBlock);
         });
+    }
+
+    // ============ ПОИСК И КАТЕГОРИИ ВНУТРИ ИСТОРИИ/ИЗБРАННОГО ============
+    createFilterBar({ placeholder, value, onInput }) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'inline-filter-bar';
+
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-search inline-filter-icon';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'inline-filter-input';
+        input.placeholder = placeholder;
+        input.value = value || '';
+        input.addEventListener('input', () => onInput(input.value));
+
+        wrapper.appendChild(icon);
+        wrapper.appendChild(input);
+
+        if (value) {
+            const clear = document.createElement('button');
+            clear.type = 'button';
+            clear.className = 'inline-filter-clear';
+            clear.innerHTML = '<i class="bi bi-x"></i>';
+            clear.addEventListener('click', () => {
+                input.value = '';
+                onInput('');
+                clear.remove();
+            });
+            wrapper.appendChild(clear);
+        }
+
+        return wrapper;
+    }
+
+    createCategoryChips(types, activeType, onSelect) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'inline-category-chips';
+
+        const allChip = document.createElement('button');
+        allChip.type = 'button';
+        allChip.className = 'category-chip' + (activeType === 'all' ? ' active' : '');
+        allChip.textContent = 'Все';
+        allChip.addEventListener('click', () => onSelect('all'));
+        wrapper.appendChild(allChip);
+
+        types.forEach(type => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'category-chip' + (activeType === type ? ' active' : '');
+            chip.innerHTML = `<i class="bi ${this.getTypeIcon(type)}"></i> ${this.getTypeName(type)}`;
+            chip.addEventListener('click', () => onSelect(type));
+            wrapper.appendChild(chip);
+        });
+
+        return wrapper;
     }
 
     groupFavoritesByType(favorites) {
@@ -1552,6 +2179,7 @@ class KitsuneWatchApp {
         this.isVideoLoading = true;
         this.hideAboutProject();
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
+        if (this.calendarContainer) this.calendarContainer.style.display = 'none';
         if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
 
         this.videoName.textContent = `${material.title || 'Без названия'} (${material.year || '?'})`;
@@ -1603,7 +2231,7 @@ class KitsuneWatchApp {
         if (material.title) {
             const newUrl = `${window.location.origin}/?search=${encodeURIComponent(material.title)}`;
             this.updateUrlWithoutReload(newUrl);
-            this.updateSEO();
+            this.updateSEO(material);
             this.currentSearchQuery = material.title;
         }
     }
@@ -1820,7 +2448,7 @@ class KitsuneWatchApp {
     }
 
     // ============ ПОИСК ============
-    async performSearch() {
+    async performSearch(forceRefresh = false) {
         const query = this.searchInput.value.trim();
         if (!query) {
             this.showError('Введите название аниме');
@@ -1831,6 +2459,7 @@ class KitsuneWatchApp {
         this.currentSearchQuery = query;
         this.currentPage = 1;
         this.activeFilter = 'all';
+        this.viewMode = 'search';
 
         const newUrl = `${window.location.origin}/?search=${encodeURIComponent(query)}`;
         this.updateUrlWithoutReload(newUrl);
@@ -1839,10 +2468,14 @@ class KitsuneWatchApp {
         this.showLoading();
         this.addToHistory(query);
 
+        const cacheKey = `search_${query.trim().toLowerCase()}`;
+
         try {
             const searchUrl = `${this.API_URL}?title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
 
-            const data = await this.fetchWithTimeout(searchUrl, 15000);
+            const { data, fromCache, stale, cachedAt } = await this.fetchJSONCached(
+                searchUrl, cacheKey, this.CACHE_TTL.search, { forceRefresh, timeout: 15000 }
+            );
 
             if (data.results?.length > 0) {
                 this.hasSearched = true;
@@ -1851,6 +2484,8 @@ class KitsuneWatchApp {
                 this.filteredResults = grouped;
                 this.clearErrorMessages();
                 this.displayAllResults(grouped);
+                this.updateHistoryType(query, grouped[0]?.type);
+                this.showCacheStatus(fromCache, stale, cachedAt);
 
                 setTimeout(() => {
                     this.displayHistory();

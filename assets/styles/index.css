@@ -565,9 +565,10 @@ h3 .bi,
     opacity: 0.6;
 }
 
-/* Кнопки рандомайзера и топ 100 */
+/* Кнопки рандомайзера, топ 100 и обновления данных */
 .random-anime-button,
-.top-100-button {
+.top-100-button,
+.refresh-data-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -586,20 +587,23 @@ h3 .bi,
     font-family: 'Roboto', sans-serif;
 }
 
-.random-anime-button {
+.random-anime-button,
+.refresh-data-button {
     padding: 12px;
     font-size: 18px;
 }
 
 .random-anime-button .bi,
-.top-100-button .bi {
+.top-100-button .bi,
+.refresh-data-button .bi {
     font-size: 1.1em;
     margin-right: 0;
     transition: transform 0.3s ease;
 }
 
 .random-anime-button:hover,
-.top-100-button:hover {
+.top-100-button:hover,
+.refresh-data-button:hover {
     background-color: var(--accent-hover);
     border-color: var(--accent-hover);
     transform: translateY(-2px);
@@ -611,7 +615,8 @@ h3 .bi,
 }
 
 .random-anime-button:active,
-.top-100-button:active {
+.top-100-button:active,
+.refresh-data-button:active {
     background-color: var(--accent);
     border-color: var(--accent);
     transform: translateY(0);
@@ -620,6 +625,45 @@ h3 .bi,
 
 .random-anime-button.spinning .bi {
     animation: spin 1s ease-in-out;
+}
+
+.refresh-data-button.spinning .bi {
+    animation: spin 0.8s linear infinite;
+}
+
+.refresh-data-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Индикатор состояния кэша данных ("обновлено" / "из кэша" / "нет сети") */
+.cache-status-badge-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 0;
+}
+
+.cache-status-badge {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #9aa5b1;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+}
+
+.cache-status-badge.visible {
+    display: inline-flex;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+.cache-status-badge.stale {
+    color: #e9a145;
 }
 
 @keyframes spin {
@@ -1160,6 +1204,114 @@ h3 .bi,
     background-color: rgba(233, 69, 96, 0.7);
 }
 
+/* Поиск и фильтр категорий внутри истории и избранного */
+.history-list-wrapper,
+.favorites-list-wrapper {
+    display: block;
+}
+
+.inline-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+}
+
+.inline-filter-bar:focus-within {
+    border-color: var(--accent);
+}
+
+.inline-filter-icon {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 13px;
+}
+
+.inline-filter-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 13px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.inline-filter-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.inline-filter-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.inline-filter-clear:hover {
+    color: #fff;
+}
+
+.inline-category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 11px;
+    background: rgba(var(--accent-rgb), 0.22);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    border-radius: 14px;
+    font-size: 11px;
+    font-family: 'Roboto', sans-serif;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.category-chip:hover {
+    background: rgba(var(--accent-rgb), 0.4);
+    color: #fff;
+}
+
+.category-chip.active {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: #fff;
+    font-weight: 500;
+}
+
+.inline-filter-empty {
+    padding: 16px 12px;
+    text-align: center;
+    color: #9aa5b1;
+    font-size: 13px;
+}
+
+.history-item-type {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    margin-right: 2px;
+    flex-shrink: 0;
+}
+
 /* Загрузка */
 .loading-overlay {
     position: fixed;
@@ -1590,6 +1742,222 @@ h3 .bi,
     color: #bdc3c7;
     line-height: 1.4;
     margin: 0;
+}
+
+/* График премьер */
+.calendar-container {
+    margin-bottom: 30px;
+}
+
+.calendar-block {
+    position: relative;
+    z-index: 1;
+}
+
+.calendar-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    margin-bottom: 16px;
+}
+
+.calendar-header i {
+    font-size: 26px;
+    color: var(--accent-light);
+    align-self: center;
+}
+
+.calendar-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.calendar-subtitle {
+    font-size: 13px;
+    color: #9aa5b1;
+}
+
+.calendar-day-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+    scrollbar-width: thin;
+}
+
+.calendar-day-tabs::-webkit-scrollbar {
+    height: 5px;
+}
+
+.calendar-day-tabs::-webkit-scrollbar-thumb {
+    background: rgba(var(--accent-rgb), 0.5);
+    border-radius: 10px;
+}
+
+.calendar-day-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 64px;
+    padding: 8px 10px;
+    background: rgba(var(--accent-rgb), 0.2);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.calendar-day-tab:hover {
+    background: rgba(var(--accent-rgb), 0.35);
+}
+
+.calendar-day-tab.active {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    box-shadow: 0 4px 12px rgba(var(--accent-hover-rgb), 0.35);
+}
+
+.calendar-day-tab-weekday {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.calendar-day-tab-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.calendar-day-tab-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--accent-light);
+    color: #151515;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.calendar-item {
+    display: flex;
+    gap: 12px;
+    background: rgba(var(--accent-rgb), 0.18);
+    border: 1px solid rgba(var(--accent-rgb), 0.32);
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.calendar-item:hover {
+    background: rgba(var(--accent-rgb), 0.35);
+    border-color: var(--accent-hover);
+    transform: translateY(-3px);
+}
+
+.calendar-item-poster {
+    width: 52px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-item-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.calendar-item-noposter {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.calendar-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.calendar-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.calendar-item-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+}
+
+.calendar-item-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 10px;
+    background: rgba(var(--accent-rgb), 0.4);
+    color: #fff;
+    white-space: nowrap;
+}
+
+.calendar-item-badge.premiere {
+    background: rgba(233, 69, 96, 0.55);
+}
+
+.calendar-item-badge.projected {
+    background: rgba(255, 255, 255, 0.12);
+    color: #9aa5b1;
+}
+
+.calendar-item-time {
+    font-size: 11px;
+    color: #9aa5b1;
+}
+
+.calendar-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 24px 12px;
+    color: #9aa5b1;
+    font-size: 13px;
 }
 
 /* Топ 100 */
@@ -2143,7 +2511,8 @@ h3 .bi,
     }
     
     .random-anime-button,
-    .top-100-button {
+    .top-100-button,
+    .refresh-data-button {
         width: 100%;
         justify-content: center;
     }
@@ -2172,6 +2541,15 @@ h3 .bi,
     
     .collection-card h3 {
         font-size: 14px;
+    }
+    
+    .calendar-items {
+        grid-template-columns: 1fr;
+    }
+    
+    .calendar-item-poster {
+        width: 44px;
+        height: 60px;
     }
     
     .top-100-header {
@@ -2654,9 +3032,10 @@ h3 .bi,
         font-size: 13px;
     }
     
-    /* Кнопки рандомайзера и топ 100 */
+    /* Кнопки рандомайзера, топ 100 и обновления данных */
     .random-anime-button,
-    .top-100-button {
+    .top-100-button,
+    .refresh-data-button {
         width: 100%;
         padding: 10px 16px;
         font-size: 13px;
