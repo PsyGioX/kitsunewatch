@@ -645,6 +645,12 @@ class KitsuneWatchApp {
 
         this.calendarContainer.style.display = 'block';
 
+        // Сохраняем горизонтальный скролл ряда дат — этот метод пересоздаёт
+        // весь блок целиком (используется при первой загрузке/принудительном
+        // обновлении данных), поэтому без этого прокрутка каждый раз слетала бы
+        const existingTabs = this.calendarContainer.querySelector('.calendar-day-tabs');
+        const savedScrollLeft = existingTabs ? existingTabs.scrollLeft : 0;
+
         const tabs = this.calendarData.map(day => `
             <button type="button"
                 class="calendar-day-tab${day.date === this.calendarActiveDate ? ' active' : ''}"
@@ -671,6 +677,9 @@ class KitsuneWatchApp {
                 </div>
             </div>
         `;
+
+        const newTabs = this.calendarContainer.querySelector('.calendar-day-tabs');
+        if (newTabs) newTabs.scrollLeft = savedScrollLeft;
     }
 
     renderCalendarItem(item) {
@@ -704,7 +713,25 @@ class KitsuneWatchApp {
 
     selectCalendarDate(date) {
         this.calendarActiveDate = date;
-        this.displayCalendar();
+        // Точечное обновление: трогаем только активный класс вкладки и список
+        // карточек, не пересоздавая ряд дат целиком — иначе он всегда сбрасывал
+        // бы горизонтальный скролл на 0 при каждом клике по дате
+        this.updateCalendarSelection();
+    }
+
+    updateCalendarSelection() {
+        if (!this.calendarContainer || !this.calendarData?.length) return;
+
+        this.calendarContainer.querySelectorAll('.calendar-day-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.date === this.calendarActiveDate);
+        });
+
+        const itemsContainer = this.calendarContainer.querySelector('.calendar-items');
+        if (!itemsContainer) return;
+
+        const activeDay = this.calendarData.find(d => d.date === this.calendarActiveDate) || this.calendarData[0];
+        const items = activeDay.items.map(item => this.renderCalendarItem(item)).join('');
+        itemsContainer.innerHTML = items || '<div class="calendar-empty">В этот день премьер не запланировано</div>';
     }
 
     async searchFromCalendar(title) {
