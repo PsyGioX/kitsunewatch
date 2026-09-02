@@ -2949,39 +2949,28 @@ class KitsuneWatchApp {
 
     // ============ ПОДЕЛИТЬСЯ ============
     async copyShareLink() {
-        let shareUrl = this.generateShareUrl(this.currentVideo);
+        const shareUrl = this.generateShareUrl(this.currentVideo);
 
         if (!shareUrl || shareUrl === '#' || shareUrl === window.location.origin + '/') {
             this.showError('Нет ссылки для копирования');
             return;
         }
 
-        try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: this.currentVideo?.title || 'KitsuneWatch - Смотри аниме онлайн',
-                    text: `Смотрите "${this.currentVideo?.title || 'аниме'}" на KitsuneWatch!`,
-                    url: shareUrl
-                });
-                return;
+        // Кастомная модалка вместо системного меню "Поделиться" —
+        // navigator.share() сюда специально не подключаем.
+        this.showShareFallbackModal(shareUrl);
+
+        // Пытаемся сразу скопировать в буфер без лишнего клика —
+        // если получилось, модалка откроется уже с пометкой "Скопировано!".
+        if (navigator.clipboard) {
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                this.shareModalCopyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
+                this.shareModalCopyBtn.classList.add('copied');
+            } catch (error) {
+                // Разрешение на буфер не дали — не страшно, в модалке
+                // есть поле со ссылкой и своя кнопка "Копировать".
             }
-
-            await navigator.clipboard.writeText(shareUrl);
-
-            this.shareButton.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
-            this.shareButton.classList.add('copied');
-
-            setTimeout(() => {
-                this.shareButton.innerHTML = '<i class="bi bi-share"></i> Поделиться';
-                this.shareButton.classList.remove('copied');
-            }, 3000);
-
-        } catch (error) {
-            // AbortError — пользователь сам закрыл системное окно "Поделиться",
-            // это не ошибка, показывать модалку не нужно.
-            if (error?.name === 'AbortError') return;
-            console.error('Share error:', error);
-            this.showShareFallbackModal(shareUrl);
         }
     }
 
