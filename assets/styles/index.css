@@ -3679,3 +3679,136 @@ h3 .bi,
     }
 }
 
+
+/* ============ МОДАЛКА "ПОДЕЛИТЬСЯ" (фолбэк вместо alert()) ============ */
+.share-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 10, 0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    padding: 16px;
+}
+
+.share-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.share-modal {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-base);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    border-radius: var(--radius-lg, 18px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.25s ease;
+}
+
+.share-modal-overlay.active .share-modal {
+    transform: translateY(0) scale(1);
+}
+
+.share-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.share-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--accent-light);
+    margin: 0;
+}
+
+.share-modal-close {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+
+.share-modal-close:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.share-modal-row {
+    display: flex;
+    gap: 8px;
+}
+
+.share-modal-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 13px;
+}
+
+.share-modal-input:focus {
+    outline: none;
+    border-color: var(--accent-light);
+}
+
+.share-modal-copy-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    background: var(--accent);
+    border: 1px solid var(--accent-hover);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.share-modal-copy-button:hover {
+    background: var(--accent-hover);
+}
+
+.share-modal-copy-button.copied {
+    background: #1f9d55;
+    border-color: #1f9d55;
+}
+
+@media (max-width: 480px) {
+    .share-modal-row {
+        flex-direction: column;
+    }
+
+    .share-modal-copy-button {
+        padding: 10px 14px;
+        justify-content: center;
+    }
+}

@@ -1402,6 +1402,100 @@ class KitsuneWatchApp {
 
         // Добавляем кнопку рандомайзера
         this.addRandomButton();
+
+        this.createShareFallbackModal();
+    }
+
+    // ============ МОДАЛКА "СКОПИРУЙТЕ ССЫЛКУ ВРУЧНУЮ" ============
+    // Показывается вместо нативного alert(), когда navigator.share
+    // недоступен и navigator.clipboard.writeText не сработал (например,
+    // нет разрешения или страница открыта не по https).
+    createShareFallbackModal() {
+        this.shareModalOverlay = document.createElement('div');
+        this.shareModalOverlay.className = 'share-modal-overlay';
+        this.shareModalOverlay.addEventListener('click', (e) => {
+            if (e.target === this.shareModalOverlay) this.hideShareFallbackModal();
+        });
+
+        const modal = document.createElement('div');
+        modal.className = 'share-modal';
+
+        const title = document.createElement('h3');
+        title.className = 'share-modal-title';
+        title.innerHTML = '<i class="bi bi-link-45deg"></i> Скопируйте ссылку вручную';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'share-modal-close';
+        closeBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+        closeBtn.setAttribute('aria-label', 'Закрыть');
+        closeBtn.addEventListener('click', () => this.hideShareFallbackModal());
+
+        const header = document.createElement('div');
+        header.className = 'share-modal-header';
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        const row = document.createElement('div');
+        row.className = 'share-modal-row';
+
+        this.shareModalInput = document.createElement('input');
+        this.shareModalInput.type = 'text';
+        this.shareModalInput.className = 'share-modal-input';
+        this.shareModalInput.readOnly = true;
+        this.shareModalInput.addEventListener('click', () => this.shareModalInput.select());
+
+        this.shareModalCopyBtn = document.createElement('button');
+        this.shareModalCopyBtn.type = 'button';
+        this.shareModalCopyBtn.className = 'share-modal-copy-button';
+        this.shareModalCopyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Копировать';
+        this.shareModalCopyBtn.addEventListener('click', () => this.copyShareModalLink());
+
+        row.appendChild(this.shareModalInput);
+        row.appendChild(this.shareModalCopyBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(row);
+        this.shareModalOverlay.appendChild(modal);
+        document.body.appendChild(this.shareModalOverlay);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.shareModalOverlay.classList.contains('active')) {
+                this.hideShareFallbackModal();
+            }
+        });
+    }
+
+    showShareFallbackModal(url) {
+        if (!this.shareModalOverlay) return;
+        this.shareModalInput.value = url;
+        this.shareModalCopyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Копировать';
+        this.shareModalCopyBtn.classList.remove('copied');
+        this.shareModalOverlay.classList.add('active');
+        setTimeout(() => {
+            this.shareModalInput.focus();
+            this.shareModalInput.select();
+        }, 50);
+    }
+
+    hideShareFallbackModal() {
+        if (this.shareModalOverlay) this.shareModalOverlay.classList.remove('active');
+    }
+
+    async copyShareModalLink() {
+        const url = this.shareModalInput.value;
+        try {
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(url);
+            } else {
+                this.shareModalInput.select();
+                document.execCommand('copy');
+            }
+            this.shareModalCopyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
+            this.shareModalCopyBtn.classList.add('copied');
+        } catch (error) {
+            this.shareModalInput.select();
+        }
     }
 
     addRandomButton() {
@@ -2331,7 +2425,7 @@ class KitsuneWatchApp {
         this.resultsContainer.style.display = 'block';
 
         if (material.title) {
-            const newUrl = `${window.location.origin}/?search=${encodeURIComponent(material.title)}`;
+            const newUrl = this.buildSearchUrl(material.title);
             this.updateUrlWithoutReload(newUrl);
             this.updateSEO(material);
             this.currentSearchQuery = material.title;
@@ -2520,30 +2614,32 @@ class KitsuneWatchApp {
     }
 
     // ============ ГЕНЕРАЦИЯ ССЫЛОК ДЛЯ ШЕРИНГА ============
-    generateShareUrl(material) {
-        const baseUrl = window.location.origin;
+    // Собирает URL через URLSearchParams — он сам кодирует значения при
+    // toString() по правилам application/x-www-form-urlencoded, где пробел
+    // становится "+", а не "%20"/"%2520". Так ссылка выглядит опрятно и в
+    // адресной строке, и в сниппетах поисковиков, вместо простыни из %XX.
+    buildSearchUrl(query) {
         const params = new URLSearchParams();
+        params.set('search', query.trim());
+        return `${window.location.origin}/?${params.toString()}`;
+    }
 
-        // URLSearchParams сам кодирует значения при toString() — если
-        // передавать уже закодированную через encodeURIComponent строку,
-        // получается двойное кодирование (%25D0%25... вместо %D0%...),
-        // из-за чего ссылка выглядит как мусор и криво парсится обратно.
+    generateShareUrl(material) {
         if (material && material.title) {
-            params.set('search', material.title.trim());
-            return `${baseUrl}/?${params.toString()}`;
+            return this.buildSearchUrl(material.title);
         }
 
         if (material && material.id) {
+            const params = new URLSearchParams();
             params.set('video', material.id);
-            return `${baseUrl}/?${params.toString()}`;
+            return `${window.location.origin}/?${params.toString()}`;
         }
 
         if (this.currentSearchQuery) {
-            params.set('search', this.currentSearchQuery.trim());
-            return `${baseUrl}/?${params.toString()}`;
+            return this.buildSearchUrl(this.currentSearchQuery);
         }
 
-        return baseUrl;
+        return window.location.origin;
     }
 
     // ============ ОБНОВЛЕНИЕ URL БЕЗ ПЕРЕЗАГРУЗКИ ============
@@ -2567,7 +2663,7 @@ class KitsuneWatchApp {
         this.activeFilter = 'all';
         this.viewMode = 'search';
 
-        const newUrl = `${window.location.origin}/?search=${encodeURIComponent(query)}`;
+        const newUrl = this.buildSearchUrl(query);
         this.updateUrlWithoutReload(newUrl);
         this.updateSEO();
 
@@ -2881,8 +2977,11 @@ class KitsuneWatchApp {
             }, 3000);
 
         } catch (error) {
+            // AbortError — пользователь сам закрыл системное окно "Поделиться",
+            // это не ошибка, показывать модалку не нужно.
+            if (error?.name === 'AbortError') return;
             console.error('Share error:', error);
-            alert(`Скопируйте ссылку вручную:\n${shareUrl}`);
+            this.showShareFallbackModal(shareUrl);
         }
     }
 
