@@ -55,6 +55,7 @@ class KitsuneWatchApp {
         this.totalPages = 1;
         this.filteredResults = [];
         this.viewMode = 'home'; // 'home' | 'search' | 'top100'
+        this.currentSearchController = null; // Для отмены активных поисков
 
         // ============ КЭШИРОВАНИЕ ДАННЫХ API ============
         // Клиентский кэш поверх серверного Cache-Control (/api/*) и Service
@@ -1382,14 +1383,17 @@ class KitsuneWatchApp {
             <div class="loading-content">
                 <div class="loading-spinner"></div>
                 <div class="loading-text">Поиск</div>
+                <button class="loading-cancel-button" title="Отменить поиск">
+                    <i class="bi bi-x"></i>
+                </button>
             </div>
         `;
         
-        // Добавляем обработчик для закрытия по клику вне контента
+        // Добавляем обработчик для отмены поиска
         this.loadingOverlay.addEventListener('click', (e) => {
-            if (e.target === this.loadingOverlay && this.isSearching) {
-                // Можно добавить логику для отмены поиска, если нужно
-                // this.cancelSearch();
+            const cancelButton = e.target.closest('.loading-cancel-button');
+            if (cancelButton && this.isSearching) {
+                this.cancelCurrentSearch();
             }
         });
 
@@ -1724,9 +1728,14 @@ class KitsuneWatchApp {
     }
 
     // ============ FETCH ============
-    async fetchWithTimeout(url, timeout = 15000) {
+    async fetchWithTimeout(url, timeout = 15000, signal = null) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        // Если передан внешний сигнал, отменяем запрос при его срабатывании
+        if (signal) {
+            signal.addEventListener('abort', () => controller.abort());
+        }
 
         try {
             const response = await fetch(url, {
@@ -1738,6 +1747,15 @@ class KitsuneWatchApp {
         } finally {
             clearTimeout(timeoutId);
         }
+    }
+
+    // Отмена текущего поиска
+    cancelCurrentSearch() {
+        if (this.currentSearchController) {
+            this.currentSearchController.abort();
+            this.currentSearchController = null;
+        }
+        this.hideLoading();
     }
 
     // ============ ЗАГРУЗКА ============
@@ -1848,7 +1866,7 @@ class KitsuneWatchApp {
     // но в кэше есть хоть устаревшие данные — отдаём их, чтобы не показывать
     // пустой экран (аналогично офлайн-фолбэку в sw.js).
     async fetchJSONCached(url, cacheKey, ttl, options = {}) {
-        const { forceRefresh = false, timeout = 15000 } = options;
+        const { forceRefresh = false, timeout = 15000, signal = null } = options;
         const entry = this.getCacheEntry(cacheKey);
 
         if (!forceRefresh && this.isCacheFresh(entry, ttl)) {
@@ -1856,7 +1874,7 @@ class KitsuneWatchApp {
         }
 
         try {
-            const data = await this.fetchWithTimeout(url, timeout);
+            const data = await this.fetchWithTimeout(url, timeout, signal);
             this.setCacheEntry(cacheKey, data);
             return { data, fromCache: false, stale: false, cachedAt: Date.now() };
         } catch (error) {
@@ -2070,6 +2088,9 @@ class KitsuneWatchApp {
                 span.className = 'history-query';
                 span.textContent = item.query;
                 span.addEventListener('click', () => {
+                    // Предотвращаем повторные клики пока идет поиск
+                    if (this.isSearching) return;
+                    
                     let query = item.query;
                     try {
                         query = decodeURIComponent(query);
@@ -2077,9 +2098,6 @@ class KitsuneWatchApp {
                             query = decodeURIComponent(query);
                         }
                     } catch (e) { }
-                    
-                    // Показываем прелоадер сразу перед началом поиска
-                    this.showLoading(`Ищем "${query}"`);
                     
                     this.searchInput.value = query;
                     this.currentSearchQuery = query;
@@ -2752,6 +2770,13 @@ class KitsuneWatchApp {
             this.showError('Введите название аниме');
             return;
         }
+        
+        // Отменяем предыдущий поиск, если он еще выполняется
+        if (this.currentSearchController) {
+            this.currentSearchController.abort();
+        }
+        
+        // Предотвращаем запуск нескольких поисков одновременно
         if (this.isSearching) return;
 
         this.currentSearchQuery = query;
@@ -2763,19 +2788,24 @@ class KitsuneWatchApp {
         this.updateUrlWithoutReload(newUrl);
         this.updateSEO();
 
-        // Показываем прелоадер только если он еще не показан
-        if (!this.isSearching) {
-            this.showLoading(`Ищем "${query}"`);
-        }
+        // Показываем прелоадер
+        this.showLoading(`Ищем "${query}"`);
         this.addToHistory(query);
 
         const cacheKey = `search_${query.trim().toLowerCase()}`;
+        
+        // Создаем новый контроллер для этого поиска
+        this.currentSearchController = new AbortController();
 
         try {
             const searchUrl = `${this.API_URL}?title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
 
             const { data, fromCache, stale, cachedAt } = await this.fetchJSONCached(
-                searchUrl, cacheKey, this.CACHE_TTL.search, { forceRefresh, timeout: 15000 }
+                searchUrl, cacheKey, this.CACHE_TTL.search, { 
+                    forceRefresh, 
+                    timeout: 15000,
+                    signal: this.currentSearchController.signal
+                }
             );
 
             if (data.results?.length > 0) {
@@ -2806,6 +2836,8 @@ class KitsuneWatchApp {
                 this.showError('Ошибка при поиске');
             }
         } finally {
+            // Очищаем ссылку на контроллер и скрываем загрузку
+            this.currentSearchController = null;
             this.hideLoading();
         }
     }
@@ -2981,6 +3013,9 @@ class KitsuneWatchApp {
 
     // ============ ОШИБКИ ============
     showError(message) {
+        // Убеждаемся, что прелоадер скрыт при показе ошибки
+        this.hideLoading();
+        
         this.clearAllResults();
         const error = document.createElement('div');
         error.className = 'error-message';
