@@ -534,6 +534,7 @@ class KitsuneWatchApp {
         this.setupProtection();
         this.setupPlayerListener();
         this.setupPWA();
+        this.setupViewportHeight();
         this.displayAboutProject();
         this.loadYearPremieres();
         this.loadCalendar();
@@ -545,6 +546,20 @@ class KitsuneWatchApp {
             this.displayHistory();
             this.displayFavorites();
         }, 500);
+    }
+    
+    // ============ VIEWPORT HEIGHT FIX ============
+    setupViewportHeight() {
+        const setVH = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+        
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setVH, 100);
+        });
     }
 
     // ============ ЗАГРУЗКА ПРЕМЬЕР ГОДА ============
@@ -1735,10 +1750,13 @@ class KitsuneWatchApp {
             const loadingText = this.loadingOverlay.querySelector('.loading-text');
             if (loadingText) loadingText.textContent = text;
             
+            // Моментальное появление без анимаций
             this.loadingOverlay.style.display = 'flex';
-            // Принудительная перерисовка для корректной анимации
-            this.loadingOverlay.offsetHeight;
             this.loadingOverlay.classList.add('active');
+            
+            // Исправление для мобильных браузеров
+            this.loadingOverlay.style.height = '100vh';
+            this.loadingOverlay.style.height = '100dvh';
         }
 
         this.resultsContainer.style.display = 'none';
@@ -1753,6 +1771,12 @@ class KitsuneWatchApp {
         
         // Предотвращаем скролл страницы во время загрузки
         document.body.style.overflow = 'hidden';
+        // Для iOS Safari
+        document.documentElement.style.overflow = 'hidden';
+        
+        // Фиксация высоты для мобильных
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
     }
 
     hideLoading() {
@@ -1761,16 +1785,14 @@ class KitsuneWatchApp {
         this.searchButton.innerHTML = '<i class="bi bi-search"></i> Искать';
 
         if (this.loadingOverlay) {
+            // Моментальное скрытие
             this.loadingOverlay.classList.remove('active');
-            setTimeout(() => {
-                if (this.loadingOverlay) {
-                    this.loadingOverlay.style.display = 'none';
-                }
-            }, 400);
+            this.loadingOverlay.style.display = 'none';
         }
         
         // Восстанавливаем скролл страницы
         document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
     }
 
     // ============ localStorage ============

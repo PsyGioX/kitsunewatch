@@ -46,6 +46,9 @@
     --space-4: 16px;
     --space-5: 24px;
     --space-6: 32px;
+    
+    /* Динамическая высота viewport для мобильных */
+    --vh: 1vh;
 }
 
 [data-theme="sakura"] {
@@ -1317,21 +1320,30 @@ h3 .bi,
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+    right: 0;
+    bottom: 0;
+    width: 100%;
     height: 100vh;
-    min-width: 100%;
-    min-height: 100%;
-    background: rgba(21, 21, 21, 0.9);
+    height: calc(var(--vh, 1vh) * 100);
+    background: rgba(21, 21, 21, 0.92);
     backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     opacity: 0;
-    transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
-    /* Убеждаемся, что оверлей покрывает весь экран */
-    inset: 0;
+    /* Убираем все анимации появления */
+    transition: none;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    /* Моментальное появление */
+    transition: none;
 }
 
 .loading-overlay.active {
@@ -1431,37 +1443,41 @@ h3 .bi,
 }
 
 .loading-overlay {
-    transform: scale(0.9);
+    /* Убираем transform для моментального появления */
+    transform: none;
 }
 
 .loading-overlay.active {
     opacity: 1;
-    transform: scale(1);
-    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
-                backdrop-filter 0.4s ease;
+    transform: none;
+    /* Убираем все анимации */
+    transition: none;
 }
 
 .loading-content {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 20px;
     padding: 40px;
-    background: rgba(var(--bg-app-rgb), 0.3);
+    background: rgba(var(--bg-app-rgb), 0.4);
     border-radius: 20px;
     border: 1px solid rgba(var(--accent-rgb), 0.2);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
-    animation: loading-content-appear 0.5s ease-out 0.1s both;
+    /* Убираем анимацию появления */
+    animation: none;
+    max-width: 90vw;
+    max-height: 90vh;
+    min-width: 280px;
+    box-sizing: border-box;
 }
 
+/* Убираем ненужную анимацию появления контента */
 @keyframes loading-content-appear {
-    0% {
-        opacity: 0;
-        transform: translateY(30px) scale(0.9);
-    }
-    100% {
+    0%, 100% {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
@@ -1469,10 +1485,25 @@ h3 .bi,
 
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
+    .loading-overlay {
+        /* Усиление для мобильных Safari */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100dvh; /* Динамическая высота viewport */
+    }
+    
     .loading-content {
         padding: 30px 20px;
         margin: 20px;
         border-radius: 16px;
+        min-width: 250px;
+        max-width: calc(100vw - 40px);
     }
     
     .loading-spinner {
@@ -1483,14 +1514,24 @@ h3 .bi,
     
     .loading-text {
         font-size: 18px;
+        text-align: center;
+        word-break: break-word;
     }
 }
 
 @media (max-width: 480px) {
+    .loading-overlay {
+        /* Дополнительное усиление для очень маленьких экранов */
+        min-height: 100vh;
+        min-height: 100svh; /* Малая высота viewport */
+    }
+    
     .loading-content {
         padding: 25px 15px;
         margin: 15px;
         border-radius: 12px;
+        min-width: 220px;
+        max-width: calc(100vw - 30px);
     }
     
     .loading-spinner {
@@ -1506,9 +1547,17 @@ h3 .bi,
 
 /* Защита от переполнения на очень маленьких экранах */
 @media (max-height: 480px) {
+    .loading-overlay {
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+    }
+    
     .loading-content {
         padding: 20px 15px;
         gap: 15px;
+        margin: 10px;
+        max-height: calc(100vh - 20px);
     }
     
     .loading-spinner {
@@ -1519,6 +1568,14 @@ h3 .bi,
     
     .loading-text {
         font-size: 14px;
+    }
+}
+
+/* Исправления для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    .loading-overlay {
+        height: 100vh;
+        height: -webkit-fill-available;
     }
 }
 
