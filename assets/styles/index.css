@@ -1495,10 +1495,21 @@ h3 .bi,
     align-items: center;
     justify-content: center;
     font-size: 16px;
+    line-height: 1;
     transition: all 0.2s ease;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     z-index: 1;
+    padding: 0;
+    margin: 0;
+}
+
+.loading-cancel-button i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
 }
 
 .loading-cancel-button:hover {
