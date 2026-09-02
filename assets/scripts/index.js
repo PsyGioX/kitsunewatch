@@ -2162,19 +2162,37 @@ class KitsuneWatchApp {
         const wrapper = document.createElement('div');
         wrapper.className = 'inline-category-chips';
 
+        // При клике меняем active-класс у чипов вручную, т.к. onSelect
+        // перерисовывает только список записей (renderHistoryList/
+        // renderFavoritesList), а не сам блок чипов — иначе выделение
+        // активной вкладки никогда не обновлялось бы.
+        const setActive = (target) => {
+            wrapper.querySelectorAll('.category-chip').forEach(chip => {
+                chip.classList.toggle('active', chip === target);
+            });
+        };
+
         const allChip = document.createElement('button');
         allChip.type = 'button';
+        allChip.dataset.type = 'all';
         allChip.className = 'category-chip' + (activeType === 'all' ? ' active' : '');
         allChip.textContent = 'Все';
-        allChip.addEventListener('click', () => onSelect('all'));
+        allChip.addEventListener('click', () => {
+            setActive(allChip);
+            onSelect('all');
+        });
         wrapper.appendChild(allChip);
 
         types.forEach(type => {
             const chip = document.createElement('button');
             chip.type = 'button';
+            chip.dataset.type = type;
             chip.className = 'category-chip' + (activeType === type ? ' active' : '');
             chip.innerHTML = `<i class="bi ${this.getTypeIcon(type)}"></i> ${this.getTypeName(type)}`;
-            chip.addEventListener('click', () => onSelect(type));
+            chip.addEventListener('click', () => {
+                setActive(chip);
+                onSelect(type);
+            });
             wrapper.appendChild(chip);
         });
 
@@ -2506,8 +2524,12 @@ class KitsuneWatchApp {
         const baseUrl = window.location.origin;
         const params = new URLSearchParams();
 
+        // URLSearchParams сам кодирует значения при toString() — если
+        // передавать уже закодированную через encodeURIComponent строку,
+        // получается двойное кодирование (%25D0%25... вместо %D0%...),
+        // из-за чего ссылка выглядит как мусор и криво парсится обратно.
         if (material && material.title) {
-            params.set('search', encodeURIComponent(material.title));
+            params.set('search', material.title.trim());
             return `${baseUrl}/?${params.toString()}`;
         }
 
@@ -2517,7 +2539,7 @@ class KitsuneWatchApp {
         }
 
         if (this.currentSearchQuery) {
-            params.set('search', encodeURIComponent(this.currentSearchQuery));
+            params.set('search', this.currentSearchQuery.trim());
             return `${baseUrl}/?${params.toString()}`;
         }
 
