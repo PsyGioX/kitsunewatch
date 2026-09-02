@@ -862,7 +862,7 @@ class KitsuneWatchApp {
 
     // ============ ТОП 100 АНИМЕ ============
     async loadTop100(forceRefresh = false) {
-        this.showLoading();
+        this.showLoading('Загружаем топ 100');
         this.viewMode = 'top100';
 
         try {
@@ -1364,9 +1364,19 @@ class KitsuneWatchApp {
         this.loadingOverlay.className = 'loading-overlay';
         this.loadingOverlay.style.display = 'none';
         this.loadingOverlay.innerHTML = `
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Поиск...</div>
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Поиск</div>
+            </div>
         `;
+        
+        // Добавляем обработчик для закрытия по клику вне контента
+        this.loadingOverlay.addEventListener('click', (e) => {
+            if (e.target === this.loadingOverlay && this.isSearching) {
+                // Можно добавить логику для отмены поиска, если нужно
+                // this.cancelSearch();
+            }
+        });
 
         this.shareButton = document.createElement('button');
         this.shareButton.className = 'share-button';
@@ -1715,13 +1725,19 @@ class KitsuneWatchApp {
     }
 
     // ============ ЗАГРУЗКА ============
-    showLoading() {
+    showLoading(text = 'Поиск') {
         this.isSearching = true;
         this.searchButton.disabled = true;
         this.searchButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Поиск...';
 
         if (this.loadingOverlay) {
+            // Обновляем текст загрузки
+            const loadingText = this.loadingOverlay.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = text;
+            
             this.loadingOverlay.style.display = 'flex';
+            // Принудительная перерисовка для корректной анимации
+            this.loadingOverlay.offsetHeight;
             this.loadingOverlay.classList.add('active');
         }
 
@@ -1734,6 +1750,9 @@ class KitsuneWatchApp {
         if (this.calendarContainer) this.calendarContainer.style.display = 'none';
         if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';
         if (this.videoContainer) this.videoContainer.style.display = 'none';
+        
+        // Предотвращаем скролл страницы во время загрузки
+        document.body.style.overflow = 'hidden';
     }
 
     hideLoading() {
@@ -1743,8 +1762,15 @@ class KitsuneWatchApp {
 
         if (this.loadingOverlay) {
             this.loadingOverlay.classList.remove('active');
-            setTimeout(() => this.loadingOverlay.style.display = 'none', 300);
+            setTimeout(() => {
+                if (this.loadingOverlay) {
+                    this.loadingOverlay.style.display = 'none';
+                }
+            }, 400);
         }
+        
+        // Восстанавливаем скролл страницы
+        document.body.style.overflow = '';
     }
 
     // ============ localStorage ============
@@ -2710,7 +2736,7 @@ class KitsuneWatchApp {
         this.updateUrlWithoutReload(newUrl);
         this.updateSEO();
 
-        this.showLoading();
+        this.showLoading(`Ищем "${query}"`);
         this.addToHistory(query);
 
         const cacheKey = `search_${query.trim().toLowerCase()}`;
