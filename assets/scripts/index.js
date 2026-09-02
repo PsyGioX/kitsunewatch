@@ -1406,7 +1406,7 @@ class KitsuneWatchApp {
         this.createShareFallbackModal();
     }
 
-    // ============ МОДАЛКА "СКОПИРУЙТЕ ССЫЛКУ ВРУЧНУЮ" ============
+    // ============ МОДАЛКА "ПОДЕЛИТЬСЯ ССЫЛКОЙ" ============
     // Показывается вместо нативного alert(), когда navigator.share
     // недоступен и navigator.clipboard.writeText не сработал (например,
     // нет разрешения или страница открыта не по https).
@@ -1420,24 +1420,52 @@ class KitsuneWatchApp {
         const modal = document.createElement('div');
         modal.className = 'share-modal';
 
+        const icon = document.createElement('div');
+        icon.className = 'share-modal-icon';
+        icon.innerHTML = '<i class="bi bi-share-fill"></i>';
+
         const title = document.createElement('h3');
         title.className = 'share-modal-title';
-        title.innerHTML = '<i class="bi bi-link-45deg"></i> Скопируйте ссылку вручную';
+        title.textContent = 'Поделиться тайтлом';
 
+        const subtitle = document.createElement('p');
+        subtitle.className = 'share-modal-subtitle';
+        subtitle.textContent = 'Скопируйте ссылку и отправьте друзьям';
+
+        const headingText = document.createElement('div');
+        headingText.className = 'share-modal-heading-text';
+        headingText.appendChild(title);
+        headingText.appendChild(subtitle);
+
+        const heading = document.createElement('div');
+        heading.className = 'share-modal-heading';
+        heading.appendChild(icon);
+        heading.appendChild(headingText);
+
+        // SVG вместо иконки шрифта — гарантирует идеальное центрирование
+        // крестика внутри кнопки независимо от метрик используемого фонта.
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
         closeBtn.className = 'share-modal-close';
-        closeBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+        closeBtn.innerHTML = `<svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>`;
         closeBtn.setAttribute('aria-label', 'Закрыть');
         closeBtn.addEventListener('click', () => this.hideShareFallbackModal());
 
         const header = document.createElement('div');
         header.className = 'share-modal-header';
-        header.appendChild(title);
+        header.appendChild(heading);
         header.appendChild(closeBtn);
 
         const row = document.createElement('div');
         row.className = 'share-modal-row';
+
+        const inputWrap = document.createElement('div');
+        inputWrap.className = 'share-modal-input-wrap';
+
+        const inputIcon = document.createElement('i');
+        inputIcon.className = 'bi bi-link-45deg';
 
         this.shareModalInput = document.createElement('input');
         this.shareModalInput.type = 'text';
@@ -1445,17 +1473,25 @@ class KitsuneWatchApp {
         this.shareModalInput.readOnly = true;
         this.shareModalInput.addEventListener('click', () => this.shareModalInput.select());
 
+        inputWrap.appendChild(inputIcon);
+        inputWrap.appendChild(this.shareModalInput);
+
         this.shareModalCopyBtn = document.createElement('button');
         this.shareModalCopyBtn.type = 'button';
         this.shareModalCopyBtn.className = 'share-modal-copy-button';
         this.shareModalCopyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Копировать';
         this.shareModalCopyBtn.addEventListener('click', () => this.copyShareModalLink());
 
-        row.appendChild(this.shareModalInput);
+        row.appendChild(inputWrap);
         row.appendChild(this.shareModalCopyBtn);
+
+        const hint = document.createElement('p');
+        hint.className = 'share-modal-hint';
+        hint.innerHTML = '<i class="bi bi-info-circle"></i> Нажмите «Копировать», чтобы скопировать ссылку в буфер обмена';
 
         modal.appendChild(header);
         modal.appendChild(row);
+        modal.appendChild(hint);
         this.shareModalOverlay.appendChild(modal);
         document.body.appendChild(this.shareModalOverlay);
 
@@ -1469,8 +1505,7 @@ class KitsuneWatchApp {
     showShareFallbackModal(url) {
         if (!this.shareModalOverlay) return;
         this.shareModalInput.value = url;
-        this.shareModalCopyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Копировать';
-        this.shareModalCopyBtn.classList.remove('copied');
+        this.resetShareModalCopyButton();
         this.shareModalOverlay.classList.add('active');
         setTimeout(() => {
             this.shareModalInput.focus();
@@ -1480,6 +1515,12 @@ class KitsuneWatchApp {
 
     hideShareFallbackModal() {
         if (this.shareModalOverlay) this.shareModalOverlay.classList.remove('active');
+    }
+
+    resetShareModalCopyButton() {
+        if (!this.shareModalCopyBtn) return;
+        this.shareModalCopyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Копировать';
+        this.shareModalCopyBtn.classList.remove('copied');
     }
 
     async copyShareModalLink() {
@@ -1493,6 +1534,8 @@ class KitsuneWatchApp {
             }
             this.shareModalCopyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
             this.shareModalCopyBtn.classList.add('copied');
+            clearTimeout(this._shareModalCopyResetTimer);
+            this._shareModalCopyResetTimer = setTimeout(() => this.resetShareModalCopyButton(), 2000);
         } catch (error) {
             this.shareModalInput.select();
         }
@@ -2958,20 +3001,11 @@ class KitsuneWatchApp {
 
         // Кастомная модалка вместо системного меню "Поделиться" —
         // navigator.share() сюда специально не подключаем.
+        // Модалка всегда открывается в состоянии "Копировать": раньше тут
+        // была попытка скопировать ссылку в буфer сразу при открытии, из-за
+        // чего кнопка почти всегда сразу показывала "Скопировано!" ещё до
+        // того, как пользователь на неё нажал — это и было баг-репортом.
         this.showShareFallbackModal(shareUrl);
-
-        // Пытаемся сразу скопировать в буфер без лишнего клика —
-        // если получилось, модалка откроется уже с пометкой "Скопировано!".
-        if (navigator.clipboard) {
-            try {
-                await navigator.clipboard.writeText(shareUrl);
-                this.shareModalCopyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Скопировано!';
-                this.shareModalCopyBtn.classList.add('copied');
-            } catch (error) {
-                // Разрешение на буфер не дали — не страшно, в модалке
-                // есть поле со ссылкой и своя кнопка "Копировать".
-            }
-        }
     }
 
     // ============ ПЛЕЕР ============
