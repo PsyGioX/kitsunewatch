@@ -3680,15 +3680,15 @@ h3 .bi,
 }
 
 
-/* ============ МОДАЛКА "ПОДЕЛИТЬСЯ" (фолбэк вместо alert()) ============ */
+/* ============ МОДАЛКА "ПОДЕЛИТЬСЯ" ============ */
 .share-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 10, 10, 0.6);
-    backdrop-filter: blur(6px);
+    background: rgba(8, 6, 10, 0.65);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3707,13 +3707,28 @@ h3 .bi,
 .share-modal {
     width: 100%;
     max-width: 420px;
+    position: relative;
+    overflow: hidden;
     background: var(--bg-base);
     border: 1px solid rgba(var(--accent-rgb), 0.35);
     border-radius: var(--radius-lg, 18px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    padding: 20px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(var(--accent-rgb), 0.08);
+    padding: 22px;
     transform: translateY(12px) scale(0.98);
     transition: transform 0.25s ease;
+}
+
+/* Тонкое акцентное свечение сверху — перекликается с аурой темы */
+.share-modal::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: 50%;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), 0.35), transparent 70%);
+    transform: translateX(-50%);
+    pointer-events: none;
 }
 
 .share-modal-overlay.active .share-modal {
@@ -3721,43 +3736,67 @@ h3 .bi,
 }
 
 .share-modal-header {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 6px;
 }
 
 .share-modal-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    font-weight: 500;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 600;
     color: var(--accent-light);
     margin: 0;
 }
 
+.share-modal-title .bi {
+    font-size: 1em;
+    color: var(--accent-light);
+}
+
+.share-modal-subtitle {
+    position: relative;
+    font-size: 13px;
+    color: #9aa5b1;
+    margin: 0 0 16px 0;
+}
+
 .share-modal-close {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
-    transition: background-color 0.2s ease;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #cfd3d8;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.share-modal-close .bi {
+    font-size: 15px;
+    line-height: 1;
+    vertical-align: 0;
 }
 
 .share-modal-close:hover {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(var(--accent-rgb), 0.25);
+    border-color: rgba(var(--accent-rgb), 0.4);
+    color: #fff;
 }
 
 .share-modal-row {
+    position: relative;
     display: flex;
     gap: 8px;
 }
@@ -3765,12 +3804,13 @@ h3 .bi,
 .share-modal-input {
     flex: 1;
     min-width: 0;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(var(--accent-rgb), 0.1);
     border: 1px solid rgba(var(--accent-rgb), 0.35);
     border-radius: 8px;
     padding: 10px 12px;
     color: #fff;
     font-size: 13px;
+    transition: border-color 0.2s ease;
 }
 
 .share-modal-input:focus {
@@ -3781,20 +3821,26 @@ h3 .bi,
 .share-modal-copy-button {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 0 14px;
+    padding: 0 16px;
     background: var(--accent);
     border: 1px solid var(--accent-hover);
     border-radius: 8px;
     color: #fff;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
 .share-modal-copy-button:hover {
     background: var(--accent-hover);
+}
+
+.share-modal-copy-button:active {
+    transform: scale(0.97);
 }
 
 .share-modal-copy-button.copied {
@@ -3803,12 +3849,15 @@ h3 .bi,
 }
 
 @media (max-width: 480px) {
+    .share-modal {
+        padding: 18px;
+    }
+
     .share-modal-row {
         flex-direction: column;
     }
 
     .share-modal-copy-button {
         padding: 10px 14px;
-        justify-content: center;
     }
 }
