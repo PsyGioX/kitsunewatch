@@ -536,6 +536,7 @@ class KitsuneWatchApp {
         this.setupPWA();
         this.displayAboutProject();
         this.loadYearPremieres();
+        this.loadCalendar();
         this.displayCollections();
         this.handleURLParams();
         this.updateSEO();
@@ -726,6 +727,59 @@ class KitsuneWatchApp {
     formatCalendarShortDate(dateKey) {
         const d = new Date(`${dateKey}T00:00:00`);
         return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    }
+
+    // Ряд с датами — это горизонтальный скролл, а на десктопе обычная мышь
+    // без трекпада не умеет крутить его колесом и не даёт зацепить тонкий
+    // скроллбар. Добавляем: колесо мыши -> горизонтальная прокрутка, и
+    // перетаскивание зажатой левой кнопкой мыши (drag-to-scroll).
+    setupCalendarTabsScroll() {
+        this.calendarContainer.addEventListener('wheel', (e) => {
+            const tabs = e.target.closest('.calendar-day-tabs');
+            if (!tabs || tabs.scrollWidth <= tabs.clientWidth) return;
+            if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+            e.preventDefault();
+            tabs.scrollLeft += e.deltaY;
+        }, { passive: false });
+
+        this.calendarContainer.addEventListener('mousedown', (e) => {
+            const tabs = e.target.closest('.calendar-day-tabs');
+            if (!tabs || e.button !== 0) return;
+
+            const startX = e.pageX;
+            const startScrollLeft = tabs.scrollLeft;
+            let dragged = false;
+
+            const onMove = (moveEvent) => {
+                const delta = moveEvent.pageX - startX;
+                if (!dragged && Math.abs(delta) > 4) {
+                    dragged = true;
+                    tabs.classList.add('dragging');
+                }
+                if (dragged) {
+                    moveEvent.preventDefault();
+                    tabs.scrollLeft = startScrollLeft - delta;
+                }
+            };
+
+            const onUp = () => {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                tabs.classList.remove('dragging');
+
+                if (dragged) {
+                    // Гасим клик сразу после драга, чтобы он не считался выбором вкладки
+                    const suppressClick = (clickEvent) => {
+                        clickEvent.stopPropagation();
+                        clickEvent.preventDefault();
+                    };
+                    tabs.addEventListener('click', suppressClick, { capture: true, once: true });
+                }
+            };
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
     }
 
     // ============ ПОДБОРКИ АНИМЕ ============
@@ -1273,6 +1327,7 @@ class KitsuneWatchApp {
                 this.searchFromCalendar(item.dataset.animeTitle);
             }
         });
+        this.setupCalendarTabsScroll();
 
         this.collectionsContainer = document.createElement('div');
         this.collectionsContainer.className = 'collections-container';
@@ -1420,9 +1475,11 @@ class KitsuneWatchApp {
 
         this.searchInput.addEventListener('input', () => {
             if (!this.searchInput.value.trim()) {
+                this.viewMode = 'home';
                 this.clearAllResults();
                 this.displayAboutProject();
                 this.loadYearPremieres();
+                this.loadCalendar();
                 this.displayCollections();
                 this.updateUrlWithoutReload('/');
                 this.updateSEO();
