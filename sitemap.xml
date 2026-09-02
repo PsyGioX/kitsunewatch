@@ -121,20 +121,6 @@
     </url>
 
     <url>
-        <loc>https://kitsunewatch.vercel.app/?favorites=true</loc>
-        <lastmod>2026-01-15</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.6</priority>
-    </url>
-
-    <url>
-        <loc>https://kitsunewatch.vercel.app/?history=true</loc>
-        <lastmod>2026-01-15</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.6</priority>
-    </url>
-
-    <url>
         <loc>https://kitsunewatch.vercel.app/?search=боевик</loc>
         <lastmod>2026-01-15</lastmod>
         <changefreq>weekly</changefreq>
