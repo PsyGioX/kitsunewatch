@@ -1322,7 +1322,7 @@ h3 .bi,
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100);
     background: rgba(21, 21, 21, 0.92);
@@ -1332,12 +1332,15 @@ h3 .bi,
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 99999;
     opacity: 0;
     /* Убираем все анимации появления */
     transition: none;
     overflow: hidden;
     touch-action: none;
+    /* Принудительно покрываем все элементы */
+    min-width: 100vw;
+    min-height: 100vh;
 }
 
 .loading-overlay.active {
@@ -1492,10 +1495,11 @@ h3 .bi,
         left: 0;
         right: 0;
         bottom: 0;
-        width: 100%;
-        height: 100%;
-        min-height: 100vh;
-        min-height: 100dvh; /* Динамическая высота viewport */
+        width: 100vw !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important; /* Динамическая высота viewport */
+        z-index: 99999 !important;
     }
     
     .loading-content {

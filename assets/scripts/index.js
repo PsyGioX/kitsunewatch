@@ -1412,7 +1412,8 @@ class KitsuneWatchApp {
         mainBlock.appendChild(this.premieresContainer);
         mainBlock.appendChild(this.calendarContainer);
         mainBlock.appendChild(this.collectionsContainer);
-        mainBlock.appendChild(this.loadingOverlay);
+        // Прелоадер добавляем в body для покрытия всего приложения
+        document.body.appendChild(this.loadingOverlay);
         mainBlock.appendChild(this.tabsContainer);
         mainBlock.appendChild(this.videoListContainer);
         mainBlock.appendChild(this.paginationContainer);
@@ -2076,6 +2077,10 @@ class KitsuneWatchApp {
                             query = decodeURIComponent(query);
                         }
                     } catch (e) { }
+                    
+                    // Показываем прелоадер сразу перед началом поиска
+                    this.showLoading(`Ищем "${query}"`);
+                    
                     this.searchInput.value = query;
                     this.currentSearchQuery = query;
                     this.performSearch();
@@ -2758,7 +2763,10 @@ class KitsuneWatchApp {
         this.updateUrlWithoutReload(newUrl);
         this.updateSEO();
 
-        this.showLoading(`Ищем "${query}"`);
+        // Показываем прелоадер только если он еще не показан
+        if (!this.isSearching) {
+            this.showLoading(`Ищем "${query}"`);
+        }
         this.addToHistory(query);
 
         const cacheKey = `search_${query.trim().toLowerCase()}`;
