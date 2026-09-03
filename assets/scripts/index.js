@@ -1566,6 +1566,9 @@ class KitsuneWatchApp {
             this.shareModalCopyBtn.classList.add('copied');
             clearTimeout(this._shareModalCopyResetTimer);
             this._shareModalCopyResetTimer = setTimeout(() => this.resetShareModalCopyButton(), 2000);
+
+            // Система достижений (achievements/) слушает это событие сама.
+            document.dispatchEvent(new CustomEvent('kw:share', { detail: { url } }));
         } catch (error) {
             this.shareModalInput.select();
         }
@@ -1945,6 +1948,9 @@ class KitsuneWatchApp {
 
         this.saveToStorage('kitsunewatch_history', this.searchHistory);
         this.displayHistory();
+
+        // Система достижений (achievements/) слушает это событие сама.
+        document.dispatchEvent(new CustomEvent('kw:search', { detail: { query: clean } }));
     }
 
     // Дописывает категорию (тип контента) к уже сохранённой записи истории,
@@ -2190,6 +2196,12 @@ class KitsuneWatchApp {
             });
             this.favoriteButton.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
             this.favoriteButton.classList.add('active');
+
+            // Система достижений (achievements/) слушает это событие сама —
+            // никаких прямых зависимостей от неё здесь нет.
+            document.dispatchEvent(new CustomEvent('kw:favorite-added', {
+                detail: { id: videoId, title: this.currentVideo.title, type: this.currentVideo.type }
+            }));
         }
 
         this.saveToStorage('kitsunewatch_favorites', this.favorites);
@@ -2488,6 +2500,11 @@ class KitsuneWatchApp {
         this.currentVideo = material;
         this.isVideoLoading = true;
         this.hideAboutProject();
+
+        // Система достижений (achievements/) слушает это событие сама.
+        document.dispatchEvent(new CustomEvent('kw:video-open', {
+            detail: { id: material.id || material.link, title: material.title, type: material.type }
+        }));
         if (this.premieresContainer) this.premieresContainer.style.display = 'none';
         if (this.calendarContainer) this.calendarContainer.style.display = 'none';
         if (this.collectionsContainer) this.collectionsContainer.style.display = 'none';

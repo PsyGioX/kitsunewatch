@@ -1,0 +1,495 @@
+/* achievements/achievements.css
+ *
+ * Стили системы достижений. Используются те же CSS-переменные темы
+ * (--accent, --bg-base, --radius-*, --space-*), что и в assets/styles/
+ * index.css, поэтому оформление автоматически подстраивается под любую
+ * выбранную тему (Kitsune / Sakura / Cyber / Matcha / Shadow).
+ */
+
+/* ============ КНОПКА В ШАПКЕ ============ */
+.kw-achv-nav-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-left: 10px;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.3);
+    border: 1px solid rgba(var(--accent-rgb), 0.5);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.kw-achv-nav-button:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    transform: scale(1.06);
+}
+
+.kw-achv-nav-button .bi {
+    margin-right: 0;
+    vertical-align: 0;
+}
+
+.kw-achv-nav-badge {
+    position: absolute;
+    bottom: -6px;
+    right: -8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* ============ ТОСТЫ-УВЕДОМЛЕНИЯ ============ */
+.kw-achv-toast-container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 4500;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.kw-achv-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 14px;
+    border-radius: var(--radius-lg, 18px);
+    background: rgba(20, 20, 24, 0.96);
+    border: 1px solid rgba(var(--accent-rgb), 0.55);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(var(--accent-rgb), 0.08);
+    backdrop-filter: blur(16px);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateX(24px) scale(0.96);
+    transition: opacity 0.32s ease, transform 0.32s ease;
+    pointer-events: auto;
+}
+
+.kw-achv-toast.visible {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+.kw-achv-toast.leaving {
+    opacity: 0;
+    transform: translateX(24px) scale(0.96);
+}
+
+.kw-achv-toast-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.25);
+    color: var(--accent-light);
+    font-size: 20px;
+    animation: kwAchvIconPop 0.5s ease;
+}
+
+@keyframes kwAchvIconPop {
+    0% { transform: scale(0.4) rotate(-15deg); }
+    60% { transform: scale(1.15) rotate(6deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+.kw-achv-toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.kw-achv-toast-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-light);
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.kw-achv-toast-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.kw-achv-toast-desc {
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.35;
+}
+
+.kw-achv-toast-points {
+    flex-shrink: 0;
+    align-self: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--accent-light);
+}
+
+.kw-achv-toast-close {
+    flex-shrink: 0;
+    align-self: flex-start;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.kw-achv-toast-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* ============ СТРАНИЦА ДОСТИЖЕНИЙ ============ */
+.kw-achv-page {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    background: rgba(6, 4, 10, 0.72);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    overflow-y: auto;
+}
+
+.kw-achv-page.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+body.kw-achv-page-lock {
+    overflow: hidden;
+}
+
+.kw-achv-page-inner {
+    width: min(920px, 100%);
+    background: rgba(18, 16, 22, 0.98);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    border-radius: var(--radius-xl, 24px);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+    padding: 28px;
+    transform: translateY(16px);
+    transition: transform 0.25s ease;
+}
+
+.kw-achv-page.open .kw-achv-page-inner {
+    transform: translateY(0);
+}
+
+.kw-achv-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.kw-achv-page-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.kw-achv-page-heading i {
+    font-size: 26px;
+    color: var(--accent-light);
+}
+
+.kw-achv-page-heading h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.kw-achv-page-close {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.kw-achv-page-close:hover {
+    background: rgba(var(--accent-rgb), 0.35);
+}
+
+/* Сводка */
+.kw-achv-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    margin-bottom: 18px;
+    border-radius: var(--radius-lg, 18px);
+    background: rgba(var(--accent-rgb), 0.1);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+    flex-wrap: wrap;
+}
+
+.kw-achv-summary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+}
+
+.kw-achv-summary-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.kw-achv-summary-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.kw-achv-summary-bar {
+    flex: 1;
+    min-width: 140px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.kw-achv-summary-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+/* Фильтры */
+.kw-achv-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.kw-achv-filter-group,
+.kw-achv-category-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.kw-achv-filter-btn,
+.kw-achv-cat-btn {
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+
+.kw-achv-cat-btn i {
+    margin-right: 4px;
+}
+
+.kw-achv-filter-btn:hover,
+.kw-achv-cat-btn:hover {
+    border-color: rgba(var(--accent-rgb), 0.5);
+    color: #fff;
+}
+
+.kw-achv-filter-btn.active,
+.kw-achv-cat-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+/* Сетка карточек */
+.kw-achv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.kw-achv-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 0;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.kw-achv-card {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border-radius: var(--radius-md, 12px);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.kw-achv-card.unlocked {
+    background: rgba(var(--accent-rgb), 0.12);
+    border-color: rgba(var(--accent-rgb), 0.4);
+}
+
+.kw-achv-card.locked {
+    opacity: 0.72;
+}
+
+.kw-achv-card-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 20px;
+}
+
+.kw-achv-card.unlocked .kw-achv-card-icon {
+    background: rgba(var(--accent-rgb), 0.3);
+    color: var(--accent-light);
+}
+
+.kw-achv-card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.kw-achv-card-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.kw-achv-card-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.kw-achv-card-points {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-light);
+    flex-shrink: 0;
+}
+
+.kw-achv-card-desc {
+    margin: 4px 0 8px;
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.62);
+    line-height: 1.4;
+}
+
+.kw-achv-card-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kw-achv-card-progress-bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.kw-achv-card-progress-fill {
+    height: 100%;
+    background: var(--accent-light);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.kw-achv-card-progress-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+}
+
+.kw-achv-card-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: var(--accent-light);
+    font-size: 16px;
+}
+
+/* ============ АДАПТИВ ============ */
+@media (max-width: 576px) {
+    .kw-achv-page {
+        padding: 12px;
+    }
+
+    .kw-achv-page-inner {
+        padding: 18px;
+        border-radius: var(--radius-lg, 18px);
+    }
+
+    .kw-achv-page-heading h2 {
+        font-size: 20px;
+    }
+
+    .kw-achv-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .kw-achv-toast-container {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+    }
+}

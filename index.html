@@ -99,6 +99,11 @@
          каскад у правил Bootstrap с той же специфичностью. -->
     <link rel="stylesheet" href="/assets/styles/index.min.css">
 
+    <!-- Система достижений (папка /achievements/, см. README внутри) —
+         полностью отдельный модуль, не связанный с основным стилем
+         жёсткой зависимостью, использует те же CSS-переменные темы. -->
+    <link rel="stylesheet" href="/achievements/achievements.css">
+
     <!-- Базовая структурированная разметка сайта (Schema.org). Разметка под
          конкретное аниме (Movie/TVSeries, BreadcrumbList) добавляется/убирается
          динамически в index.js при открытии/закрытии страницы тайтула,
@@ -296,6 +301,14 @@
          `npm run minify:js` / `minify:css` — см. package.json) -->
     <script src="/assets/scripts/theme-manager.min.js" defer></script>
     <script src="/assets/scripts/index.min.js" defer></script>
+
+    <!-- Система достижений: ядро (трекинг + условия), уведомления (тосты)
+         и отдельная страница — три независимых модуля в /achievements/.
+         Порядок важен: core должен инициализироваться первым, т.к. его
+         события слушают остальные два. -->
+    <script src="/achievements/achievements-core.js" defer></script>
+    <script src="/achievements/achievements-notifications.js" defer></script>
+    <script src="/achievements/achievements-page.js" defer></script>
 </body>
 
 </html>
