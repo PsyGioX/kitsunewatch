@@ -568,7 +568,7 @@ class KitsuneWatchApp {
         try {
             const currentYear = new Date().getFullYear();
 
-            const { data } = await this.fetchJSONCached(
+            const { data, fromCache, stale, cachedAt } = await this.fetchJSONCached(
                 this.YEARS_API_URL, 'years', this.CACHE_TTL.years, { forceRefresh }
             );
 
@@ -587,10 +587,12 @@ class KitsuneWatchApp {
 
                 this.displayPremieres(targetYear, yearData.count);
             }
+            return { ok: true, fromCache, stale, cachedAt };
         } catch (error) {
             console.error('Error loading year premieres:', error);
             const currentYear = new Date().getFullYear();
             this.displayPremieres(currentYear, 0);
+            return { ok: false };
         }
     }
 
@@ -634,10 +636,10 @@ class KitsuneWatchApp {
     // Ссылка "Смотреть" на каждой карточке — это обычный поиск по названию
     // среди того, что уже проиндексировано у Kodik.
     async loadCalendar(forceRefresh = false) {
-        if (!this.calendarContainer) return;
+        if (!this.calendarContainer) return { ok: false };
 
         try {
-            const { data } = await this.fetchJSONCached(
+            const { data, fromCache, stale, cachedAt } = await this.fetchJSONCached(
                 this.CALENDAR_API_URL, 'calendar', this.CACHE_TTL.calendar, { forceRefresh }
             );
 
@@ -649,10 +651,12 @@ class KitsuneWatchApp {
             } else {
                 this.calendarContainer.style.display = 'none';
             }
+            return { ok: true, fromCache, stale, cachedAt };
         } catch (error) {
             console.error('Error loading calendar:', error);
             // Второстепенная фича — молча скрываем блок, не мешаем остальной странице
             this.calendarContainer.style.display = 'none';
+            return { ok: false };
         }
     }
 
@@ -1771,11 +1775,21 @@ class KitsuneWatchApp {
             // Обновляем текст загрузки
             const loadingText = this.loadingOverlay.querySelector('.loading-text');
             if (loadingText) loadingText.textContent = text;
-            
-            // Моментальное появление без анимаций
+
+            // Отменяем отложенное скрытие, если пользователь успел кликнуть
+            // "обновить" ещё раз, пока прошлый оверлей плавно исчезал
+            clearTimeout(this._hideLoadingTimeout);
+
             this.loadingOverlay.style.display = 'flex';
-            this.loadingOverlay.classList.add('active');
-            
+            // requestAnimationFrame гарантирует, что браузер зафиксирует
+            // display:flex ДО добавления класса .active — иначе переход
+            // opacity/transform может "проглотиться" и оверлей появится
+            // мгновенно вместо плавного фейда (актуально для CSS-плавности,
+            // добавленной для адаптивного прелоадера)
+            requestAnimationFrame(() => {
+                if (this.loadingOverlay) this.loadingOverlay.classList.add('active');
+            });
+
             // Исправление для мобильных браузеров
             this.loadingOverlay.style.height = '100vh';
             this.loadingOverlay.style.height = '100dvh';
@@ -1807,9 +1821,17 @@ class KitsuneWatchApp {
         this.searchButton.innerHTML = '<i class="bi bi-search"></i> Искать';
 
         if (this.loadingOverlay) {
-            // Моментальное скрытие
             this.loadingOverlay.classList.remove('active');
-            this.loadingOverlay.style.display = 'none';
+            // Ждём завершения CSS-перехода (180ms в index.css) перед тем,
+            // как убрать оверлей из потока — иначе плавное исчезновение
+            // обрывается на полпути. Небольшой запас (220ms) подстраховывает
+            // от рассинхрона с транзишном на медленных устройствах.
+            clearTimeout(this._hideLoadingTimeout);
+            this._hideLoadingTimeout = setTimeout(() => {
+                if (this.loadingOverlay && !this.loadingOverlay.classList.contains('active')) {
+                    this.loadingOverlay.style.display = 'none';
+                }
+            }, 220);
         }
         
         // Восстанавливаем скролл страницы
@@ -1889,10 +1911,16 @@ class KitsuneWatchApp {
     }
 
     // ============ КНОПКА "ОБНОВИТЬ" И ИНДИКАТОР КЭША ============
-    showCacheStatus(fromCache, stale, cachedAt) {
+    // failed=true — отдельный случай, когда обновить не удалось и даже
+    // старых данных в кэше не нашлось (например, самый первый заход
+    // офлайн). Раньше такой исход никак не отображался пользователю.
+    showCacheStatus(fromCache, stale, cachedAt, failed = false) {
         if (!this.cacheStatusBadge) return;
 
-        if (!fromCache && !stale) {
+        if (failed) {
+            this.cacheStatusBadge.className = 'cache-status-badge visible error';
+            this.cacheStatusBadge.innerHTML = '<i class="bi bi-x-circle"></i> Не удалось обновить — нет сети';
+        } else if (!fromCache && !stale) {
             this.cacheStatusBadge.className = 'cache-status-badge visible';
             this.cacheStatusBadge.innerHTML = '<i class="bi bi-check-circle"></i> Данные обновлены';
         } else if (stale) {
@@ -1909,6 +1937,56 @@ class KitsuneWatchApp {
         }, 4000);
     }
 
+    // Кратко подсвечивает саму кнопку "Обновить" (галочка/крестик вместо
+    // стрелки) — прямой отклик там, где пользователь только что кликнул,
+    // а не только в бейдже в углу, который легко не заметить.
+    flashRefreshButton(state = 'success') {
+        if (!this.refreshButton) return;
+        const icon = this.refreshButton.querySelector('.bi');
+        if (!icon) return;
+
+        const ORIGINAL_ICON = 'bi-arrow-clockwise';
+        const stateMap = {
+            success: { icon: 'bi-check2', cls: 'refresh-flash-success' },
+            stale: { icon: 'bi-wifi-off', cls: 'refresh-flash-stale' },
+            error: { icon: 'bi-x-lg', cls: 'refresh-flash-error' }
+        };
+        const { icon: iconClass, cls: stateClass } = stateMap[state] || stateMap.success;
+
+        icon.classList.remove(ORIGINAL_ICON);
+        icon.classList.add(iconClass);
+        this.refreshButton.classList.add(stateClass);
+
+        clearTimeout(this._refreshFlashTimeout);
+        this._refreshFlashTimeout = setTimeout(() => {
+            icon.classList.remove(iconClass);
+            icon.classList.add(ORIGINAL_ICON);
+            this.refreshButton.classList.remove(stateClass);
+        }, 1400);
+    }
+
+    // Сводит воедино результаты обновления премьер года и календаря на
+    // главном экране и показывает пользователю понятный итог (бейдж +
+    // вспышка на самой кнопке). До этого фикса при нажатии "Обновить" на
+    // главной обе загрузки сами ловили свои ошибки молча, а кнопка просто
+    // переставала крутиться — выглядело так, будто клик вообще ни на что
+    // не повлиял.
+    reportRefreshResult(results) {
+        const succeeded = results.filter(r => r && r.ok);
+
+        if (succeeded.length === 0) {
+            this.showCacheStatus(false, false, 0, true);
+            this.flashRefreshButton('error');
+            return;
+        }
+
+        const anyStale = succeeded.some(r => r.stale);
+        const latestCachedAt = succeeded.reduce((max, r) => Math.max(max, r.cachedAt || 0), 0);
+
+        this.showCacheStatus(anyStale, anyStale, latestCachedAt || Date.now());
+        this.flashRefreshButton(anyStale ? 'stale' : 'success');
+    }
+
     // Обновляет данные того, что сейчас показано на экране, принудительно
     // обходя клиентский кэш (серверный edge-кэш /api/* при этом всё ещё
     // может отдать закэшированный ответ в пределах своего s-maxage).
@@ -1921,12 +1999,15 @@ class KitsuneWatchApp {
         try {
             if (this.viewMode === 'top100') {
                 await this.loadTop100(true);
+                this.flashRefreshButton('success');
             } else if (this.viewMode === 'search' && this.currentSearchQuery) {
                 await this.performSearch(true);
+                this.flashRefreshButton('success');
             } else {
                 this.clearCacheEntry('years');
                 this.clearCacheEntry('calendar');
-                await Promise.all([this.loadYearPremieres(true), this.loadCalendar(true)]);
+                const results = await Promise.all([this.loadYearPremieres(true), this.loadCalendar(true)]);
+                this.reportRefreshResult(results);
             }
         } finally {
             this.refreshButton.disabled = false;

@@ -669,6 +669,34 @@ h3 .bi,
     color: #e9a145;
 }
 
+.cache-status-badge.error {
+    color: #f16565;
+}
+
+/* Кратковременное состояние кнопки "Обновить" после клика — конкретный,
+   видимый в точке клика отклик (см. flashRefreshButton в index.js),
+   а не только тихо пропадающий спиннер */
+.refresh-data-button.refresh-flash-success {
+    background-color: rgba(46, 204, 113, 0.35);
+    border-color: #2ecc71;
+}
+
+.refresh-data-button.refresh-flash-stale {
+    background-color: rgba(233, 161, 69, 0.35);
+    border-color: #e9a145;
+}
+
+.refresh-data-button.refresh-flash-error {
+    background-color: rgba(241, 101, 101, 0.35);
+    border-color: #f16565;
+}
+
+.refresh-data-button.refresh-flash-success .bi,
+.refresh-data-button.refresh-flash-stale .bi,
+.refresh-data-button.refresh-flash-error .bi {
+    animation: none;
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -1315,14 +1343,20 @@ h3 .bi,
     flex-shrink: 0;
 }
 
-/* Загрузка */
+/* ============================================================
+   ПРЕЛОАДЕР ПОИСКА (loading-overlay)
+   Полноэкранный оверлей с индикатором загрузки. Использует те же
+   переменные темы (--accent*, --bg-app-rgb), что и остальной сайт —
+   автоматически подстраивается под любую активную тему без правок.
+   Размеры построены на clamp(), поэтому одни и те же правила плавно
+   масштабируются от маленького телефона до десктопа без "скачков"
+   между брейкпоинтами. Появление/скрытие короткое (180ms) и не
+   ощущается как задержка, но убирает "дёрганье" мгновенного
+   display:none/flex. Уважает prefers-reduced-motion. */
 .loading-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
+    inset: 0;
+    width: 100%;
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100);
     background: rgba(21, 21, 21, 0.92);
@@ -1334,35 +1368,35 @@ h3 .bi,
     justify-content: center;
     z-index: 99999;
     opacity: 0;
-    /* Убираем все анимации появления */
-    transition: none;
+    visibility: hidden;
+    transform: scale(1.02);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
     overflow: hidden;
     touch-action: none;
-    /* Принудительно покрываем все элементы */
-    min-width: 100vw;
-    min-height: 100vh;
+    box-sizing: border-box;
+    /* Отступы под чёлку/скругления экрана (iPhone notch и т.п.) */
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+             env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
 }
 
 .loading-overlay.active {
     opacity: 1;
-    /* Моментальное появление */
-    transition: none;
-}
-
-.loading-overlay.active {
-    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
 .loading-spinner {
-    width: 60px;
-    height: 60px;
+    width: clamp(40px, 11vw, 60px);
+    height: clamp(40px, 11vw, 60px);
     border: 4px solid rgba(var(--accent-rgb), 0.2);
     border-top: 4px solid var(--accent-hover);
     border-right: 4px solid var(--accent-light);
     border-radius: 50%;
     animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-    margin-bottom: 25px;
+    margin-bottom: clamp(12px, 4vw, 25px);
     position: relative;
+    flex-shrink: 0;
 }
 
 .loading-spinner::before {
@@ -1397,13 +1431,15 @@ h3 .bi,
 }
 
 .loading-text {
-    font-size: 20px;
+    font-size: clamp(14px, 4vw, 20px);
     font-weight: 500;
     color: #fff;
     text-align: center;
     animation: loading-pulse 2s ease-in-out infinite;
     letter-spacing: 0.5px;
     position: relative;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .loading-text::after {
@@ -1413,26 +1449,20 @@ h3 .bi,
 }
 
 @keyframes loading-pulse {
-    0%, 100% { 
-        opacity: 0.8; 
-        transform: scale(1); 
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
     }
-    50% { 
-        opacity: 1; 
-        transform: scale(1.02); 
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
     }
 }
 
 @keyframes loading-dots {
-    0%, 20% { 
-        content: '.'; 
-    }
-    40%, 60% { 
-        content: '..'; 
-    }
-    80%, 100% { 
-        content: '...'; 
-    }
+    0%, 20% { content: '.'; }
+    40%, 60% { content: '..'; }
+    80%, 100% { content: '...'; }
 }
 
 @keyframes spin {
@@ -1445,47 +1475,35 @@ h3 .bi,
     50% { opacity: 0.5; }
 }
 
-.loading-overlay {
-    /* Убираем transform для моментального появления */
-    transform: none;
-}
-
-.loading-overlay.active {
-    opacity: 1;
-    transform: none;
-    /* Убираем все анимации */
-    transition: none;
-}
-
 .loading-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    padding: 40px;
+    gap: clamp(12px, 3vw, 20px);
+    padding: clamp(22px, 6vw, 40px);
     background: rgba(var(--bg-app-rgb), 0.4);
-    border-radius: 20px;
+    border-radius: clamp(14px, 3vw, 20px);
     border: 1px solid rgba(var(--accent-rgb), 0.2);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
-    /* Убираем анимацию появления */
-    animation: none;
-    max-width: 90vw;
-    max-height: 90vh;
-    min-width: 280px;
+    width: min(88vw, 340px);
+    max-height: min(90vh, 90dvh);
     box-sizing: border-box;
     position: relative;
+    overflow-y: auto;
 }
 
-/* Кнопка отмены загрузки */
+/* Кнопка отмены загрузки — минимум 40px, чтобы палец точно попадал */
 .loading-cancel-button {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 32px;
-    height: 32px;
+    top: max(12px, env(safe-area-inset-top, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    width: clamp(32px, 8vw, 36px);
+    height: clamp(32px, 8vw, 36px);
+    min-width: 40px;
+    min-height: 40px;
     border: none;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.1);
@@ -1511,9 +1529,12 @@ h3 .bi,
     display: block;
     width: 100%;
     height: 100%;
-    line-height: 32px;
+    line-height: 1;
     text-align: center;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .loading-cancel-button i {
@@ -1531,124 +1552,55 @@ h3 .bi,
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Убираем ненужную анимацию появления контента */
-@keyframes loading-content-appear {
-    0%, 100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
+/* Очень низкие экраны (альбомная ориентация на телефоне): раскладываем
+   спиннер и текст в ряд, чтобы карточка не упиралась в верх/низ экрана */
+@media (orientation: landscape) and (max-height: 480px) {
     .loading-overlay {
-        /* Усиление для мобильных Safari */
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100vw !important;
-        height: 100vh !important;
-        min-height: 100vh !important;
-        min-height: 100dvh !important; /* Динамическая высота viewport */
-        z-index: 99999 !important;
+        padding: 8px;
     }
-    
+
     .loading-content {
-        padding: 30px 20px;
-        margin: 20px;
-        border-radius: 16px;
-        min-width: 250px;
-        max-width: calc(100vw - 40px);
+        flex-direction: row;
+        gap: 16px;
+        padding: 14px 22px;
+        width: min(92vw, 420px);
+        max-height: calc(100% - 16px);
     }
-    
+
+    .loading-spinner {
+        margin-bottom: 0;
+    }
+
     .loading-cancel-button {
-        width: 36px;
-        height: 36px;
-        top: 12px;
-        right: 12px;
-        font-size: 16px;
-    }
-    
-    .loading-cancel-button::before {
-        line-height: 36px;
-    }
-    
-    .loading-spinner {
-        width: 50px;
-        height: 50px;
-        margin-bottom: 20px;
-    }
-    
-    .loading-text {
-        font-size: 18px;
-        text-align: center;
-        word-break: break-word;
+        top: 8px;
+        right: 8px;
     }
 }
 
-@media (max-width: 480px) {
-    .loading-overlay {
-        /* Дополнительное усиление для очень маленьких экранов */
-        min-height: 100vh;
-        min-height: 100svh; /* Малая высота viewport */
-    }
-    
+/* Очень узкие экраны — чуть плотнее внутренние отступы */
+@media (max-width: 340px) {
     .loading-content {
-        padding: 25px 15px;
-        margin: 15px;
-        border-radius: 12px;
-        min-width: 220px;
-        max-width: calc(100vw - 30px);
-    }
-    
-    .loading-cancel-button {
-        width: 40px;
-        height: 40px;
-        top: 10px;
-        right: 10px;
-        font-size: 18px;
-    }
-    
-    .loading-cancel-button::before {
-        line-height: 40px;
-    }
-    
-    .loading-spinner {
-        width: 45px;
-        height: 45px;
-        margin-bottom: 15px;
-    }
-    
-    .loading-text {
-        font-size: 16px;
+        width: min(94vw, 300px);
+        padding: 18px 14px;
     }
 }
 
-/* Защита от переполнения на очень маленьких экранах */
-@media (max-height: 480px) {
+@media (prefers-reduced-motion: reduce) {
     .loading-overlay {
-        align-items: center;
-        justify-content: center;
-        padding: 10px;
+        transition: opacity 0.01s linear, visibility 0s linear;
+        transform: none;
     }
-    
-    .loading-content {
-        padding: 20px 15px;
-        gap: 15px;
-        margin: 10px;
-        max-height: calc(100vh - 20px);
+
+    .loading-overlay.active {
+        transform: none;
     }
-    
-    .loading-spinner {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 10px;
-    }
-    
-    .loading-text {
-        font-size: 14px;
+
+    .loading-spinner,
+    .loading-spinner::before,
+    .loading-spinner::after,
+    .loading-text,
+    .loading-text::after {
+        animation-duration: 2.4s;
     }
 }
 
@@ -2551,6 +2503,97 @@ h3 .bi,
 @keyframes floatPulse {
     0%, 100% { opacity: 0; }
     50% { opacity: 1; }
+}
+
+/* Блок соцсетей проекта (перед футером) */
+.social-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    width: min(50%, 900px);
+    animation: fadeInUp 0.6s ease-out 0.45s both;
+}
+
+.social-block-title {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: #9aa5b1;
+    text-transform: uppercase;
+}
+
+.social-block-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background-color: rgba(var(--accent-rgb), 0.18);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
+    border-radius: var(--radius-md, 12px);
+    color: #e6e6e6;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.social-link-icon {
+    flex-shrink: 0;
+}
+
+.social-link .bi {
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+.social-link:hover,
+.social-link:focus-visible {
+    background-color: rgba(var(--accent-rgb), 0.32);
+    border-color: var(--accent);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.35);
+}
+
+.social-link:active {
+    transform: translateY(0);
+}
+
+.social-link-telegram:hover,
+.social-link-telegram:focus-visible {
+    background-color: rgba(41, 152, 213, 0.28);
+    border-color: #2998d5;
+    box-shadow: 0 4px 15px rgba(41, 152, 213, 0.35);
+}
+
+.social-link-vk:hover,
+.social-link-vk:focus-visible {
+    background-color: rgba(0, 119, 255, 0.22);
+    border-color: #0077ff;
+    box-shadow: 0 4px 15px rgba(0, 119, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .social-block {
+        width: 100%;
+        padding: 14px 16px;
+    }
+
+    .social-link {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 140px;
+    }
 }
 
 /* Футер */

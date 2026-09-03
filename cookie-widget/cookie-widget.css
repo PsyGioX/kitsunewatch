@@ -1,0 +1,434 @@
+/* cookie-widget/cookie-widget.css
+ *
+ * Стили переиспользуемого cookie-виджета. Все классы с префиксом `cw-`,
+ * чтобы не конфликтовать со стилями сайта-хозяина.
+ *
+ * АДАПТАЦИЯ ПОД ТЕМУ САЙТА: виджет читает переменные темы хоста
+ * (--accent, --accent-rgb, --bg-app-rgb и т.п. — тот же набор, что
+ * использует KitsuneWatch и многие проекты на его основе) через var() со
+ * своим фолбэком, поэтому:
+ *   - если у сайта эти переменные уже объявлены — виджет автоматически
+ *     подхватывает его акцентный цвет и фон, включая смену темы на лету;
+ *   - если переменных нет вообще (используете на другом проекте без этой
+ *     системы тем) — работают фолбэки ниже, и виджет выглядит одинаково
+ *     хорошо "из коробки".
+ * Чтобы вручную задать цвета под конкретный сайт, достаточно переопределить
+ * --cw-accent/--cw-bg в любом родительском селекторе (см. README.md).
+ */
+
+:root {
+    --cw-accent: var(--accent, #7c3aed);
+    --cw-accent-rgb: var(--accent-rgb, 124, 58, 237);
+    --cw-accent-hover: var(--accent-hover, #6d28d9);
+    --cw-bg-rgb: var(--bg-app-rgb, 24, 20, 32);
+    --cw-radius-lg: var(--radius-lg, 18px);
+    --cw-radius-md: var(--radius-md, 12px);
+    --cw-radius-sm: var(--radius-sm, 8px);
+}
+
+.cw-root {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2147483000; /* выше практически любого UI сайта, но ниже системных диалогов */
+}
+
+/* ============ БАННЕР ============ */
+.cw-banner {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translate(-50%, 130%);
+    width: min(92vw, 780px);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 18px 22px;
+    background: rgba(var(--cw-bg-rgb), 0.96);
+    border: 1px solid rgba(var(--cw-accent-rgb), 0.35);
+    border-radius: var(--cw-radius-lg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #eee;
+    font-family: inherit;
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, visibility 0s linear 0.32s;
+    pointer-events: auto;
+    box-sizing: border-box;
+    padding-bottom: max(18px, env(safe-area-inset-bottom, 0px));
+}
+
+[data-cw-position="bottom-left"] .cw-banner { left: 20px; transform: translate(0, 130%); }
+[data-cw-position="bottom-left"] .cw-banner.cw-visible { transform: translate(0, 0); }
+[data-cw-position="bottom-right"] .cw-banner { left: auto; right: 20px; transform: translate(0, 130%); }
+[data-cw-position="bottom-right"] .cw-banner.cw-visible { transform: translate(0, 0); }
+
+.cw-banner.cw-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease;
+}
+
+.cw-banner-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(var(--cw-accent-rgb), 0.18);
+    color: var(--cw-accent);
+}
+
+.cw-banner-body { flex: 1 1 260px; min-width: 200px; }
+
+.cw-banner-text {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #d8d8d8;
+}
+
+.cw-link {
+    color: var(--cw-accent);
+    text-decoration: underline;
+}
+
+.cw-banner-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+/* ============ КНОПКИ ============ */
+.cw-btn {
+    appearance: none;
+    border: 1px solid transparent;
+    border-radius: var(--cw-radius-sm);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.cw-btn-primary {
+    background: var(--cw-accent);
+    color: #fff;
+}
+.cw-btn-primary:hover { background: var(--cw-accent-hover); }
+
+.cw-btn-outline {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ddd;
+}
+.cw-btn-outline:hover { border-color: rgba(255, 255, 255, 0.5); color: #fff; }
+
+.cw-btn-ghost {
+    background: transparent;
+    color: #aaa;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+.cw-btn-ghost:hover { color: #fff; text-decoration: underline; }
+
+/* ============ ПЛАВАЮЩАЯ КНОПКА ПОВТОРНОГО ОТКРЫТИЯ ============ */
+.cw-reopen-btn {
+    position: fixed;
+    left: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--cw-accent-rgb), 0.4);
+    background: rgba(var(--cw-bg-rgb), 0.92);
+    color: var(--cw-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    pointer-events: auto;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 2147483000;
+}
+.cw-reopen-btn:hover { transform: translateY(-2px) scale(1.05); }
+.cw-reopen-btn[hidden] { display: none; }
+
+/* ============ ПАНЕЛЬ НАСТРОЕК ============ */
+.cw-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2147483001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.22s ease, visibility 0s linear 0.22s;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.cw-overlay.cw-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.22s ease;
+}
+
+.cw-overlay[hidden] { display: none; }
+
+.cw-panel {
+    width: min(92vw, 560px);
+    max-height: min(88vh, 88dvh);
+    display: flex;
+    flex-direction: column;
+    background: rgba(var(--cw-bg-rgb), 0.98);
+    border: 1px solid rgba(var(--cw-accent-rgb), 0.3);
+    border-radius: var(--cw-radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    color: #eee;
+    overflow: hidden;
+    transform: scale(0.96);
+    transition: transform 0.22s ease;
+}
+.cw-overlay.cw-visible .cw-panel { transform: scale(1); }
+
+.cw-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+.cw-panel-header h3 { margin: 0; font-size: 17px; font-weight: 600; }
+
+.cw-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.cw-close:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+.cw-panel-body {
+    padding: 8px 20px 16px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.cw-category {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.cw-category:last-child { border-bottom: none; }
+
+.cw-category-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cw-category-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14.5px;
+    font-weight: 600;
+}
+
+.cw-detected-count {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--cw-accent);
+    background: rgba(var(--cw-accent-rgb), 0.16);
+    border-radius: 20px;
+    padding: 1px 8px;
+    min-width: 16px;
+    text-align: center;
+}
+.cw-detected-count:empty { display: none; }
+
+.cw-category-desc {
+    margin: 4px 0 0;
+    font-size: 12.5px;
+    color: #9aa5b1;
+    line-height: 1.4;
+}
+
+/* ============ ПЕРЕКЛЮЧАТЕЛЬ (toggle) ============ */
+.cw-switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.cw-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.cw-switch-track {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    transition: background 0.2s ease;
+}
+.cw-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s ease;
+}
+.cw-switch input:checked + .cw-switch-track { background: var(--cw-accent); }
+.cw-switch input:checked + .cw-switch-track .cw-switch-thumb { transform: translateX(18px); }
+.cw-switch input:focus-visible + .cw-switch-track { outline: 2px solid var(--cw-accent); outline-offset: 2px; }
+
+.cw-switch-locked { cursor: not-allowed; opacity: 0.7; }
+
+/* ============ СПИСОК НАЙДЕННЫХ СКРИПТОВ ("активное отслеживание") ============ */
+.cw-detected-list {
+    margin-top: 10px;
+}
+.cw-detected-list[hidden] { display: none; }
+
+.cw-detected-list summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #ccc;
+    cursor: pointer;
+    list-style: none;
+}
+.cw-detected-list summary::-webkit-details-marker { display: none; }
+.cw-detected-list summary svg { transition: transform 0.2s ease; }
+.cw-detected-list[open] summary svg { transform: rotate(180deg); }
+
+.cw-service-list {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cw-service-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: var(--cw-radius-sm);
+    font-size: 12px;
+}
+
+.cw-service-name { font-weight: 500; color: #eee; }
+
+.cw-service-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #9aa5b1;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.cw-region-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+}
+.cw-region-badge.cw-region-ru {
+    background: rgba(220, 60, 60, 0.18);
+    color: #ff9a9a;
+}
+.cw-region-badge.cw-region-world {
+    background: rgba(var(--cw-accent-rgb), 0.18);
+    color: var(--cw-accent);
+}
+
+.cw-panel-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+}
+
+/* ============ АДАПТИВНОСТЬ ============ */
+@media (max-width: 640px) {
+    .cw-banner {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        width: auto;
+        transform: translateY(130%);
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        padding: 16px;
+    }
+    [data-cw-position="bottom-left"] .cw-banner,
+    [data-cw-position="bottom-right"] .cw-banner { left: 8px; right: 8px; }
+
+    .cw-banner.cw-visible,
+    [data-cw-position="bottom-left"] .cw-banner.cw-visible,
+    [data-cw-position="bottom-right"] .cw-banner.cw-visible {
+        transform: translateY(0);
+    }
+
+    .cw-banner-icon { margin: 0 auto; }
+    .cw-banner-actions { flex-direction: column; }
+    .cw-banner-actions .cw-btn { width: 100%; }
+
+    .cw-overlay { align-items: flex-end; padding: 0; }
+    .cw-panel {
+        width: 100%;
+        max-height: 86vh;
+        max-height: 86dvh;
+        border-radius: var(--cw-radius-lg) var(--cw-radius-lg) 0 0;
+        transform: translateY(100%);
+    }
+    .cw-overlay.cw-visible .cw-panel { transform: translateY(0); }
+
+    .cw-reopen-btn { left: 12px; bottom: max(12px, env(safe-area-inset-bottom, 0px)); width: 42px; height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cw-banner, .cw-overlay, .cw-panel, .cw-switch-thumb, .cw-switch-track {
+        transition-duration: 0.01s !important;
+    }
+}
