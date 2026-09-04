@@ -83,6 +83,8 @@
     border-radius: 50%;
     background: rgba(var(--cw-accent-rgb), 0.18);
     color: var(--cw-accent);
+    align-self: center;
+    margin: 0;
 }
 
 .cw-banner-body { flex: 1 1 260px; min-width: 200px; }
@@ -420,6 +422,7 @@
     .cw-banner-icon {
         width: 32px;
         height: 32px;
+        align-self: center;
         margin: 0;
     }
 
