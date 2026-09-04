@@ -1444,7 +1444,14 @@ h3 .bi,
 
 .loading-text::after {
     content: '...';
-    position: absolute;
+    /* Раньше было position:absolute без top/left — на узких контейнерах
+       (после перехода на clamp()-размеры) текст стал чаще переноситься на
+       несколько строк, и точки как "статично спозиционированный" абсолютный
+       элемент утекали вниз/за пределы карточки. Инлайновый элемент просто
+       продолжает текст и переносится вместе с ним, оставаясь внутри рамки. */
+    display: inline-block;
+    min-width: 1.3em;
+    text-align: left;
     animation: loading-dots 1.5s steps(3, end) infinite;
 }
 
@@ -2487,6 +2494,101 @@ h3 .bi,
 
 @media (prefers-reduced-motion: reduce) {
     .install-button::after { animation: none; opacity: 0; }
+}
+
+/* ============ ТОСТ "ДОСТУПНО ОБНОВЛЕНИЕ" (PWA) ============ */
+.pwa-update-toast {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translate(-50%, -130%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(var(--bg-app-rgb), 0.96);
+    border: 1px solid rgba(var(--accent-rgb), 0.4);
+    border-radius: 50px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #eee;
+    font-size: 13.5px;
+    z-index: 1060;
+    max-width: min(92vw, 420px);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease, visibility 0s linear 0.28s;
+}
+
+.pwa-update-toast.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+}
+
+.pwa-update-toast > i.bi-arrow-repeat {
+    color: var(--accent-light);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.pwa-update-toast span {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pwa-update-button {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 30px;
+    padding: 6px 14px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.pwa-update-button:hover { background: var(--accent-hover); }
+.pwa-update-button:disabled { opacity: 0.7; cursor: default; }
+
+.pwa-update-dismiss {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.pwa-update-dismiss:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+@media (max-width: 480px) {
+    .pwa-update-toast {
+        left: 8px;
+        right: 8px;
+        top: 8px;
+        transform: translateY(-130%);
+        max-width: none;
+        border-radius: 16px;
+    }
+    .pwa-update-toast.visible { transform: translateY(0); }
+    .pwa-update-toast span {
+        white-space: normal;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pwa-update-toast { transition-duration: 0.01s; }
 }
 
 @keyframes floatIn {

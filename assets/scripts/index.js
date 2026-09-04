@@ -55,7 +55,11 @@ class KitsuneWatchApp {
         this.totalPages = 1;
         this.filteredResults = [];
         this.viewMode = 'home'; // 'home' | 'search' | 'top100'
-        this.currentSearchController = null; // Для отмены активных поисков
+        this.currentSearchController = null; // Для отмены активных поисков/загрузок (поиск, топ 100)
+        this._cancelledByUser = false; // true, если текущую загрузку прервал сам пользователь кнопкой отмены,
+                                        // а не реальный таймаут сети — иначе оба случая выглядят как одна и
+                                        // та же ошибка AbortError и пользователю показывалось неверное
+                                        // сообщение "Превышено время ожидания" даже при ручной отмене
 
         // ============ КЭШИРОВАНИЕ ДАННЫХ API ============
         // Клиентский кэш поверх серверного Cache-Control (/api/*) и Service
@@ -882,12 +886,20 @@ class KitsuneWatchApp {
 
     // ============ ТОП 100 АНИМЕ ============
     async loadTop100(forceRefresh = false) {
+        // Прерываем любую другую активную загрузку тем же контроллером
+        // (поиск), и заводим новый — чтобы кнопка отмены в прелоадере
+        // реально останавливала запрос, а не просто прятала оверлей
+        if (this.currentSearchController) this.currentSearchController.abort();
+        this.currentSearchController = new AbortController();
+        this._cancelledByUser = false;
+
         this.showLoading('Загружаем топ 100');
         this.viewMode = 'top100';
 
         try {
             const { data, fromCache, stale, cachedAt } = await this.fetchJSONCached(
-                this.TOP_API_URL, 'top100', this.CACHE_TTL.top100, { forceRefresh }
+                this.TOP_API_URL, 'top100', this.CACHE_TTL.top100,
+                { forceRefresh, signal: this.currentSearchController.signal }
             );
 
             if (data.results && data.results.length > 0) {
@@ -898,8 +910,17 @@ class KitsuneWatchApp {
             }
         } catch (error) {
             console.error('Error loading top 100:', error);
-            this.showError('Ошибка при загрузке топ 100');
+
+            if (error.name === 'AbortError' && this._cancelledByUser) {
+                // Пользователь сам отменил загрузку — без тоста об ошибке
+            } else if (error.name === 'AbortError') {
+                this.showError('Превышено время ожидания');
+            } else {
+                this.showError('Ошибка при загрузке топ 100');
+            }
         } finally {
+            this.currentSearchController = null;
+            this._cancelledByUser = false;
             this.hideLoading();
         }
     }
@@ -1234,14 +1255,86 @@ class KitsuneWatchApp {
     }
 
     async registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            try {
-                await navigator.serviceWorker.register('/sw.js');
-                console.log('SW зарегистрирован');
-            } catch (e) {
-                console.error('SW ошибка:', e);
-            }
+        if (!('serviceWorker' in navigator)) return;
+
+        try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('SW зарегистрирован');
+
+            // ============ ОБНОВЛЕНИЕ PWA ============
+            // Новый SW мог докачаться ещё до открытия этой вкладки (в
+            // фоне между визитами) и уже сидеть в состоянии "waiting" —
+            // предлагаем обновиться сразу же.
+            if (registration.waiting) this.showUpdateAvailable(registration);
+
+            // Новая версия появилась прямо во время текущей сессии —
+            // ждём, пока она полностью скачается (state 'installed'), и
+            // раз на странице уже есть активный контроллер — значит, это
+            // не первая установка, а именно обновление
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (!newWorker) return;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        this.showUpdateAvailable(registration);
+                    }
+                });
+            });
+
+            // Вкладка может быть открыта часами/сутками — браузер сам
+            // проверяет обновления SW только при навигации, поэтому
+            // подстраховываемся периодической ручной проверкой
+            setInterval(() => registration.update().catch(() => {}), 60 * 60 * 1000);
+
+            // Как только новый SW реально активируется (после нашего
+            // SKIP_WAITING), перезагружаем страницу — иначе вкладка
+            // продолжит работать со старым JS в памяти, а сеть уже будет
+            // обслуживаться новым SW, что может привести к рассинхрону
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+            });
+        } catch (e) {
+            console.error('SW ошибка:', e);
         }
+    }
+
+    // Ненавязчивый тост "Доступна новая версия" — обновление происходит
+    // только по явному клику пользователя, а не рывком посреди просмотра
+    showUpdateAvailable(registration) {
+        if (this.updateToast) return; // уже показан
+        const worker = registration.waiting;
+        if (!worker) return;
+
+        this.updateToast = document.createElement('div');
+        this.updateToast.className = 'pwa-update-toast';
+        this.updateToast.innerHTML = `
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Доступна новая версия сайта</span>
+            <button type="button" class="pwa-update-button">Обновить</button>
+            <button type="button" class="pwa-update-dismiss" title="Закрыть" aria-label="Закрыть">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        document.body.appendChild(this.updateToast);
+        requestAnimationFrame(() => this.updateToast?.classList.add('visible'));
+
+        const updateBtn = this.updateToast.querySelector('.pwa-update-button');
+        updateBtn.addEventListener('click', () => {
+            updateBtn.disabled = true;
+            updateBtn.textContent = 'Обновляем…';
+            worker.postMessage({ type: 'SKIP_WAITING' });
+        });
+
+        this.updateToast.querySelector('.pwa-update-dismiss').addEventListener('click', () => {
+            this.updateToast?.classList.remove('visible');
+            setTimeout(() => {
+                this.updateToast?.remove();
+                this.updateToast = null;
+            }, 250);
+        });
     }
 
     showInstallButton() {
@@ -1756,9 +1849,13 @@ class KitsuneWatchApp {
         }
     }
 
-    // Отмена текущего поиска
+    // Отмена текущей загрузки (поиск или топ 100 — оба используют один
+    // контроллер, т.к. на экране одновременно может грузиться только
+    // что-то одно). Помечаем отмену как "от пользователя" ДО abort(),
+    // чтобы catch-блок ниже не спутал её с реальным сетевым таймаутом.
     cancelCurrentSearch() {
         if (this.currentSearchController) {
+            this._cancelledByUser = true;
             this.currentSearchController.abort();
             this.currentSearchController = null;
         }
@@ -2894,6 +2991,7 @@ class KitsuneWatchApp {
         
         // Создаем новый контроллер для этого поиска
         this.currentSearchController = new AbortController();
+        this._cancelledByUser = false;
 
         try {
             const searchUrl = `${this.API_URL}?title=${encodeURIComponent(query)}&with_material_data=true&limit=100&sort=popular`;
@@ -2926,7 +3024,9 @@ class KitsuneWatchApp {
         } catch (error) {
             console.error('Search error:', error);
 
-            if (error.name === 'AbortError') {
+            if (error.name === 'AbortError' && this._cancelledByUser) {
+                // Пользователь сам нажал "отменить" — это не ошибка, тост не нужен
+            } else if (error.name === 'AbortError') {
                 this.showError('Превышено время ожидания');
             } else if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
                 this.showError('Ошибка CORS. Попробуйте через VPN или прокси.');
@@ -2936,6 +3036,7 @@ class KitsuneWatchApp {
         } finally {
             // Очищаем ссылку на контроллер и скрываем загрузку
             this.currentSearchController = null;
+            this._cancelledByUser = false;
             this.hideLoading();
         }
     }

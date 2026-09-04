@@ -197,16 +197,28 @@
         }
 
         // ============ СПИСКИ НАЙДЕННЫХ СКРИПТОВ ПО КАТЕГОРИЯМ ============
+        // Один проход: обновляет и счётчики в заголовках категорий, и сами
+        // раскрывающиеся списки сервисов за один вызов. Раньше здесь было
+        // две функции, вызывавшие друг друга по кругу (renderDetectedLists
+        // -> refreshDetectionCounts -> renderDetectedListsQuiet ->
+        // renderDetectedLists -> ...), что валило страницу в
+        // "RangeError: Maximum call stack size exceeded" сразу при
+        // построении баннера.
         renderDetectedLists() {
+            if (!this.overlay) return;
             const services = this.engine.getDetectedServices();
             const t = this.t;
             const byCategory = { necessary: [], analytics: [], marketing: [], functional: [] };
             services.forEach(s => { if (byCategory[s.category]) byCategory[s.category].push(s); });
 
             Object.keys(byCategory).forEach(cat => {
+                const items = byCategory[cat];
+
+                const badge = this.overlay.querySelector(`[data-cw-count-for="${cat}"]`);
+                if (badge) badge.textContent = items.length > 0 ? items.length : '';
+
                 const listEl = this.overlay.querySelector(`[data-cw-list-for="${cat}"]`);
                 if (!listEl) return;
-                const items = byCategory[cat];
 
                 if (items.length === 0) {
                     listEl.innerHTML = '';
@@ -228,30 +240,14 @@
                         </ul>`;
                 }
             });
-
-            this.refreshDetectionCounts();
         }
 
+        // Вызывается при "живом" изменении списка найденных сервисов
+        // (см. observeNewScripts в ядре). Перерисовывает панель, только
+        // если она уже построена — до этого просто нечего обновлять.
         refreshDetectionCounts() {
-            if (!this.overlay) return;
-            const services = this.engine.getDetectedServices();
-            const counts = { necessary: 0, analytics: 0, marketing: 0, functional: 0 };
-            services.forEach(s => { if (counts[s.category] !== undefined) counts[s.category]++; });
-
-            Object.keys(counts).forEach(cat => {
-                const badge = this.overlay.querySelector(`[data-cw-count-for="${cat}"]`);
-                if (badge) badge.textContent = counts[cat] > 0 ? counts[cat] : '';
-            });
-
-            // Список мог измениться (динамически добавленные скрипты) — перерисуем детали
-            this.renderDetectedListsQuiet();
-        }
-
-        renderDetectedListsQuiet() {
-            // Обновляем только содержимое, не трогая build() второй раз
-            if (this.overlay && this.overlay.querySelector('.cw-panel')) {
-                this.renderDetectedLists();
-            }
+            if (!this.overlay || !this.overlay.querySelector('.cw-panel')) return;
+            this.renderDetectedLists();
         }
 
         // ============ ВИДИМОСТЬ БАННЕРА / КНОПКИ ============

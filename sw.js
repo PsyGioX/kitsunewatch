@@ -1,9 +1,21 @@
-// v2: static assets теперь обновляются по stale-while-revalidate —
-// раньше кэш отдавался "навечно" при первом попадании, и апдейты
-// index.css/index.js не доходили до пользователей без ручной чистки кэша.
-const CACHE_NAME = 'kitsunewatch-v2';
-const DYNAMIC_CACHE = 'kitsunewatch-dynamic-v2';
-const API_CACHE = 'kitsunewatch-api-v2';
+// v3: два важных исправления PWA-обновлений.
+//
+// 1) HTML-навигация (index.html, "/") раньше отдавалась cache-first —
+//    один раз закэшированная страница могла оставаться "навсегда" и не
+//    обновляться для вернувшихся пользователей. Теперь навигация
+//    network-first: пока есть сеть, всегда приходит свежий index.html,
+//    офлайн-кэш — только как фолбэк без сети.
+// 2) Раньше новый SW сразу вызывал self.skipWaiting() и подменял собой
+//    активную вкладку без спроса — страница при этом продолжала работать
+//    со старым JS в памяти до случайной перезагрузки, а обновление
+//    происходило "рывком" в середине работы с сайтом. Теперь новая
+//    версия ждёт в состоянии waiting, а index.js показывает пользователю
+//    ненавязчивый тост "Доступно обновление" и активирует новую версию
+//    только по явному клику (см. showUpdateAvailable в index.js).
+const CACHE_VERSION = 'v3';
+const CACHE_NAME = `kitsunewatch-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `kitsunewatch-dynamic-${CACHE_VERSION}`;
+const API_CACHE = `kitsunewatch-api-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
     '/',
@@ -20,7 +32,10 @@ self.addEventListener('install', (event) => {
             return Promise.allSettled(
                 STATIC_ASSETS.map(url => cache.add(url))
             );
-        }).then(() => self.skipWaiting())
+        })
+        // Специально НЕ вызываем self.skipWaiting() здесь — см. комментарий
+        // в шапке файла. Активация нового SW происходит только по команде
+        // SKIP_WAITING от страницы (обработчик 'message' ниже).
     );
 });
 
@@ -61,11 +76,21 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Собственные CSS/JS — stale-while-revalidate: мгновенный ответ из
-    // кэша + фоновое обновление, так что правки доходят до пользователя
-    // уже на следующей загрузке, а не "никогда"
+    // HTML-навигация — всегда network-first (см. комментарий в шапке файла)
+    if (request.mode === 'navigate' || request.headers.get('Accept')?.includes('text/html')) {
+        event.respondWith(handleNavigationRequest(request));
+        return;
+    }
+
+    // Собственные CSS/JS (и переносимые модули achievements/cookie-widget) —
+    // stale-while-revalidate: мгновенный ответ из кэша + фоновое
+    // обновление, так что правки доходят до пользователя уже на
+    // следующей загрузке, а не "никогда"
     if (url.origin === self.location.origin &&
-        (url.pathname.startsWith('/assets/') || url.pathname === '/site.webmanifest')) {
+        (url.pathname.startsWith('/assets/') ||
+         url.pathname.startsWith('/achievements/') ||
+         url.pathname.startsWith('/cookie-widget/') ||
+         url.pathname === '/site.webmanifest')) {
         event.respondWith(handleStaleWhileRevalidate(request));
         return;
     }
@@ -89,6 +114,24 @@ async function handleApiRequest(request) {
             status: 503,
             headers: { 'Content-Type': 'application/json' }
         });
+    }
+}
+
+async function handleNavigationRequest(request) {
+    try {
+        const response = await fetch(request);
+        if (response.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, response.clone());
+        }
+        return response;
+    } catch (error) {
+        // Сети нет — отдаём то, что успели закэшировать (сам URL или
+        // общий index.html как последний фолбэк для SPA-навигации)
+        const cache = await caches.open(CACHE_NAME);
+        const cached = (await cache.match(request)) || (await cache.match('/index.html'));
+        if (cached) return cached;
+        return new Response('', { status: 503 });
     }
 }
 
