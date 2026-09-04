@@ -1878,14 +1878,22 @@ class KitsuneWatchApp {
             clearTimeout(this._hideLoadingTimeout);
 
             this.loadingOverlay.style.display = 'flex';
-            // requestAnimationFrame гарантирует, что браузер зафиксирует
-            // display:flex ДО добавления класса .active — иначе переход
-            // opacity/transform может "проглотиться" и оверлей появится
-            // мгновенно вместо плавного фейда (актуально для CSS-плавности,
-            // добавленной для адаптивного прелоадера)
-            requestAnimationFrame(() => {
-                if (this.loadingOverlay) this.loadingOverlay.classList.add('active');
-            });
+            // Форсируем синхронный reflow (чтение layout-свойства), чтобы
+            // браузер зафиксировал display:flex/opacity:0 ДО добавления
+            // класса .active — иначе переход может "схлопнуться" и оверлей
+            // появится мгновенно вместо плавного фейда.
+            //
+            // Раньше здесь был requestAnimationFrame(...) — но это
+            // АСИНХРОННО (следующий кадр отрисовки), и если ответ приходит
+            // из локального кэша практически мгновенно (например, повторный
+            // клик по "Топ 100", когда данные уже закэшированы), весь цикл
+            // showLoading -> await -> hideLoading успевал завершиться
+            // раньше, чем срабатывал RAF. В итоге hideLoading() убирал
+            // класс .active, а через мгновение RAF-колбэк добавлял его
+            // ОБРАТНО — оверлей залипал навсегда ("бесконечный прелоадер").
+            // Синхронный reflow решает ту же задачу без этого разрыва.
+            void this.loadingOverlay.offsetWidth;
+            this.loadingOverlay.classList.add('active');
 
             // Исправление для мобильных браузеров
             this.loadingOverlay.style.height = '100vh';

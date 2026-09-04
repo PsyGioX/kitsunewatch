@@ -396,10 +396,17 @@
         bottom: 8px;
         width: auto;
         transform: translateY(130%);
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-        padding: 16px;
+        /* Раньше здесь была flex-direction:column + text-align:center —
+           иконка, текст и КАЖДАЯ из 3 кнопок занимали отдельную полноширинную
+           строку, из-за чего баннер раздувался почти на весь экран с кучей
+           пустого места вокруг короткого текста. Оставляем ряд с переносом:
+           иконка+текст в одной строке, кнопки — в следующей, тоже в ряд. */
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        text-align: left;
+        padding: 14px 16px;
+        gap: 10px 12px;
     }
     [data-cw-position="bottom-left"] .cw-banner,
     [data-cw-position="bottom-right"] .cw-banner { left: 8px; right: 8px; }
@@ -410,9 +417,45 @@
         transform: translateY(0);
     }
 
-    .cw-banner-icon { margin: 0 auto; }
-    .cw-banner-actions { flex-direction: column; }
-    .cw-banner-actions .cw-btn { width: 100%; }
+    .cw-banner-icon {
+        width: 32px;
+        height: 32px;
+        margin: 0;
+    }
+
+    .cw-banner-body {
+        flex: 1 1 auto;
+        min-width: 140px;
+    }
+
+    .cw-banner-text {
+        font-size: 12.5px;
+    }
+
+    .cw-banner-actions {
+        /* flex-basis:100% переносит блок кнопок на новую строку внутри
+           того же flex-контейнера, без лишней вложенности в разметке */
+        flex: 1 1 100%;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+
+    .cw-banner-actions .cw-btn-primary,
+    .cw-banner-actions .cw-btn-outline {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 9px 6px;
+        font-size: 12.5px;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .cw-banner-actions .cw-btn-ghost {
+        flex: 0 0 auto;
+        padding: 9px 4px;
+        font-size: 12px;
+    }
 
     .cw-overlay { align-items: flex-end; padding: 0; }
     .cw-panel {
