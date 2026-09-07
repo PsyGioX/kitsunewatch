@@ -18,7 +18,8 @@ const THEMES = [
     { id: 'sakura', name: 'Sakura Pink', icon: 'bi-flower1', swatch: '#ec4899' },
     { id: 'cyber', name: 'Cyber Neon', icon: 'bi-cpu', swatch: '#06b6d4' },
     { id: 'matcha', name: 'Ghibli Matcha', icon: 'bi-tree', swatch: '#4f9458' },
-    { id: 'shadow', name: 'Shadow Onyx', icon: 'bi-moon-stars', swatch: '#82828c' }
+    { id: 'shadow', name: 'Shadow Onyx', icon: 'bi-moon-stars', swatch: '#82828c' },
+    { id: 'shonen', name: 'Shonen Ember', icon: 'bi-fire', swatch: '#f97316' }
 ];
 
 const STORAGE_KEY = 'kitsunewatch_theme';

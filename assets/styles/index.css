@@ -49,6 +49,10 @@
     
     /* Динамическая высота viewport для мобильных */
     --vh: 1vh;
+
+    /* Акцентный шрифт для логотипа и заголовков секций — даёт
+       "тайтловый" аниме-характер, не трогая читаемость основного текста */
+    --font-display: 'Baloo 2', 'Roboto', sans-serif;
 }
 
 [data-theme="sakura"] {
@@ -127,6 +131,28 @@
     --glow-2: rgba(90, 90, 100, 0.05);
 }
 
+/* Shonen Ember — тема в духе боевого сёнэна: пламенный оранжево-красный
+   акцент на угольно-чёрном фоне, вдохновлена жанрами вроде "Naruto",
+   "Demon Slayer", "Jujutsu Kaisen" */
+[data-theme="shonen"] {
+    --accent-rgb: 217, 78, 15;
+    --accent: #d94e0f;
+    --accent-hover-rgb: 249, 115, 22;
+    --accent-hover: #f97316;
+    --accent-light-rgb: 253, 186, 116;
+    --accent-light: #fdba74;
+    --accent-focus: #c2410c;
+    --accent-active-rgb: 62, 22, 8;
+    --accent-active: #3e1608;
+    --bg-base: #150c08;
+    --bg-app-rgb: 64, 22, 8;
+    --aura-1: rgba(249, 115, 22, 0.24);
+    --aura-2: rgba(253, 186, 116, 0.16);
+    --aura-3: rgba(120, 20, 10, 0.28);
+    --glow-1: rgba(253, 186, 116, 0.09);
+    --glow-2: rgba(217, 78, 15, 0.08);
+}
+
 * {
     margin: 0;
     box-sizing: border-box;
@@ -153,6 +179,31 @@ body {
     outline: 2px solid var(--accent-light);
     outline-offset: 2px;
     border-radius: 4px;
+}
+
+/* Убирает 300мс задержку тапа на мобильных для всех интерактивных
+   элементов — ощутимо на телефонах при частых тапах по карточкам */
+button,
+a,
+input,
+.feature-card,
+.theme-option {
+    touch-action: manipulation;
+}
+
+/* Единый "тайтловый" шрифт для заголовков секций — короткий акцент
+   без переопределения размеров/отступов, заданных в каждом блоке */
+.about-project-header h2,
+.premieres-header h2,
+.collections-header h2,
+.calendar-header h2,
+.history-title,
+.favorites-title,
+.top-100-title,
+.video-card-title,
+.favorite-card-title {
+    font-family: var(--font-display);
+    letter-spacing: 0.3px;
 }
 
 /* Иконки Bootstrap */
@@ -321,9 +372,28 @@ h3 .bi,
 }
 
 .header_menu {
+    position: relative;
     margin-bottom: 18px;
+    padding-bottom: 14px;
     width: min(50%, 900px);   /* потолок ширины на ultrawide-мониторах */
     transition: border-color 0.3s ease;
+}
+
+/* Тонкая "энергетическая" полоса под шапкой вместо обычной border —
+   плавно уходит в прозрачность по краям */
+.header_menu::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(var(--accent-light-rgb), 0.6) 20%,
+        rgba(var(--accent-hover-rgb), 0.9) 50%,
+        rgba(var(--accent-light-rgb), 0.6) 80%,
+        transparent 100%);
 }
 
 .logo_details {
@@ -340,11 +410,18 @@ h3 .bi,
 }
 
 .logo_text_header {
+    font-family: var(--font-display);
     font-size: 28px;
     font-weight: 700;
-    letter-spacing: 1px;
-    color: #fff;
-    transition: color 0.3s ease;
+    letter-spacing: 0.5px;
+    background: linear-gradient(120deg, #fff 0%, var(--accent-light) 55%, var(--accent-hover) 100%);
+    background-size: 200% auto;
+    background-position: 0% center;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    transition: background-position 0.4s ease;
 }
 
 .link_logotext {
@@ -352,7 +429,13 @@ h3 .bi,
 }
 
 .logo_text_header:hover {
-    color: var(--accent-light);
+    background-position: 100% center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .logo_text_header {
+        transition: none;
+    }
 }
 
 /* ============ ПЕРЕКЛЮЧАТЕЛЬ ТЕМ ============ */
@@ -492,6 +575,12 @@ h3 .bi,
     width: 100%;
     gap: 10px;
     animation: fadeInUp 0.6s ease-out 0.2s both;
+    border-radius: 10px;
+    transition: filter 0.3s ease;
+}
+
+.search_container:focus-within {
+    filter: drop-shadow(0 0 14px rgba(var(--accent-light-rgb), 0.35));
 }
 
 .search_input_query {
@@ -1685,12 +1774,28 @@ h3 .bi,
 
 /* Блок описания проекта */
 .about-project {
+    position: relative;
+    overflow: hidden;
     margin: 20px 0;
     padding: 30px;
     background: rgba(var(--accent-rgb), 0.15);
     border-radius: 16px;
     border: 1px solid rgba(var(--accent-rgb), 0.3);
     animation: fadeInUp 0.6s ease-out;
+}
+
+/* Скошенный уголок панели — тот же приём, что у .feature-card,
+   объединяет крупные блоки в единый визуальный язык */
+.about-project::before,
+.premieres-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(-45deg, transparent 50%, rgba(var(--accent-light-rgb), 0.5) 50%);
+    pointer-events: none;
 }
 
 .about-project-content {
@@ -1733,14 +1838,43 @@ h3 .bi,
 }
 
 .feature-card {
+    position: relative;
     background: rgba(var(--accent-rgb), 0.2);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
     border-radius: 10px;
     padding: 20px;
-    transition: background-color 0.3s ease;
+    overflow: hidden;
+    transition: background-color 0.3s ease, border-color 0.3s ease,
+        transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* "Манга-уголок" — скошенный уголок карточки в акцентном цвете,
+   отсылка к декоративным углам панелей в мангах/аниме-обложках */
+.feature-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, transparent 50%, rgba(var(--accent-hover-rgb), 0.85) 50%);
+    opacity: 0.8;
+    transition: opacity 0.25s ease, width 0.25s ease, height 0.25s ease;
+    pointer-events: none;
 }
 
 .feature-card:hover {
     background: rgba(var(--accent-rgb), 0.35);
+    border-color: rgba(var(--accent-light-rgb), 0.6);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(var(--accent-active-rgb), 0.45),
+        0 0 0 1px rgba(var(--accent-light-rgb), 0.15) inset;
+}
+
+.feature-card:hover::before {
+    width: 34px;
+    height: 34px;
+    opacity: 1;
 }
 
 .feature-card i {
@@ -1748,11 +1882,18 @@ h3 .bi,
     color: var(--accent-light);
     margin-bottom: 10px;
     display: block;
+    transition: transform 0.25s ease;
+}
+
+.feature-card:hover i {
+    transform: scale(1.12) rotate(-4deg);
 }
 
 .feature-card h3 {
-    font-size: 16px;
-    font-weight: 500;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
     color: #fff;
     margin-bottom: 8px;
 }
@@ -2976,7 +3117,23 @@ h3 .bi,
         width: 100%;
         justify-content: center;
     }
-    
+
+    /* Тап-таргеты по рекомендации WCAG (min 44px) — важно на телефонах,
+       где основная аудитория смотрит аниме с рук */
+    .search_input_query,
+    .search_push,
+    .random-anime-button,
+    .top-100-button,
+    .refresh-data-button,
+    .theme-switcher-toggle {
+        min-height: 44px;
+    }
+
+    .feature-card::before {
+        width: 20px;
+        height: 20px;
+    }
+
     .video-container,
     .video-container .video_link {
         min-height: 180px;
