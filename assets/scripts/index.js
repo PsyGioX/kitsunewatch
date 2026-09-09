@@ -2724,7 +2724,6 @@ class KitsuneWatchApp {
 
             this.videoFrame.src = fullUrl;
             this.videoFrame.setAttribute('allow', 'autoplay *; fullscreen *; picture-in-picture *');
-            this.videoFrame.setAttribute('allowfullscreen', 'true');
         }
 
         this.displayVideoInfo(material);
