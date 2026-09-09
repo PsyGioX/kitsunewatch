@@ -12,6 +12,9 @@
     let pageEl = null;
     let currentFilter = 'all'; // all | unlocked | locked
     let currentCategory = 'all';
+    // id секретных достижений, которые пользователь раскрыл кликом
+    // (только в рамках текущей сессии — сброс при перезагрузке страницы).
+    const revealedSecrets = new Set();
 
     function escapeHtml(str) {
         const div = document.createElement('div');
@@ -157,18 +160,38 @@
         }
 
         grid.innerHTML = filtered.map(def => cardHtml(def)).join('');
+
+        grid.querySelectorAll('.kw-achv-card[data-secret-id]').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.secretId;
+                if (revealedSecrets.has(id)) {
+                    revealedSecrets.delete(id);
+                } else {
+                    revealedSecrets.add(id);
+                }
+                renderGrid();
+            });
+        });
     }
 
     function cardHtml(def) {
         const progress = window.KWAchievements.getProgress(def.id);
         const isSecretLocked = def.secret && !progress.unlocked;
-        const title = isSecretLocked ? '???' : def.title;
-        const desc = isSecretLocked ? 'Секретное достижение — откройте его, чтобы узнать подробности.' : def.description;
-        const icon = isSecretLocked ? 'bi-question-lg' : (def.icon || 'bi-award');
+        const isRevealed = isSecretLocked && revealedSecrets.has(def.id);
+        const title = isSecretLocked && !isRevealed ? '???' : def.title;
+        const desc = isSecretLocked && !isRevealed
+            ? 'Секретное достижение. Нажмите на карточку, чтобы узнать подробности.'
+            : def.description;
+        const icon = isSecretLocked && !isRevealed ? 'bi-question-lg' : (def.icon || 'bi-award');
         const pct = progress.target ? Math.min(100, Math.round((progress.current / progress.target) * 100)) : 0;
+        const secretAttr = isSecretLocked ? ` data-secret-id="${escapeHtml(def.id)}"` : '';
+        const secretClass = isSecretLocked ? ' secret' + (isRevealed ? ' revealed' : '') : '';
+        // Прогресс скрываем, только пока секрет не раскрыт кликом — сам факт
+        // раскрытия не засчитывает достижение, это просто подсказка текстом.
+        const showProgress = !isSecretLocked || isRevealed;
 
         return `
-            <div class="kw-achv-card ${progress.unlocked ? 'unlocked' : 'locked'}">
+            <div class="kw-achv-card ${progress.unlocked ? 'unlocked' : 'locked'}${secretClass}"${secretAttr}>
                 <div class="kw-achv-card-icon"><i class="bi ${icon}"></i></div>
                 <div class="kw-achv-card-body">
                     <div class="kw-achv-card-title-row">
@@ -176,7 +199,7 @@
                         <span class="kw-achv-card-points">+${def.points || 0}</span>
                     </div>
                     <p class="kw-achv-card-desc">${escapeHtml(desc)}</p>
-                    ${!isSecretLocked ? `
+                    ${showProgress ? `
                         <div class="kw-achv-card-progress">
                             <div class="kw-achv-card-progress-bar">
                                 <div class="kw-achv-card-progress-fill" style="width:${pct}%"></div>

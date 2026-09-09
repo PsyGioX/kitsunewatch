@@ -2371,6 +2371,12 @@ class KitsuneWatchApp {
             this.favorites = this.favorites.filter(f => f.id !== videoId);
             this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
             this.favoriteButton.classList.remove('active');
+
+            // Система достижений (achievements/) слушает это событие сама —
+            // никаких прямых зависимостей от неё здесь нет.
+            document.dispatchEvent(new CustomEvent('kw:favorite-removed', {
+                detail: { id: videoId, title: this.currentVideo.title, type: this.currentVideo.type }
+            }));
         } else {
             this.favorites.unshift({
                 id: videoId,
@@ -2395,6 +2401,7 @@ class KitsuneWatchApp {
     }
 
     removeFromFavorites(videoId) {
+        const removed = this.favorites.find(f => f.id === videoId);
         this.favorites = this.favorites.filter(f => f.id !== videoId);
         this.saveToStorage('kitsunewatch_favorites', this.favorites);
         this.displayFavorites();
@@ -2403,6 +2410,12 @@ class KitsuneWatchApp {
             this.favoriteButton.innerHTML = '<i class="bi bi-heart"></i> В избранное';
             this.favoriteButton.classList.remove('active');
         }
+
+        // Система достижений (achievements/) слушает это событие сама —
+        // никаких прямых зависимостей от неё здесь нет.
+        document.dispatchEvent(new CustomEvent('kw:favorite-removed', {
+            detail: { id: videoId, title: removed?.title, type: removed?.type }
+        }));
     }
 
     displayFavorites() {

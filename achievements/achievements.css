@@ -409,6 +409,20 @@ body.kw-achv-page-lock {
     opacity: 0.72;
 }
 
+.kw-achv-card.secret {
+    cursor: pointer;
+}
+
+.kw-achv-card.secret:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.kw-achv-card.secret.revealed {
+    opacity: 0.85;
+    border-style: dashed;
+}
+
 .kw-achv-card-icon {
     flex-shrink: 0;
     width: 44px;

@@ -3,9 +3,15 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "build": "npm run minify:css && npm run minify:js",
-        "start": "vercel dev",
-        "minify:css": "npx clean-css-cli -o assets/styles/index.min.css assets/styles/index.css",
-        "minify:js": "npx terser assets/scripts/index.js -c -m -o assets/scripts/index.min.js && npx terser assets/scripts/theme-manager.js -c -m -o assets/scripts/theme-manager.min.js"
+        "build": "node scripts/build-assets.js",
+        "start": "vercel dev"
+    },
+    "devDependencies": {
+        "clean-css": "^5.3.3",
+        "terser": "^5.44.1"
+    },
+    "devDependencies": {
+        "clean-css": "^5.3.3",
+        "terser": "^5.51.2"
     }
 }
