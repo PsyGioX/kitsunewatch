@@ -11,6 +11,7 @@
 
 export const config = {
     matcher: '/',
+    runtime: 'nodejs',
 };
 
 const SITE_URL = 'https://kitsunewatch.vercel.app';

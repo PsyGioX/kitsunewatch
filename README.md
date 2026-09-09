@@ -170,6 +170,12 @@ Every local `.min.js` / `.min.css` reference in `index.html` gets a `?v=<hash>` 
 
 Bootstrap Icons (`assets/vendor/bootstrap-icons/`) are vendored locally from the pinned `bootstrap-icons` npm dependency instead of loaded from jsdelivr, both to drop a third-party connection from the render-critical path and to get the same long-cache treatment. The only change from upstream is `font-display: swap` instead of `block` (see the comment in `bootstrap-icons.css`). If you bump the pinned version in `package.json`, re-copy `node_modules/bootstrap-icons/font/bootstrap-icons.css` and `font/fonts/*` into that folder and re-apply that one-line change before running `npm run build`.
 
+### Module system & Vercel Functions runtime
+
+`package.json` has `"type": "module"` — every server-side file Vercel picks up (`api/*.js`, `middleware.js`, `scripts/build-assets.js`) uses ES module `import`/`export` syntax, so this makes that explicit instead of relying on Vercel's auto-detected ESM→CommonJS transpile.
+
+`middleware.js` runs on the **Node.js runtime** (`export const config = { runtime: 'nodejs' }`), not the Edge runtime — it's a plain rewrite of static HTML on `/?search=...` for SEO, with no need for Edge's V8-isolate constraints, and Node is now the recommended default for Vercel Middleware.
+
 ### Vercel Deployment
 
 1. Push your repository to GitHub.

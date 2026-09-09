@@ -27,12 +27,14 @@
 // — при следующей сборке хэш меняется, значит меняется URL, значит
 // браузер не может отдать иммутабельную копию из кэша.
 
-const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
-const { minify } = require('terser');
-const CleanCSS = require('clean-css');
+import path from 'node:path';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { minify } from 'terser';
+import CleanCSS from 'clean-css';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const INDEX_HTML = path.join(ROOT, 'index.html');
 
