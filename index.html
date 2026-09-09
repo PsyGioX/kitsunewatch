@@ -10,7 +10,7 @@
           content="default-src 'self'; 
                    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; 
                    style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; 
-                   font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; 
+                   font-src 'self' https://fonts.gstatic.com data:; 
                    img-src 'self' data: https:; 
                    frame-src 'self' https://kodikplayer.com http://kodikplayer.com; 
                    connect-src 'self' https://cdn.jsdelivr.net; 
@@ -55,6 +55,13 @@
     <link rel="dns-prefetch" href="https://kodik-api.com">
     <link rel="manifest" href="/site.webmanifest">
 
+    <!-- Иконки (Bootstrap Icons) видны сразу на первом экране (кнопка
+         поиска и т.д.), поэтому их шрифт грузим параллельно с CSS, а не
+         ждём, пока браузер найдёт @font-face внутри стиля — иначе шрифт
+         оказывается последним звеном в цепочке критических запросов. -->
+    <link rel="preload" as="font" type="font/woff2"
+        href="/assets/vendor/bootstrap-icons/fonts/bootstrap-icons.woff2" crossorigin>
+
     <!-- Тема применяется ДО первой отрисовки, чтобы не было "вспышки"
          дефолтных цветов при загрузке сохранённой темы -->
     <script>
@@ -97,29 +104,49 @@
         media="print" onload="this.media='all'">
 
     <!-- Bootstrap Icons используются сразу на первом экране (кнопка поиска
-         и т.д.), поэтому остаются блокирующими, чтобы не было "прыжка" иконок -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+         и т.д.), поэтому остаются блокирующими, чтобы не было "прыжка"
+         иконок. Самостоятельно захостены в /assets/vendor/bootstrap-icons/
+         (см. комментарий в исходном .css) вместо jsdelivr — это убирает
+         лишнее стороннее соединение из критического пути рендера и
+         позволяет кэшировать файл так же долго/иммутабельно, как
+         остальные собственные ассеты. -->
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css?v=53adb532" rel="stylesheet">
 
     <noscript>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     </noscript>
 
-    <!-- Cтили: минифицированная версия (index.min.css собирается из
+    <!-- Ваши стили: минифицированная версия (index.min.css собирается из
          index.css командой `npm run build` — редактируйте index.css,
          затем пересоберите перед деплоем). Подключается ПОСЛЕ Bootstrap,
          чтобы переопределения темы (.modal-content, .btn и т.д.) выигрывали
-         каскад у правил Bootstrap с той же специфичностью. -->
-    <link rel="stylesheet" href="/assets/styles/index.min.css">
+         каскад у правил Bootstrap с той же специфичностью. Блокирующий —
+         задаёт цвета/раскладку всего первого экрана, без него была бы
+         заметная вспышка нестилизованного контента. -->
+    <link rel="stylesheet" href="/assets/styles/index.min.css?v=d3c18fee">
 
     <!-- Система достижений (папка /achievements/, см. README внутри) —
          полностью отдельный модуль, не связанный с основным стилем
-         жёсткой зависимостью, использует те же CSS-переменные темы. -->
-    <link rel="stylesheet" href="/achievements/achievements.min.css">
+         жёсткой зависимостью, использует те же CSS-переменные темы.
+         На первом экране не нужен (страница открывается по клику), поэтому
+         грузится неблокирующе — тот же приём media=print/onload, что и
+         для Bootstrap CSS выше. -->
+    <link rel="preload" as="style" href="/achievements/achievements.min.css?v=7f354768">
+    <link rel="stylesheet" href="/achievements/achievements.min.css?v=7f354768" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="/achievements/achievements.min.css?v=7f354768">
+    </noscript>
 
     <!-- Cookie-виджет (папка /cookie-widget/, см. README внутри) — тоже
          полностью отдельный переносимый модуль: баннер согласия +
-         активное сканирование страницы на скрипты метрик/рекламы. -->
-    <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css">
+         активное сканирование страницы на скрипты метрик/рекламы. Баннер
+         рисуется только после инициализации JS, так что тоже не нужен для
+         первого кадра — грузится неблокирующе. -->
+    <link rel="preload" as="style" href="/cookie-widget/cookie-widget.min.css?v=3a90d72b">
+    <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=3a90d72b" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=3a90d72b">
+    </noscript>
 
     <!-- Базовая структурированная разметка сайта (Schema.org). Разметка под
          конкретное аниме (Movie/TVSeries, BreadcrumbList) добавляется/убирается
@@ -158,7 +185,7 @@
 
             <header class="header_menu">
                 <div class="logo_details">
-                    <img src="/imgs/logo.jpg" alt="KitsuneWatch Logo" class="logo_img">
+                    <img src="/imgs/logo.jpg" alt="KitsuneWatch Logo" class="logo_img" width="40" height="40">
                     <div class="logo_placeholder" style="display: none;">
                         <i class="bi bi-stars"></i>
                     </div>
@@ -340,24 +367,24 @@
          `npm run build` — см. package.json / scripts/build-assets.js).
          HTML подключает только .min-файлы; исходники .js/.css остаются
          в репозитории для редактирования, но браузер их не грузит. -->
-    <script src="/assets/scripts/theme-manager.min.js" defer></script>
-    <script src="/assets/scripts/index.min.js" defer></script>
+    <script src="/assets/scripts/theme-manager.min.js?v=cf5a2747" defer></script>
+    <script src="/assets/scripts/index.min.js?v=9fa69de9" defer></script>
 
     <!-- Система достижений: ядро (трекинг + условия), уведомления (тосты)
          и отдельная страница — три независимых модуля в /achievements/.
          Порядок важен: core должен инициализироваться первым, т.к. его
          события слушают остальные два. -->
-    <script src="/achievements/achievements-core.min.js" defer></script>
-    <script src="/achievements/achievements-notifications.min.js" defer></script>
-    <script src="/achievements/achievements-page.min.js" defer></script>
+    <script src="/achievements/achievements-core.min.js?v=7be06b75" defer></script>
+    <script src="/achievements/achievements-notifications.min.js?v=332255fe" defer></script>
+    <script src="/achievements/achievements-page.min.js?v=cc872e85" defer></script>
 
     <!-- Cookie-виджет: детекторы -> ядро -> UI (порядок важен, см.
          /cookie-widget/README.md). Модуль полностью переносим в другие
          проекты как есть — просто скопируйте папку /cookie-widget/. -->
-    <script src="/cookie-widget/cookie-widget-detectors.min.js" defer></script>
-    <script src="/cookie-widget/cookie-widget-core.min.js" defer
+    <script src="/cookie-widget/cookie-widget-detectors.min.js?v=12708763" defer></script>
+    <script src="/cookie-widget/cookie-widget-core.min.js?v=2271cbc7" defer
         data-site-name="KitsuneWatch" data-position="bottom-left" data-locale="ru"></script>
-    <script src="/cookie-widget/cookie-widget-ui.min.js" defer></script>
+    <script src="/cookie-widget/cookie-widget-ui.min.js?v=c8c4dfeb" defer></script>
 </body>
 
 </html>

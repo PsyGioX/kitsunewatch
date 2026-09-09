@@ -12,17 +12,21 @@
 //    версия ждёт в состоянии waiting, а index.js показывает пользователю
 //    ненавязчивый тост "Доступно обновление" и активирует новую версию
 //    только по явному клику (см. showUpdateAvailable в index.js).
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `kitsunewatch-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `kitsunewatch-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `kitsunewatch-api-${CACHE_VERSION}`;
 
+// Собственные .min.js/.min.css теперь версионируются query-строкой
+// ?v=<hash> (см. scripts/build-assets.js), которая меняется при каждой
+// сборке — жёстко прописывать её здесь означало бы держать sw.js в
+// синхронизации вручную. Вместо этого в precache идёт только app-shell
+// (сам HTML), а версионированные ассеты подхватываются в кэш при первом
+// же запросе — они и так грузятся сразу с открытием страницы — через
+// stale-while-revalidate ниже (см. обработчик fetch).
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/assets/styles/index.min.css',
-    '/assets/scripts/index.min.js',
-    '/assets/scripts/theme-manager.min.js',
     '/site.webmanifest'
 ];
 

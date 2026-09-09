@@ -7,10 +7,7 @@
         "start": "vercel dev"
     },
     "devDependencies": {
-        "clean-css": "^5.3.3",
-        "terser": "^5.44.1"
-    },
-    "devDependencies": {
+        "bootstrap-icons": "^1.11.3",
         "clean-css": "^5.3.3",
         "terser": "^5.51.2"
     }

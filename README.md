@@ -164,6 +164,12 @@ npm run build   # minifies every client-side .js and .css in the project
 
 `api/*.js` and `middleware.js` are server-side Vercel Functions (never shipped to the browser) and `sw.js` (the service worker, whose path is hardcoded in `navigator.serviceWorker.register('/sw.js')`) are intentionally left out of this pipeline — see the comment at the top of `scripts/build-assets.js`.
 
+### Cache-busting and long-term caching
+
+Every local `.min.js` / `.min.css` reference in `index.html` gets a `?v=<hash>` query string appended automatically by `scripts/build-assets.js` (the hash is derived from the minified file's own content). `vercel.json` then caches those paths as `public, max-age=31536000, immutable` — safe to do because the URL itself changes whenever the file's content changes, so a stale immutable copy in someone's browser cache is never served after a real edit. If you ever hand-edit a `<script src>`/`<link href>` for one of these files, don't worry about the `?v=` — the next `npm run build` recomputes and overwrites it.
+
+Bootstrap Icons (`assets/vendor/bootstrap-icons/`) are vendored locally from the pinned `bootstrap-icons` npm dependency instead of loaded from jsdelivr, both to drop a third-party connection from the render-critical path and to get the same long-cache treatment. The only change from upstream is `font-display: swap` instead of `block` (see the comment in `bootstrap-icons.css`). If you bump the pinned version in `package.json`, re-copy `node_modules/bootstrap-icons/font/bootstrap-icons.css` and `font/fonts/*` into that folder and re-apply that one-line change before running `npm run build`.
+
 ### Vercel Deployment
 
 1. Push your repository to GitHub.
