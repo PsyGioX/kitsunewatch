@@ -102,7 +102,26 @@ function buildCss(relPath) {
 
     fs.writeFileSync(outAbs, output.styles, 'utf8');
     console.log(`  CSS  ${relPath} -> ${outRel} (${code.length} -> ${output.styles.length} bytes)`);
-    return { publicPath: publicUrl(outRel), hash: hashOf(output.styles) };
+
+    const result = { publicPath: publicUrl(outRel), hash: hashOf(output.styles) };
+
+    // bootstrap-icons.css declares its own woff2 with an upstream
+    // cache-busting query (fonts/bootstrap-icons.woff2?<hash>). index.html
+    // preloads that exact font file so the browser doesn't have to wait
+    // for the CSS to parse before discovering it — but the preload href
+    // has to match byte-for-byte (query included) or the browser treats it
+    // as a different, unused resource and logs a warning. Extract the real
+    // URL here instead of hand-copying it, so a bootstrap-icons version
+    // bump can't silently desync the two again.
+    const fontMatch = output.styles.match(/url\((['"]?)([^'")]*bootstrap-icons\.woff2[^'")]*)\1\)/);
+    if (fontMatch) {
+        const fontRel = path.posix.normalize(
+            path.posix.join(path.dirname(publicUrl(relPath)), fontMatch[2])
+        );
+        result.fontPreloadHref = fontRel;
+    }
+
+    return result;
 }
 
 function escapeRegExp(str) {
@@ -131,8 +150,28 @@ function updateHtmlVersions(assets) {
     console.log(`Updated ${changed} asset reference(s) in index.html with cache-busting hashes.`);
 }
 
+// Обновляет href у <link rel="preload" as="font" ...> для bootstrap-icons
+// на точный URL (с query-хэшем), который реально запрашивает CSS —
+// см. комментарий в buildCss().
+function updateFontPreload(fontPreloadHref) {
+    if (!fontPreloadHref) return;
+
+    let html = fs.readFileSync(INDEX_HTML, 'utf8');
+    const pattern = /(href=")(\/assets\/vendor\/bootstrap-icons\/fonts\/bootstrap-icons\.woff2(?:\?[^"]*)?)(")/;
+
+    if (!pattern.test(html)) {
+        console.warn('  WARN: bootstrap-icons font preload <link> not found in index.html — skipped.');
+        return;
+    }
+
+    html = html.replace(pattern, `$1${fontPreloadHref}$3`);
+    fs.writeFileSync(INDEX_HTML, html, 'utf8');
+    console.log(`Synced font preload href -> ${fontPreloadHref}`);
+}
+
 async function main() {
     const assets = [];
+    let fontPreloadHref = null;
 
     console.log('Minifying JS:');
     for (const rel of JS_SOURCES) {
@@ -141,11 +180,14 @@ async function main() {
 
     console.log('Minifying CSS:');
     for (const rel of CSS_SOURCES) {
-        assets.push(buildCss(rel));
+        const result = buildCss(rel);
+        if (result.fontPreloadHref) fontPreloadHref = result.fontPreloadHref;
+        assets.push(result);
     }
 
     console.log('Versioning index.html references:');
     updateHtmlVersions(assets);
+    updateFontPreload(fontPreloadHref);
 
     console.log('Done.');
 }

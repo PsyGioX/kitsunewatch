@@ -172,7 +172,9 @@ Bootstrap Icons (`assets/vendor/bootstrap-icons/`) are vendored locally from the
 
 ### Module system & Vercel Functions runtime
 
-`package.json` has `"type": "module"` — every server-side file Vercel picks up (`api/*.js`, `middleware.js`, `scripts/build-assets.js`) uses ES module `import`/`export` syntax, so this makes that explicit instead of relying on Vercel's auto-detected ESM→CommonJS transpile.
+`package.json` has `"type": "module"` at the root, which covers `middleware.js` and `scripts/build-assets.js` (both use ES module `import`/`export` syntax) — that's what silences Vercel's "compiled from ESM to CommonJS" build warning, which was specifically about `middleware.js`.
+
+`api/*.js` (the four Kodik/Shikimori proxy functions) are plain **CommonJS** (`module.exports = async (req, res) => {...}`) and stay that way — rewriting working, tested serverless functions to ESM for a cosmetic build warning wasn't worth the risk. Since the root `"type": "module"` would otherwise force Node to treat *every* `.js` file in the project as ESM (breaking `module.exports` in these four with a runtime `ReferenceError` → 500s), `api/package.json` overrides it back to `{"type": "commonjs"}` for just that folder. This is standard Node.js nested-`package.json` resolution, not a Vercel-specific hack — if you add a new file under `/api/`, keep it CommonJS (or convert the whole folder to `export default` and delete `api/package.json`, but do both at once).
 
 `middleware.js` runs on the **Node.js runtime** (`export const config = { runtime: 'nodejs' }`), not the Edge runtime — it's a plain rewrite of static HTML on `/?search=...` for SEO, with no need for Edge's V8-isolate constraints, and Node is now the recommended default for Vercel Middleware.
 
