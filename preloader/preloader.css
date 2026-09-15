@@ -1,0 +1,488 @@
+/* preloader/preloader.css
+   ============================================================
+   АНИМИРОВАННЫЙ ПРЕЛОАДЕР В СТИЛЕ АНИМЕ/МАНГА
+   ============================================================
+   Полностью самостоятельный модуль (как /achievements и
+   /cookie-widget) — переносим в другие проекты копированием папки.
+
+   Подключается БЛОКИРУЮЩИМ <link> в самом начале <head> (см.
+   index.html) — в отличие от остальных стилей проекта, этому файлу
+   обязательно нужно быть готовым ДО первой отрисовки, иначе будет
+   видна секунда неоформленной разметки прелоадера поверх контента.
+   Файл маленький, так что лишний блокирующий запрос не критичен.
+
+   Использует переменные темы из assets/styles/index.css
+   (--accent, --accent-light, --bg-base и т.д.), поэтому цвет
+   прелоадера автоматически совпадает с темой, выбранной
+   пользователем (тема применяется инлайн-скриптом в <head> ещё до
+   этого файла).
+   ============================================================ */
+
+html.kw-no-scroll,
+html.kw-no-scroll body {
+    overflow: hidden !important;
+    height: 100%;
+}
+
+.kw-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 2.4vh, 22px);
+    padding: 20px;
+    text-align: center;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse at 50% 38%, rgba(var(--accent-rgb), 0.28) 0%, transparent 62%),
+        var(--bg-base, #151515);
+    transition: opacity .3s ease;
+}
+
+.kw-preloader[aria-hidden="true"] {
+    transition: opacity .3s ease .78s;
+    opacity: 0;
+}
+
+.kw-preloader--fade-out {
+    transition: opacity .32s ease !important;
+    opacity: 0 !important;
+}
+
+/* ---------- декоративные слои фона ---------- */
+
+.kw-preloader__halftone,
+.kw-preloader__vignette,
+.kw-preloader__speedlines {
+    position: absolute;
+    pointer-events: none;
+}
+
+.kw-preloader__halftone {
+    inset: -12%;
+    background-image: radial-gradient(rgba(255, 255, 255, .16) 1px, transparent 1.6px);
+    background-size: 7px 7px;
+    opacity: .3;
+    mix-blend-mode: overlay;
+    animation: kwHalftoneDrift 13s linear infinite;
+    will-change: transform;
+}
+
+.kw-preloader__vignette {
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, .6) 100%);
+}
+
+.kw-preloader__speedlines {
+    top: 50%;
+    left: 50%;
+    width: 190vmax;
+    height: 190vmax;
+    transform: translate(-50%, -50%);
+    background: repeating-conic-gradient(from 0deg,
+            rgba(255, 255, 255, .08) 0deg 1.1deg,
+            transparent 1.1deg 9deg);
+    -webkit-mask-image: radial-gradient(circle, transparent 13%, #000 45%, #000 58%, transparent 76%);
+    mask-image: radial-gradient(circle, transparent 13%, #000 45%, #000 58%, transparent 76%);
+    animation: kwSpin 10s linear infinite;
+    will-change: transform;
+}
+
+@keyframes kwHalftoneDrift {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-16px, -12px, 0); }
+}
+
+@keyframes kwSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes kwSpinPlain {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes kwSpinReversePlain {
+    to { transform: rotate(-360deg); }
+}
+
+/* ---------- эмблема кицунэ ---------- */
+
+.kw-preloader__stage {
+    position: relative;
+    width: clamp(118px, 24vw, 190px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kw-preloader__aura {
+    position: absolute;
+    inset: -32%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(var(--accent-light-rgb), .55) 0%, transparent 70%);
+    filter: blur(14px);
+    animation: kwAuraPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes kwAuraPulse {
+    0%, 100% { opacity: .5; transform: scale(.88); }
+    50%      { opacity: 1;  transform: scale(1.1); }
+}
+
+.kw-preloader__ring {
+    position: absolute;
+    border-radius: 50%;
+    border-style: solid;
+    border-color: transparent;
+    will-change: transform;
+}
+
+.kw-preloader__ring--outer {
+    inset: -15%;
+    border-width: 3px;
+    border-top-color: var(--accent-light);
+    border-right-color: rgba(var(--accent-light-rgb), .35);
+    animation: kwSpinPlain 2.4s linear infinite;
+    filter: drop-shadow(0 0 6px rgba(var(--accent-light-rgb), .7));
+}
+
+.kw-preloader__ring--inner {
+    inset: 7%;
+    border-width: 2px;
+    border-bottom-color: var(--accent);
+    border-left-color: rgba(var(--accent-rgb), .35);
+    animation: kwSpinReversePlain 3.4s linear infinite;
+}
+
+.kw-preloader__impact {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    background: #fff;
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+    opacity: 0;
+    animation: kwImpactPop 2.6s ease-in-out infinite;
+}
+
+.kw-preloader__impact--1 { top: -6%; left: -6%; animation-delay: .5s; }
+.kw-preloader__impact--2 { bottom: -4%; right: -8%; background: var(--accent-light); animation-delay: 1.7s; }
+
+@keyframes kwImpactPop {
+    0%, 68%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); }
+    78%           { opacity: 1; transform: scale(1) rotate(18deg); }
+    90%           { opacity: 0; transform: scale(1.35) rotate(28deg); }
+}
+
+.kw-preloader__fox {
+    position: relative;
+    width: 70%;
+    height: 70%;
+    filter: drop-shadow(0 4px 14px rgba(var(--accent-rgb), .55));
+    animation: kwFoxFloat 3s ease-in-out infinite;
+}
+
+@keyframes kwFoxFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4%); }
+}
+
+.kw-preloader__tail {
+    transform-box: fill-box;
+    transform-origin: 50% 96%;
+    animation: kwTailSway 2.1s ease-in-out infinite;
+}
+
+.kw-preloader__tail--2 { animation-delay: .15s; }
+.kw-preloader__tail--3 { animation-delay: .3s; }
+
+@keyframes kwTailSway {
+    0%, 100% { transform: rotate(-4deg) scale(1); }
+    50%      { transform: rotate(4deg) scale(1.03); }
+}
+
+.kw-preloader__tail-shape {
+    fill: url(#kwFoxTailGrad);
+}
+
+.kw-preloader__ear-outer { fill: var(--accent); }
+.kw-preloader__ear-inner { fill: var(--accent-light); }
+.kw-preloader__head { fill: url(#kwFoxFaceGrad); }
+.kw-preloader__mark { fill: var(--accent-light); }
+.kw-preloader__cheek { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.kw-preloader__nose { fill: #1a1030; }
+.kw-preloader__mouth { fill: none; stroke: #1a1030; stroke-width: 2.4; stroke-linecap: round; }
+
+.kw-preloader__eye {
+    fill: #1a1030;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: kwBlink 3.6s ease-in-out infinite;
+}
+
+@keyframes kwBlink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95%           { transform: scaleY(.12); }
+}
+
+.kw-preloader__grad-a { stop-color: var(--accent); stop-opacity: 0; }
+.kw-preloader__grad-b { stop-color: var(--accent-light); stop-opacity: .92; }
+
+/* ---------- частицы (лисий огонь) ---------- */
+
+.kw-preloader__spark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    box-shadow: 0 0 8px 2px rgba(var(--accent-light-rgb), .9);
+    animation: kwOrbit 3.1s linear infinite;
+    will-change: transform, opacity;
+}
+
+.kw-preloader__spark--1 { animation-delay: 0s; }
+.kw-preloader__spark--2 { animation-delay: -.78s; }
+.kw-preloader__spark--3 { animation-delay: -1.56s; }
+.kw-preloader__spark--4 { animation-delay: -2.34s; }
+
+@keyframes kwOrbit {
+    from { transform: rotate(0deg) translateX(clamp(48px, 12vw, 80px)) rotate(0deg) scale(.5); opacity: 0; }
+    12%  { opacity: 1; }
+    88%  { opacity: 1; }
+    to   { transform: rotate(360deg) translateX(clamp(48px, 12vw, 80px)) rotate(-360deg) scale(1.15); opacity: 0; }
+}
+
+/* ---------- текст, речевой пузырь, прогресс ---------- */
+
+.kw-preloader__wordmark {
+    font-family: var(--font-display, 'Baloo 2', sans-serif);
+    font-weight: 800;
+    font-size: clamp(21px, 5.4vw, 34px);
+    letter-spacing: .3px;
+    color: #fff;
+    text-shadow: 0 0 18px rgba(var(--accent-light-rgb), .55), 0 2px 0 rgba(0, 0, 0, .35);
+    animation: kwTitleIn .7s cubic-bezier(.2, .9, .25, 1) both;
+}
+
+.kw-preloader__wordmark-watch { color: var(--accent-light); }
+
+@keyframes kwTitleIn {
+    from { opacity: 0; transform: translateY(10px) scale(.96); }
+    to   { opacity: 1; transform: none; }
+}
+
+.kw-preloader__bubble {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 18px;
+    border: 2px solid rgba(255, 255, 255, .32);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .06);
+    backdrop-filter: blur(6px);
+    font-size: clamp(10.5px, 2.6vw, 13px);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .85);
+    animation: kwTitleIn .7s cubic-bezier(.2, .9, .25, 1) .08s both;
+}
+
+.kw-preloader__bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(255, 255, 255, .32);
+}
+
+.kw-preloader__bubble-text {
+    min-width: 11ch;
+    display: inline-block;
+    text-align: left;
+}
+
+.kw-preloader__bubble-dots i {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin-left: 2px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .3;
+    animation: kwDotPulse 1.2s ease-in-out infinite;
+}
+
+.kw-preloader__bubble-dots i:nth-child(2) { animation-delay: .15s; }
+.kw-preloader__bubble-dots i:nth-child(3) { animation-delay: .3s; }
+
+@keyframes kwDotPulse {
+    0%, 100% { opacity: .25; transform: translateY(0); }
+    50%      { opacity: 1; transform: translateY(-3px); }
+}
+
+.kw-preloader__bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: min(240px, 62vw);
+    animation: kwTitleIn .7s cubic-bezier(.2, .9, .25, 1) .16s both;
+}
+
+.kw-preloader__bar-track {
+    position: relative;
+    width: 100%;
+    height: 10px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, .5);
+    border-radius: 6px;
+    background: repeating-linear-gradient(135deg,
+            rgba(255, 255, 255, .1) 0 4px,
+            rgba(255, 255, 255, .04) 4px 8px);
+}
+
+.kw-preloader__bar-fill {
+    position: absolute;
+    inset: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    box-shadow: 0 0 10px rgba(var(--accent-light-rgb), .8);
+    transition: transform .25s ease-out;
+}
+
+.kw-preloader__bar-pct {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, .65);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- вспышка + "манга-вайп" при исчезновении ---------- */
+
+.kw-preloader__flash {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, rgba(var(--accent-light-rgb), .9) 35%, transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.kw-preloader__wipe {
+    position: fixed;
+    inset: -12% -15%;
+    transform: translateX(-115%) skewX(-9deg);
+    pointer-events: none;
+    will-change: transform;
+}
+
+.kw-preloader__wipe--a { z-index: 3; background: var(--accent); }
+.kw-preloader__wipe--b { z-index: 2; background: var(--bg-base, #151515); }
+
+.kw-preloader.is-leaving { pointer-events: none; }
+
+.kw-preloader.is-leaving .kw-preloader__wordmark,
+.kw-preloader.is-leaving .kw-preloader__bubble,
+.kw-preloader.is-leaving .kw-preloader__bar {
+    animation: kwFadeUpOut .32s ease forwards;
+}
+
+.kw-preloader.is-leaving .kw-preloader__bubble { animation-delay: .04s; }
+.kw-preloader.is-leaving .kw-preloader__bar { animation-delay: .08s; }
+
+@keyframes kwFadeUpOut {
+    to { opacity: 0; transform: translateY(-14px); }
+}
+
+.kw-preloader.is-leaving .kw-preloader__stage {
+    animation: kwStagePop .5s cubic-bezier(.32, 1.4, .4, 1) forwards;
+}
+
+@keyframes kwStagePop {
+    0%   { transform: scale(1); opacity: 1; }
+    40%  { transform: scale(1.2); }
+    100% { transform: scale(.2); opacity: 0; }
+}
+
+.kw-preloader.is-leaving .kw-preloader__flash {
+    animation: kwFlashPop .6s ease-out forwards;
+}
+
+@keyframes kwFlashPop {
+    0%   { opacity: 0; width: 10px; height: 10px; }
+    22%  { opacity: 1; }
+    100% { opacity: 0; width: 220vmax; height: 220vmax; }
+}
+
+.kw-preloader.is-leaving .kw-preloader__wipe--a {
+    animation: kwWipeAcross .55s cubic-bezier(.7, 0, .2, 1) forwards;
+    animation-delay: .22s;
+}
+
+.kw-preloader.is-leaving .kw-preloader__wipe--b {
+    animation: kwWipeAcross .6s cubic-bezier(.7, 0, .2, 1) forwards;
+    animation-delay: .36s;
+}
+
+@keyframes kwWipeAcross {
+    from { transform: translateX(-115%) skewX(-9deg); }
+    to   { transform: translateX(115%) skewX(-9deg); }
+}
+
+/* ---------- адаптация под экраны ---------- */
+
+@media (max-width: 420px) {
+    .kw-preloader { gap: 9px; padding: 14px; }
+    .kw-preloader__bar { width: 76vw; }
+    .kw-preloader__bubble { padding: 5px 14px; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .kw-preloader { gap: 7px; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+    .kw-preloader__stage { width: clamp(74px, 16vh, 110px); }
+    .kw-preloader__wordmark { font-size: clamp(16px, 4vh, 22px); flex-basis: 100%; }
+    .kw-preloader__speedlines { opacity: .5; }
+}
+
+@media (min-width: 1600px) {
+    .kw-preloader__stage { width: 200px; }
+}
+
+/* ---------- уважение к prefers-reduced-motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .kw-preloader__halftone,
+    .kw-preloader__speedlines,
+    .kw-preloader__aura,
+    .kw-preloader__ring,
+    .kw-preloader__impact,
+    .kw-preloader__fox,
+    .kw-preloader__tail,
+    .kw-preloader__eye,
+    .kw-preloader__spark,
+    .kw-preloader__wordmark,
+    .kw-preloader__bubble,
+    .kw-preloader__bar,
+    .kw-preloader__bubble-dots i {
+        animation: none !important;
+    }
+
+    .kw-preloader__bar-fill { transition: none; }
+    .kw-preloader__spark { opacity: 0; }
+}

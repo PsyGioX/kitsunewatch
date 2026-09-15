@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KitsuneWatch — аниме смотреть онлайн бесплатно</title>
 
+    <!-- Стили анимированного прелоадера (папка /preloader/, см.
+         README внутри) подключены здесь же, в самом начале <head>, и
+         НАМЕРЕННО блокирующим <link> (а не media=print/onload
+         трюком, как остальные некритичные стили ниже) — прелоадер
+         рисуется первым же кадром страницы, поэтому ему нужно быть
+         полностью стилизован ДО первой отрисовки. Файл маленький,
+         так что один лишний блокирующий запрос не заметен. -->
+    <link rel="preload" as="style" href="/preloader/preloader.css?v=1">
+    <link rel="stylesheet" href="/preloader/preloader.css?v=1">
+
     <meta http-equiv="Content-Security-Policy" 
           content="default-src 'self'; 
                    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; 
@@ -178,6 +188,102 @@
 </head>
 
 <body>
+
+    <!-- ============================================================
+         АНИМИРОВАННЫЙ ПРЕЛОАДЕР (см. /preloader/preloader.css и
+         /preloader/preloader.js). Полностью самостоятельный блок —
+         первый элемент в <body>, чтобы перекрывать всё остальное до
+         полной загрузки шрифтов, изображений и скриптов страницы.
+         ============================================================ -->
+    <div id="kwPreloader" class="kw-preloader" role="status" aria-live="polite" aria-label="Загрузка KitsuneWatch">
+
+        <div class="kw-preloader__halftone" aria-hidden="true"></div>
+        <div class="kw-preloader__speedlines" aria-hidden="true"></div>
+        <div class="kw-preloader__vignette" aria-hidden="true"></div>
+
+        <div class="kw-preloader__stage">
+            <div class="kw-preloader__aura" aria-hidden="true"></div>
+            <span class="kw-preloader__impact kw-preloader__impact--1" aria-hidden="true"></span>
+            <span class="kw-preloader__impact kw-preloader__impact--2" aria-hidden="true"></span>
+            <div class="kw-preloader__ring kw-preloader__ring--outer" aria-hidden="true"></div>
+            <div class="kw-preloader__ring kw-preloader__ring--inner" aria-hidden="true"></div>
+
+            <svg class="kw-preloader__fox" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <defs>
+                    <linearGradient id="kwFoxTailGrad" x1="0" y1="1" x2="0" y2="0">
+                        <stop class="kw-preloader__grad-a" offset="0%"></stop>
+                        <stop class="kw-preloader__grad-b" offset="100%"></stop>
+                    </linearGradient>
+                    <linearGradient id="kwFoxFaceGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#ffffff"></stop>
+                        <stop offset="100%" stop-color="#f0e3ff"></stop>
+                    </linearGradient>
+                </defs>
+
+                <!-- три хвоста лисьего огня, качаются независимо -->
+                <g class="kw-preloader__tail kw-preloader__tail--1">
+                    <path class="kw-preloader__tail-shape" d="M110,132 C90,110 60,96 46,54 C70,66 96,78 108,104 C114,84 108,58 96,30 C118,44 132,70 128,100 C126,112 118,124 110,132 Z"></path>
+                </g>
+                <g class="kw-preloader__tail kw-preloader__tail--2">
+                    <path class="kw-preloader__tail-shape" d="M110,132 C112,102 128,80 160,58 C150,84 140,102 122,116 C142,104 162,84 176,58 C182,86 170,114 146,128 C134,134 120,134 110,132 Z"></path>
+                </g>
+                <g class="kw-preloader__tail kw-preloader__tail--3">
+                    <path class="kw-preloader__tail-shape" d="M110,132 C108,100 96,74 70,50 C92,54 112,66 122,90 C118,68 104,46 84,28 C110,32 132,52 138,80 C142,100 130,120 110,132 Z"></path>
+                </g>
+
+                <!-- уши -->
+                <path class="kw-preloader__ear-outer" d="M78,78 L52,26 L100,66 Z"></path>
+                <path class="kw-preloader__ear-inner" d="M82,74 L64,40 L96,64 Z"></path>
+                <path class="kw-preloader__ear-outer" d="M142,78 L168,26 L120,66 Z"></path>
+                <path class="kw-preloader__ear-inner" d="M138,74 L156,40 L124,64 Z"></path>
+
+                <!-- голова -->
+                <path class="kw-preloader__head" d="M110,52 C146,52 172,82 172,116 C172,154 144,182 110,182 C76,182 48,154 48,116 C48,82 74,52 110,52 Z"></path>
+
+                <!-- метка на лбу -->
+                <path class="kw-preloader__mark" d="M110,60 L116,74 L104,74 Z"></path>
+
+                <!-- отметины на щеках -->
+                <path class="kw-preloader__cheek" d="M58,120 Q50,116 52,106"></path>
+                <path class="kw-preloader__cheek" d="M162,120 Q170,116 168,106"></path>
+
+                <!-- глаза -->
+                <path class="kw-preloader__eye" d="M74,110 Q88,96 106,109 Q90,120 74,110 Z"></path>
+                <path class="kw-preloader__eye" d="M146,110 Q132,96 114,109 Q130,120 146,110 Z"></path>
+                <circle cx="96" cy="106" r="2.4" fill="#fff"></circle>
+                <circle cx="124" cy="106" r="2.4" fill="#fff"></circle>
+
+                <!-- нос и мордочка -->
+                <path class="kw-preloader__nose" d="M100,142 L120,142 L110,156 Z"></path>
+                <path class="kw-preloader__mouth" d="M90,150 Q100,158 110,156"></path>
+                <path class="kw-preloader__mouth" d="M130,150 Q120,158 110,156"></path>
+            </svg>
+
+            <span class="kw-preloader__spark kw-preloader__spark--1" aria-hidden="true"></span>
+            <span class="kw-preloader__spark kw-preloader__spark--2" aria-hidden="true"></span>
+            <span class="kw-preloader__spark kw-preloader__spark--3" aria-hidden="true"></span>
+            <span class="kw-preloader__spark kw-preloader__spark--4" aria-hidden="true"></span>
+        </div>
+
+        <div class="kw-preloader__wordmark" aria-hidden="true">
+            <span class="kw-preloader__wordmark-kitsune">Kitsune</span><span class="kw-preloader__wordmark-watch">Watch</span>
+        </div>
+
+        <div class="kw-preloader__bubble" aria-hidden="true">
+            <span class="kw-preloader__bubble-text" id="kwPreloaderStatus">Открываем портал</span><span class="kw-preloader__bubble-dots"><i></i><i></i><i></i></span>
+        </div>
+
+        <div class="kw-preloader__bar" aria-hidden="true">
+            <div class="kw-preloader__bar-track">
+                <div class="kw-preloader__bar-fill" id="kwPreloaderFill"></div>
+            </div>
+            <span class="kw-preloader__bar-pct" id="kwPreloaderPct">0%</span>
+        </div>
+
+        <div class="kw-preloader__flash" aria-hidden="true"></div>
+        <div class="kw-preloader__wipe kw-preloader__wipe--a" aria-hidden="true"></div>
+        <div class="kw-preloader__wipe kw-preloader__wipe--b" aria-hidden="true"></div>
+    </div>
 
     <section class="bg_page">
 
@@ -360,6 +466,12 @@
         // Автоматическое обновление года в футере
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
+
+    <!-- Прелоадер: слушает готовность DOM/шрифтов/window.load и по
+         факту полной загрузки страницы запускает анимацию исчезновения
+         (см. /preloader/preloader.js). Стоит первым среди отложенных
+         скриптов, чтобы начать отслеживание как можно раньше. -->
+    <script src="/preloader/preloader.js?v=1" defer></script>
 
     <!-- Bootstrap JS Bundle с Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
