@@ -56,8 +56,8 @@
     }
 
     function tick() {
-        progress += (target - progress) * 0.06;
-        if (target - progress < 0.15) progress = target - 0.1;
+        progress += (target - progress) * 0.09;
+        if (target - progress < 0.28) progress = target - 0.4;
         if (progress < 0) progress = 0;
 
         var shown = done ? 100 : Math.min(99, Math.round(progress));
@@ -108,7 +108,7 @@
     // Аварийный таймаут: если что-то (медленное фото, зависший запрос)
     // не даёт дождаться 'load', прелоадер всё равно не должен держать
     // пользователя вечно.
-    var hardTimeout = setTimeout(finish, 9000);
+    var hardTimeout = setTimeout(finish, 19000);
 
     function finish() {
         if (done) return;
