@@ -1,0 +1,303 @@
+// secret-links/secret-links.js
+//
+// Секретные ссылки KitsuneWatch: «закрытые» страницы-карточки, которые
+// открываются только по специальному коду в адресе:
+//     https://kitsunewatch.vercel.app/s/<код>      (красивый вариант)
+//     https://kitsunewatch.vercel.app/?s=<код>     (то же самое)
+// Два типа карточек: «social» (ссылки на соцсети и будущий контент,
+// с датой открытия) и «playlist» (подборка аниме / музыки).
+// Все карточки лежат в data/secrets.json — код трогать не нужно.
+// Модуль не зависит от index.js: при неизвестном коде молчит.
+(function () {
+    'use strict';
+
+    var DATA_URL = '/secret-links/data/secrets.json';
+    var PARAM = 's';
+    var CODE_RE = /^[a-z0-9][a-z0-9_-]{1,63}$/;
+    var ICON_RE = /^bi-[a-z0-9-]+$/;
+    var lastFocus = null;
+
+    function readCode() {
+        var raw = null;
+        try {
+            raw = new URLSearchParams(window.location.search).get(PARAM);
+            if (!raw && /^#s=/.test(window.location.hash)) raw = window.location.hash.slice(3);
+        } catch (e) {
+            return null;
+        }
+        if (!raw) return null;
+        raw = String(raw).trim().toLowerCase();
+        return CODE_RE.test(raw) ? raw : null;
+    }
+
+    function sha256Hex(text) {
+        if (!(window.crypto && window.crypto.subtle && window.TextEncoder)) return Promise.resolve(null);
+        return window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) {
+            return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+                return ('0' + b.toString(16)).slice(-2);
+            }).join('');
+        }).catch(function () { return null; });
+    }
+
+    function cleanUrl() {
+        try {
+            var url = new URL(window.location.href);
+            url.searchParams.delete(PARAM);
+            if (/^#s=/.test(url.hash)) url.hash = '';
+            window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+        } catch (e) {
+            return;
+        }
+    }
+
+    function safeUrl(value) {
+        try {
+            var u = new URL(String(value), window.location.origin);
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+            return u;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function parseDate(value) {
+        if (!value) return null;
+        var d = new Date(value);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDate(d) {
+        try {
+            return d.toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return d.toISOString();
+        }
+    }
+
+    function el(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined && text !== null) node.textContent = String(text);
+        return node;
+    }
+
+    function icon(name, fallback) {
+        var i = el('i', 'bi ' + (ICON_RE.test(String(name || '')) ? name : fallback));
+        i.setAttribute('aria-hidden', 'true');
+        return i;
+    }
+
+    function findEntry(entries, code, hash) {
+        for (var i = 0; i < entries.length; i++) {
+            var e = entries[i];
+            if (!e || e.enabled === false) continue;
+            if (e.code && String(e.code).toLowerCase() === code) return e;
+            if (e.codeHash && hash && String(e.codeHash).toLowerCase() === hash) return e;
+        }
+        return null;
+    }
+
+    function closeModal(overlay) {
+        document.removeEventListener('keydown', overlay._onKey, true);
+        overlay.classList.remove('is-open');
+        document.documentElement.classList.remove('kw-secret-open');
+        setTimeout(function () {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            if (lastFocus && lastFocus.focus) lastFocus.focus();
+        }, 250);
+    }
+
+    function copyText(text, button) {
+        function done() {
+            var label = button.querySelector('span');
+            if (!label) return;
+            var old = label.textContent;
+            label.textContent = 'Скопировано';
+            setTimeout(function () { label.textContent = old; }, 1800);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, function () {});
+            return;
+        }
+        var ta = el('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { return; }
+        document.body.removeChild(ta);
+    }
+
+    function buildAction(url, label, external) {
+        var a = el('a', 'kw-secret-action');
+        a.href = url;
+        if (external) {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+        }
+        a.appendChild(el('span', null, label));
+        a.appendChild(icon(external ? 'bi-box-arrow-up-right' : 'bi-arrow-right', 'bi-arrow-right'));
+        return a;
+    }
+
+    function renderSocial(entry, list, now) {
+        (entry.links || []).forEach(function (link) {
+            var target = safeUrl(link && link.url);
+            if (!link || !target) return;
+            var unlock = parseDate(link.unlockAt);
+            var locked = unlock && unlock > now;
+            var item = el(locked ? 'div' : 'a', 'kw-secret-link' + (locked ? ' is-locked' : ''));
+            if (!locked) {
+                item.href = target.href;
+                item.target = '_blank';
+                item.rel = 'noopener noreferrer';
+            }
+            item.appendChild(icon(locked ? 'bi-lock' : link.icon, 'bi-link-45deg'));
+            var body = el('span', 'kw-secret-link-body');
+            body.appendChild(el('span', 'kw-secret-link-title', link.label || target.hostname));
+            if (locked) {
+                body.appendChild(el('span', 'kw-secret-link-note', 'Откроется ' + formatDate(unlock)));
+            } else if (link.note) {
+                body.appendChild(el('span', 'kw-secret-link-note', link.note));
+            }
+            item.appendChild(body);
+            if (!locked) item.appendChild(icon('bi-box-arrow-up-right', 'bi-box-arrow-up-right'));
+            list.appendChild(item);
+        });
+    }
+
+    function renderPlaylist(entry, list) {
+        (entry.items || []).forEach(function (it, index) {
+            if (!it) return;
+            var row = el('li', 'kw-secret-track');
+            row.appendChild(el('span', 'kw-secret-track-num', ('0' + (index + 1)).slice(-2)));
+            var body = el('span', 'kw-secret-track-body');
+            body.appendChild(el('span', 'kw-secret-track-title', it.title || '—'));
+            if (it.note) body.appendChild(el('span', 'kw-secret-track-note', it.note));
+            row.appendChild(body);
+            var type = it.type === 'music' || it.type === 'link' ? it.type : 'anime';
+            if (type === 'anime') {
+                var q = String(it.query || it.title || '').trim();
+                if (q) row.appendChild(buildAction('/?search=' + encodeURIComponent(q), 'Смотреть', false));
+            } else {
+                var ext = safeUrl(it.url);
+                if (ext) row.appendChild(buildAction(ext.href, type === 'music' ? 'Слушать' : 'Открыть', true));
+            }
+            list.appendChild(row);
+        });
+    }
+
+    function showModal(entry, code) {
+        lastFocus = document.activeElement;
+        var now = new Date();
+        var unlock = parseDate(entry.unlockAt);
+        var expire = parseDate(entry.expiresAt);
+        var locked = unlock && unlock > now;
+        var expired = expire && expire < now;
+
+        var overlay = el('div', 'kw-secret-overlay');
+        var dialog = el('div', 'kw-secret-dialog');
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', 'kwSecretTitle');
+        overlay.appendChild(dialog);
+
+        var close = el('button', 'kw-secret-close');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Закрыть');
+        close.appendChild(icon('bi-x-lg', 'bi-x'));
+        dialog.appendChild(close);
+
+        var kind = entry.type === 'playlist' ? 'плейлист' : 'ссылки';
+        dialog.appendChild(el('div', 'kw-secret-eyebrow', 'секрет · ' + kind));
+        var title = el('h2', 'kw-secret-title', entry.title || 'Секретная ссылка');
+        title.id = 'kwSecretTitle';
+        dialog.appendChild(title);
+        if (entry.mood) dialog.appendChild(el('div', 'kw-secret-mood', entry.mood));
+        if (entry.description) dialog.appendChild(el('p', 'kw-secret-desc', entry.description));
+
+        if (locked || expired) {
+            var msg = locked ? 'Эта страница откроется ' + formatDate(unlock) + '. Загляните позже.' : 'Эта ссылка больше не активна.';
+            var state = el('div', 'kw-secret-state');
+            state.appendChild(icon(locked ? 'bi-hourglass-split' : 'bi-moon-stars', 'bi-moon-stars'));
+            state.appendChild(el('span', null, msg));
+            dialog.appendChild(state);
+        } else if (entry.type === 'playlist') {
+            var ol = el('ol', 'kw-secret-tracks');
+            renderPlaylist(entry, ol);
+            dialog.appendChild(ol);
+        } else {
+            var links = el('div', 'kw-secret-links');
+            renderSocial(entry, links, now);
+            dialog.appendChild(links);
+        }
+
+        var foot = el('div', 'kw-secret-foot');
+        var copy = el('button', 'kw-secret-copy');
+        copy.type = 'button';
+        copy.appendChild(icon('bi-link-45deg', 'bi-link-45deg'));
+        copy.appendChild(el('span', null, 'Скопировать ссылку'));
+        copy.addEventListener('click', function () {
+            copyText(window.location.origin + '/s/' + code, copy);
+        });
+        foot.appendChild(copy);
+        dialog.appendChild(foot);
+
+        overlay._onKey = function (e) {
+            if (e.key === 'Escape') {
+                e.stopPropagation();
+                closeModal(overlay);
+                return;
+            }
+            if (e.key !== 'Tab') return;
+            var f = dialog.querySelectorAll('a[href], button');
+            if (!f.length) return;
+            var first = f[0];
+            var last = f[f.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        };
+        document.addEventListener('keydown', overlay._onKey, true);
+        close.addEventListener('click', function () { closeModal(overlay); });
+        overlay.addEventListener('mousedown', function (e) {
+            if (e.target === overlay) closeModal(overlay);
+        });
+
+        document.body.appendChild(overlay);
+        document.documentElement.classList.add('kw-secret-open');
+        requestAnimationFrame(function () {
+            overlay.classList.add('is-open');
+            close.focus();
+        });
+
+        try {
+            document.dispatchEvent(new CustomEvent('kw:secret-link', { detail: { id: entry.id || null, type: entry.type || null } }));
+        } catch (e) {
+            return;
+        }
+    }
+
+    function init() {
+        var code = readCode();
+        if (!code) return;
+        cleanUrl();
+        Promise.all([
+            fetch(DATA_URL, { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }),
+            sha256Hex('kw:' + code)
+        ]).then(function (res) {
+            var data = res[0];
+            if (!data || !Array.isArray(data.entries)) return;
+            var entry = findEntry(data.entries, code, res[1]);
+            if (entry) showModal(entry, code);
+        }).catch(function () { return; });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();

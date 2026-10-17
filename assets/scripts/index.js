@@ -506,7 +506,8 @@ class KitsuneWatchApp {
         if (!logoImg) return;
 
         const paths = [
-            '/imgs/logo.jpg',
+            '/imgs/logo.svg',
+            '/imgs/logo.png',
             '/imgs/favicon-32x32.png'
         ];
 
@@ -522,7 +523,7 @@ class KitsuneWatchApp {
                 if (parent) {
                     const icon = document.createElement('i');
                     icon.className = 'bi bi-stars logo-fallback';
-                    icon.style.cssText = 'font-size:24px;color:#b44dff;';
+                    icon.style.cssText = 'font-size:24px;color:var(--accent-light);';
                     parent.insertBefore(icon, logoImg.nextSibling);
                 }
             }

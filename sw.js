@@ -12,7 +12,7 @@
 //    версия ждёт в состоянии waiting, а index.js показывает пользователю
 //    ненавязчивый тост "Доступно обновление" и активирует новую версию
 //    только по явному клику (см. showUpdateAvailable в index.js).
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = `kitsunewatch-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `kitsunewatch-dynamic-${CACHE_VERSION}`;
 const API_CACHE = `kitsunewatch-api-${CACHE_VERSION}`;
@@ -94,6 +94,7 @@ self.addEventListener('fetch', (event) => {
         (url.pathname.startsWith('/assets/') ||
          url.pathname.startsWith('/achievements/') ||
          url.pathname.startsWith('/cookie-widget/') ||
+         url.pathname.startsWith('/secret-links/') ||
          url.pathname === '/site.webmanifest')) {
         event.respondWith(handleStaleWhileRevalidate(request));
         return;

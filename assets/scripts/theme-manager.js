@@ -7,19 +7,19 @@
 //   1. Добавьте объект в массив THEMES ниже (id должен совпадать
 //      с селектором [data-theme="..."] в assets/styles/index.css).
 //   2. Скопируйте один из блоков [data-theme="..."] в index.css и
-//      задайте свои значения --accent*, --bg-base, --bg-app-rgb,
-//      --aura-*, --glow-*.
+//      задайте свои значения --accent*, --bg-base*, --bg-app-rgb,
+//      --surface-solid, --text*, --aura-*, --glow-*.
 //   Больше никаких правок не требуется — кнопка-переключатель,
 //   сохранение выбора и применение при загрузке подхватят тему
 //   автоматически.
 
 const THEMES = [
-    { id: 'kitsune', name: 'Kitsune Purple', icon: 'bi-stars', swatch: '#7100b3' },
-    { id: 'sakura', name: 'Sakura Pink', icon: 'bi-flower1', swatch: '#ec4899' },
-    { id: 'cyber', name: 'Cyber Neon', icon: 'bi-cpu', swatch: '#06b6d4' },
-    { id: 'matcha', name: 'Ghibli Matcha', icon: 'bi-tree', swatch: '#4f9458' },
-    { id: 'shadow', name: 'Shadow Onyx', icon: 'bi-moon-stars', swatch: '#82828c' },
-    { id: 'shonen', name: 'Shonen Ember', icon: 'bi-fire', swatch: '#f97316' }
+    { id: 'kitsune', name: 'Kitsune Dusk', icon: 'bi-moon-stars', swatch: '#685270' },
+    { id: 'sakura', name: 'Sakura Milk', icon: 'bi-flower1', swatch: '#7c5060' },
+    { id: 'rain', name: 'Rainy Window', icon: 'bi-cloud-drizzle', swatch: '#4e687e' },
+    { id: 'matcha', name: 'Matcha Tea', icon: 'bi-cup-hot', swatch: '#547052' },
+    { id: 'tape', name: 'Night Tape', icon: 'bi-cassette', swatch: '#6e665d' },
+    { id: 'lamp', name: 'Amber Lamp', icon: 'bi-lamp', swatch: '#845c3c' }
 ];
 
 const STORAGE_KEY = 'kitsunewatch_theme';

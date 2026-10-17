@@ -25,7 +25,8 @@
 - 📋 **Share Support** — Share links via Web Share API or clipboard
 - ⌨️ **Keyboard Shortcuts** — Full playback control without a mouse
 - 📱 **Responsive Design** — Optimized for desktop, tablet, and mobile devices
-- 🌙 **Dark Theme** — Eye-friendly dark mode with animated background
+- 🌙 **Lo-fi calm design** — warm muted palettes (6 themes), soft film grain, slow gentle motion, minimal preloader
+- 🔗 **Secret links** — hidden `/s/<code>` pages with social links and playlists, with scheduled unlock (see `secret-links/SECRET-LINKS-GUIDE.txt`)
 
 ### Progressive Web App (PWA)
 

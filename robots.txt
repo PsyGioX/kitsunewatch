@@ -3,6 +3,8 @@ Allow: /
 
 Disallow: /assets/
 Disallow: /sw.js
+Disallow: /s/
+Disallow: /secret-links/data/
 Disallow: /*?favorites=true
 Disallow: /*?history=true
 Disallow: /*?video=*

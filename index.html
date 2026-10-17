@@ -13,8 +13,8 @@
          рисуется первым же кадром страницы, поэтому ему нужно быть
          полностью стилизован ДО первой отрисовки. Файл маленький,
          так что один лишний блокирующий запрос не заметен. -->
-    <link rel="preload" as="style" href="/preloader/preloader.css?v=1">
-    <link rel="stylesheet" href="/preloader/preloader.css?v=1">
+    <link rel="preload" as="style" href="/preloader/preloader.css?v=2">
+    <link rel="stylesheet" href="/preloader/preloader.css?v=2">
 
     <meta http-equiv="Content-Security-Policy" 
           content="default-src 'self'; 
@@ -54,9 +54,11 @@
     <meta name="twitter:image" content="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg"
         data-default="https://kitsunewatch.vercel.app/imgs/KitsuneWatch-og.jpg">
     <link rel="apple-touch-icon" sizes="180x180" href="/imgs/apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" href="/imgs/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/imgs/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/imgs/favicon-16x16.png">
-    <meta name="theme-color" content="#111111">
+    <link rel="shortcut icon" href="/imgs/favicon.ico">
+    <meta name="theme-color" content="#1e1824">
 
     <!-- Раннее подключение ко всем внешним доменам, с которых что-то грузится -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,28 +85,21 @@
         })();
     </script>
 
-    <!-- Шрифт Roboto: preload + неблокирующее подключение (media=print/onload
-         трюк), вместо @import в CSS, который бы тормозил парсинг стилей -->
-    <link rel="preload" as="style"
-        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"
-        media="print" onload="this.media='all'">
+    <!-- Шрифт Nunito: основной (мягкий округлый гротеск с кириллицей).
+         preload + неблокирующее подключение (media=print/onload трюк),
+         вместо @import в CSS, который бы тормозил парсинг стилей -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap">
     </noscript>
 
-    <!-- Шрифт Baloo 2: акцентный "аниме-тайтловый" шрифт для логотипа и
-         заголовков секций (тот же неблокирующий приём, что и для Roboto) -->
-    <link rel="preload" as="style"
-        href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap"
-        media="print" onload="this.media='all'">
+    <!-- IBM Plex Mono: мелкие «кассетные» метки — годы, качество, время.
+         Тот же неблокирующий приём -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
     </noscript>
 
     <!-- Bootstrap CSS: тот же неблокирующий приём — сайт использует лишь
@@ -133,7 +128,7 @@
          каскад у правил Bootstrap с той же специфичностью. Блокирующий —
          задаёт цвета/раскладку всего первого экрана, без него была бы
          заметная вспышка нестилизованного контента. -->
-    <link rel="stylesheet" href="/assets/styles/index.min.css?v=d3c18fee">
+    <link rel="stylesheet" href="/assets/styles/index.min.css?v=882b2743">
 
     <!-- Система достижений (папка /achievements/, см. README внутри) —
          полностью отдельный модуль, не связанный с основным стилем
@@ -141,10 +136,10 @@
          На первом экране не нужен (страница открывается по клику), поэтому
          грузится неблокирующе — тот же приём media=print/onload, что и
          для Bootstrap CSS выше. -->
-    <link rel="preload" as="style" href="/achievements/achievements.min.css?v=7f354768">
-    <link rel="stylesheet" href="/achievements/achievements.min.css?v=7f354768" media="print" onload="this.media='all'">
+    <link rel="preload" as="style" href="/achievements/achievements.min.css?v=a03be956">
+    <link rel="stylesheet" href="/achievements/achievements.min.css?v=a03be956" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="/achievements/achievements.min.css?v=7f354768">
+        <link rel="stylesheet" href="/achievements/achievements.min.css?v=a03be956">
     </noscript>
 
     <!-- Cookie-виджет (папка /cookie-widget/, см. README внутри) — тоже
@@ -152,10 +147,16 @@
          активное сканирование страницы на скрипты метрик/рекламы. Баннер
          рисуется только после инициализации JS, так что тоже не нужен для
          первого кадра — грузится неблокирующе. -->
-    <link rel="preload" as="style" href="/cookie-widget/cookie-widget.min.css?v=3a90d72b">
-    <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=3a90d72b" media="print" onload="this.media='all'">
+    <link rel="preload" as="style" href="/cookie-widget/cookie-widget.min.css?v=57bc3fda">
+    <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=57bc3fda" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=3a90d72b">
+        <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=57bc3fda">
+    </noscript>
+    <!-- Секретные ссылки: стили модалки (неблокирующе) -->
+    <link rel="preload" as="style" href="/secret-links/secret-links.min.css?v=3d9c19f0">
+    <link rel="stylesheet" href="/secret-links/secret-links.min.css?v=3d9c19f0" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="/secret-links/secret-links.min.css?v=3d9c19f0">
     </noscript>
 
     <!-- Базовая структурированная разметка сайта (Schema.org). Разметка под
@@ -190,99 +191,19 @@
 <body>
 
     <!-- ============================================================
-         АНИМИРОВАННЫЙ ПРЕЛОАДЕР (см. /preloader/preloader.css и
-         /preloader/preloader.js). Полностью самостоятельный блок —
-         первый элемент в <body>, чтобы перекрывать всё остальное до
-         полной загрузки шрифтов, изображений и скриптов страницы.
+         ПРЕЛОАДЕР (см. /preloader/preloader.css и /preloader/preloader.js).
+         Спокойный: логотип, название и три мягкие точки. Первый элемент
+         в <body>, перекрывает страницу до загрузки шрифтов и скриптов.
+         Логотип вставлен инлайн-SVG, чтобы рисовался без отдельного запроса.
          ============================================================ -->
     <div id="kwPreloader" class="kw-preloader" role="status" aria-live="polite" aria-label="Загрузка KitsuneWatch">
-
-        <div class="kw-preloader__halftone" aria-hidden="true"></div>
-        <div class="kw-preloader__speedlines" aria-hidden="true"></div>
-        <div class="kw-preloader__vignette" aria-hidden="true"></div>
-
-        <div class="kw-preloader__stage">
-            <div class="kw-preloader__aura" aria-hidden="true"></div>
-            <span class="kw-preloader__impact kw-preloader__impact--1" aria-hidden="true"></span>
-            <span class="kw-preloader__impact kw-preloader__impact--2" aria-hidden="true"></span>
-            <div class="kw-preloader__ring kw-preloader__ring--outer" aria-hidden="true"></div>
-            <div class="kw-preloader__ring kw-preloader__ring--inner" aria-hidden="true"></div>
-
-            <svg class="kw-preloader__fox" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                <defs>
-                    <linearGradient id="kwFoxTailGrad" x1="0" y1="1" x2="0" y2="0">
-                        <stop class="kw-preloader__grad-a" offset="0%"></stop>
-                        <stop class="kw-preloader__grad-b" offset="100%"></stop>
-                    </linearGradient>
-                    <linearGradient id="kwFoxFaceGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#ffffff"></stop>
-                        <stop offset="100%" stop-color="#f0e3ff"></stop>
-                    </linearGradient>
-                </defs>
-
-                <!-- три хвоста лисьего огня, качаются независимо -->
-                <g class="kw-preloader__tail kw-preloader__tail--1">
-                    <path class="kw-preloader__tail-shape" d="M110,132 C90,110 60,96 46,54 C70,66 96,78 108,104 C114,84 108,58 96,30 C118,44 132,70 128,100 C126,112 118,124 110,132 Z"></path>
-                </g>
-                <g class="kw-preloader__tail kw-preloader__tail--2">
-                    <path class="kw-preloader__tail-shape" d="M110,132 C112,102 128,80 160,58 C150,84 140,102 122,116 C142,104 162,84 176,58 C182,86 170,114 146,128 C134,134 120,134 110,132 Z"></path>
-                </g>
-                <g class="kw-preloader__tail kw-preloader__tail--3">
-                    <path class="kw-preloader__tail-shape" d="M110,132 C108,100 96,74 70,50 C92,54 112,66 122,90 C118,68 104,46 84,28 C110,32 132,52 138,80 C142,100 130,120 110,132 Z"></path>
-                </g>
-
-                <!-- уши -->
-                <path class="kw-preloader__ear-outer" d="M78,78 L52,26 L100,66 Z"></path>
-                <path class="kw-preloader__ear-inner" d="M82,74 L64,40 L96,64 Z"></path>
-                <path class="kw-preloader__ear-outer" d="M142,78 L168,26 L120,66 Z"></path>
-                <path class="kw-preloader__ear-inner" d="M138,74 L156,40 L124,64 Z"></path>
-
-                <!-- голова -->
-                <path class="kw-preloader__head" d="M110,52 C146,52 172,82 172,116 C172,154 144,182 110,182 C76,182 48,154 48,116 C48,82 74,52 110,52 Z"></path>
-
-                <!-- метка на лбу -->
-                <path class="kw-preloader__mark" d="M110,60 L116,74 L104,74 Z"></path>
-
-                <!-- отметины на щеках -->
-                <path class="kw-preloader__cheek" d="M58,120 Q50,116 52,106"></path>
-                <path class="kw-preloader__cheek" d="M162,120 Q170,116 168,106"></path>
-
-                <!-- глаза -->
-                <path class="kw-preloader__eye" d="M74,110 Q88,96 106,109 Q90,120 74,110 Z"></path>
-                <path class="kw-preloader__eye" d="M146,110 Q132,96 114,109 Q130,120 146,110 Z"></path>
-                <circle cx="96" cy="106" r="2.4" fill="#fff"></circle>
-                <circle cx="124" cy="106" r="2.4" fill="#fff"></circle>
-
-                <!-- нос и мордочка -->
-                <path class="kw-preloader__nose" d="M100,142 L120,142 L110,156 Z"></path>
-                <path class="kw-preloader__mouth" d="M90,150 Q100,158 110,156"></path>
-                <path class="kw-preloader__mouth" d="M130,150 Q120,158 110,156"></path>
-            </svg>
-
-            <span class="kw-preloader__spark kw-preloader__spark--1" aria-hidden="true"></span>
-            <span class="kw-preloader__spark kw-preloader__spark--2" aria-hidden="true"></span>
-            <span class="kw-preloader__spark kw-preloader__spark--3" aria-hidden="true"></span>
-            <span class="kw-preloader__spark kw-preloader__spark--4" aria-hidden="true"></span>
-        </div>
-
-        <div class="kw-preloader__wordmark" aria-hidden="true">
-            <span class="kw-preloader__wordmark-kitsune">Kitsune</span><span class="kw-preloader__wordmark-watch">Watch</span>
-        </div>
-
-        <div class="kw-preloader__bubble" aria-hidden="true">
-            <span class="kw-preloader__bubble-text" id="kwPreloaderStatus">Открываем портал</span><span class="kw-preloader__bubble-dots"><i></i><i></i><i></i></span>
-        </div>
-
-        <div class="kw-preloader__bar" aria-hidden="true">
-            <div class="kw-preloader__bar-track">
-                <div class="kw-preloader__bar-fill" id="kwPreloaderFill"></div>
+        <div class="kw-preloader__inner">
+            <div class="kw-preloader__logo" aria-hidden="true">
+                <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" focusable="false"><rect width="128" height="128" fill="#251d2b"/><circle cx="64" cy="70" r="52" fill="#33283b"/><g fill="#f3dcc4" opacity=".75"><circle cx="17" cy="24" r="1.7"/><circle cx="111" cy="22" r="1.3"/><circle cx="106" cy="108" r="1.5"/><circle cx="21" cy="106" r="1.2"/></g><path d="M31 12 L21 60 L60 40 Z" fill="#e8a27c" stroke="#e8a27c" stroke-width="4" stroke-linejoin="round"/><path d="M32 27 L28 52 L48 41 Z" fill="#8d5560" stroke="#8d5560" stroke-width="3" stroke-linejoin="round"/><path d="M97 12 L107 60 L68 40 Z" fill="#e8a27c" stroke="#e8a27c" stroke-width="4" stroke-linejoin="round"/><path d="M96 27 L100 52 L80 41 Z" fill="#8d5560" stroke="#8d5560" stroke-width="3" stroke-linejoin="round"/><path d="M22 66 C22 42 40 30 64 30 C88 30 106 42 106 66 C106 86 92 101 64 109 C36 101 22 86 22 66 Z" fill="#e8a27c"/><path d="M22 66 C40 67 55 75 64 90 C73 75 88 67 106 66 C106 86 92 101 64 109 C36 101 22 86 22 66 Z" fill="#f7e8d5"/><g fill="none" stroke="#3a2a38" stroke-width="3.4" stroke-linecap="round"><path d="M41 64 Q48.5 70.5 56 64"/><path d="M72 64 Q79.5 70.5 87 64"/><path d="M64 91 v2.6 M64 93.6 q-4.4 3.4 -7.6 .2 M64 93.6 q4.4 3.4 7.6 .2" stroke-width="2.4"/></g><ellipse cx="64" cy="87.5" rx="5.2" ry="3.6" fill="#3a2a38"/><circle cx="35" cy="79" r="5" fill="#e58f8f" opacity=".45"/><circle cx="93" cy="79" r="5" fill="#e58f8f" opacity=".45"/><path d="M19 58 C17 12 111 12 109 58" fill="none" stroke="#b7a6d9" stroke-width="6" stroke-linecap="round"/><rect x="9" y="50" width="20" height="34" rx="10" fill="#8f7db8"/><rect x="13" y="56" width="8" height="22" rx="4" fill="#c9bce6"/><rect x="99" y="50" width="20" height="34" rx="10" fill="#8f7db8"/><rect x="107" y="56" width="8" height="22" rx="4" fill="#c9bce6"/></svg>
             </div>
-            <span class="kw-preloader__bar-pct" id="kwPreloaderPct">0%</span>
+            <div class="kw-preloader__word" aria-hidden="true">Kitsune<b>Watch</b></div>
+            <div class="kw-preloader__dots" aria-hidden="true"><i></i><i></i><i></i></div>
         </div>
-
-        <div class="kw-preloader__flash" aria-hidden="true"></div>
-        <div class="kw-preloader__wipe kw-preloader__wipe--a" aria-hidden="true"></div>
-        <div class="kw-preloader__wipe kw-preloader__wipe--b" aria-hidden="true"></div>
     </div>
 
     <section class="bg_page">
@@ -291,7 +212,7 @@
 
             <header class="header_menu">
                 <div class="logo_details">
-                    <img src="/imgs/logo.jpg" alt="KitsuneWatch Logo" class="logo_img" width="40" height="40">
+                    <img src="/imgs/logo.svg" alt="KitsuneWatch Logo" class="logo_img" width="40" height="40">
                     <div class="logo_placeholder" style="display: none;">
                         <i class="bi bi-stars"></i>
                     </div>
@@ -471,7 +392,7 @@
          факту полной загрузки страницы запускает анимацию исчезновения
          (см. /preloader/preloader.js). Стоит первым среди отложенных
          скриптов, чтобы начать отслеживание как можно раньше. -->
-    <script src="/preloader/preloader.js?v=1" defer></script>
+    <script src="/preloader/preloader.js?v=2" defer></script>
 
     <!-- Bootstrap JS Bundle с Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
@@ -479,8 +400,8 @@
          `npm run build` — см. package.json / scripts/build-assets.js).
          HTML подключает только .min-файлы; исходники .js/.css остаются
          в репозитории для редактирования, но браузер их не грузит. -->
-    <script src="/assets/scripts/theme-manager.min.js?v=cf5a2747" defer></script>
-    <script src="/assets/scripts/index.min.js?v=671ba575" defer></script>
+    <script src="/assets/scripts/theme-manager.min.js?v=981582a6" defer></script>
+    <script src="/assets/scripts/index.min.js?v=9c735aa0" defer></script>
 
     <!-- Система достижений: ядро (трекинг + условия), уведомления (тосты)
          и отдельная страница — три независимых модуля в /achievements/.
@@ -497,6 +418,8 @@
     <script src="/cookie-widget/cookie-widget-core.min.js?v=2271cbc7" defer
         data-site-name="KitsuneWatch" data-position="bottom-left" data-locale="ru"></script>
     <script src="/cookie-widget/cookie-widget-ui.min.js?v=c8c4dfeb" defer></script>
+    <!-- Секретные ссылки: открываются по /s/<код> (см. /secret-links/SECRET-LINKS-GUIDE.txt) -->
+    <script src="/secret-links/secret-links.min.js?v=6687632d" defer></script>
 </body>
 
 </html>

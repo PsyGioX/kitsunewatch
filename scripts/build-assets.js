@@ -47,12 +47,14 @@ const JS_SOURCES = [
     'cookie-widget/cookie-widget-detectors.js',
     'cookie-widget/cookie-widget-core.js',
     'cookie-widget/cookie-widget-ui.js',
+    'secret-links/secret-links.js',
 ];
 
 const CSS_SOURCES = [
     'assets/styles/index.css',
     'achievements/achievements.css',
     'cookie-widget/cookie-widget.css',
+    'secret-links/secret-links.css',
     // Самостоятельно захостенные Bootstrap Icons (см. комментарий в самом
     // файле) — гоняются через тот же минификатор, что и остальной CSS.
     'assets/vendor/bootstrap-icons/bootstrap-icons.css',
