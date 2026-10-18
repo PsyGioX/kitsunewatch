@@ -255,11 +255,22 @@ input,
     letter-spacing: 0.1px;
 }
 
-/* Иконки Bootstrap */
+/* Иконки Bootstrap: рисуем глиф в flex-боксе по центру.
+   У bootstrap-icons на ::before стоит vertical-align: -.125em, из-за
+   которого иконка в круглых и квадратных кнопках съезжала вниз. */
 .bi {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.1em;
     line-height: 1;
     vertical-align: -0.125em;
+}
+
+.bi::before {
+    display: block;
+    line-height: 1;
+    vertical-align: 0 !important;
 }
 
 button .bi,
@@ -3443,6 +3454,23 @@ h3 .bi,
     letter-spacing: 0.2px;
 }
 
+.loading-cancel-button::before,
+.loading-cancel-button::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 2px;
+    margin: -1px 0 0 -7px;
+    border-radius: 2px;
+    background: currentColor;
+    font-size: 0;
+}
+
+.loading-cancel-button::before { transform: rotate(45deg); }
+.loading-cancel-button::after { transform: rotate(-45deg); }
+
 .loading-cancel-button {
     background: rgba(var(--text-rgb), 0.07);
     color: var(--text-soft);
@@ -3453,6 +3481,9 @@ h3 .bi,
     color: var(--text);
     transform: none;
 }
+
+.loading-cancel-button:hover::before { transform: rotate(45deg); }
+.loading-cancel-button:hover::after { transform: rotate(-45deg); }
 
 .loading-cancel-button:active {
     transform: none;

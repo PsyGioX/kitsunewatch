@@ -20,7 +20,11 @@
     function readCode() {
         var raw = null;
         try {
-            raw = new URLSearchParams(window.location.search).get(PARAM);
+            // На Vercel /s/<код> переписывается на сервере, а в адресной
+            // строке остаётся как есть — поэтому код берём и из пути.
+            var pm = window.location.pathname.match(/^\/s\/([^\/]+)\/?$/);
+            if (pm) raw = decodeURIComponent(pm[1]);
+            if (!raw) raw = new URLSearchParams(window.location.search).get(PARAM);
             if (!raw && /^#s=/.test(window.location.hash)) raw = window.location.hash.slice(3);
         } catch (e) {
             return null;
@@ -44,7 +48,8 @@
             var url = new URL(window.location.href);
             url.searchParams.delete(PARAM);
             if (/^#s=/.test(url.hash)) url.hash = '';
-            window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+            var path = /^\/s\/[^\/]+\/?$/.test(url.pathname) ? '/' : url.pathname;
+            window.history.replaceState(window.history.state, '', path + url.search + url.hash);
         } catch (e) {
             return;
         }
