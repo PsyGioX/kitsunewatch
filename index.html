@@ -128,7 +128,7 @@
          каскад у правил Bootstrap с той же специфичностью. Блокирующий —
          задаёт цвета/раскладку всего первого экрана, без него была бы
          заметная вспышка нестилизованного контента. -->
-    <link rel="stylesheet" href="/assets/styles/index.min.css?v=7e7f68b2">
+    <link rel="stylesheet" href="/assets/styles/index.min.css?v=694e1ddd">
 
     <!-- Система достижений (папка /achievements/, см. README внутри) —
          полностью отдельный модуль, не связанный с основным стилем
@@ -136,10 +136,10 @@
          На первом экране не нужен (страница открывается по клику), поэтому
          грузится неблокирующе — тот же приём media=print/onload, что и
          для Bootstrap CSS выше. -->
-    <link rel="preload" as="style" href="/achievements/achievements.min.css?v=1f924c22">
-    <link rel="stylesheet" href="/achievements/achievements.min.css?v=1f924c22" media="print" onload="this.media='all'">
+    <link rel="preload" as="style" href="/achievements/achievements.min.css?v=a03be956">
+    <link rel="stylesheet" href="/achievements/achievements.min.css?v=a03be956" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="/achievements/achievements.min.css?v=1f924c22">
+        <link rel="stylesheet" href="/achievements/achievements.min.css?v=a03be956">
     </noscript>
 
     <!-- Cookie-виджет (папка /cookie-widget/, см. README внутри) — тоже
@@ -147,16 +147,16 @@
          активное сканирование страницы на скрипты метрик/рекламы. Баннер
          рисуется только после инициализации JS, так что тоже не нужен для
          первого кадра — грузится неблокирующе. -->
-    <link rel="preload" as="style" href="/cookie-widget/cookie-widget.min.css?v=5564093a">
-    <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=5564093a" media="print" onload="this.media='all'">
+    <link rel="preload" as="style" href="/cookie-widget/cookie-widget.min.css?v=57bc3fda">
+    <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=57bc3fda" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=5564093a">
+        <link rel="stylesheet" href="/cookie-widget/cookie-widget.min.css?v=57bc3fda">
     </noscript>
     <!-- Секретные ссылки: стили модалки (неблокирующе) -->
-    <link rel="preload" as="style" href="/secret-links/secret-links.min.css?v=9c630b47">
-    <link rel="stylesheet" href="/secret-links/secret-links.min.css?v=9c630b47" media="print" onload="this.media='all'">
+    <link rel="preload" as="style" href="/secret-links/secret-links.min.css?v=525c0553">
+    <link rel="stylesheet" href="/secret-links/secret-links.min.css?v=525c0553" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="/secret-links/secret-links.min.css?v=9c630b47">
+        <link rel="stylesheet" href="/secret-links/secret-links.min.css?v=525c0553">
     </noscript>
 
     <!-- Базовая структурированная разметка сайта (Schema.org). Разметка под
@@ -419,7 +419,7 @@
         data-site-name="KitsuneWatch" data-position="bottom-left" data-locale="ru"></script>
     <script src="/cookie-widget/cookie-widget-ui.min.js?v=c8c4dfeb" defer></script>
     <!-- Секретные ссылки: открываются по /s/<код> (см. /secret-links/SECRET-LINKS-GUIDE.txt) -->
-    <script src="/secret-links/secret-links.min.js?v=5af45f2d" defer></script>
+    <script src="/secret-links/secret-links.min.js?v=54f87382" defer></script>
 </body>
 
 </html>
